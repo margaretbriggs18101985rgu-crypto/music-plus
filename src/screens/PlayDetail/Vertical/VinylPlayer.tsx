@@ -41,6 +41,7 @@ interface NativePlayerProps extends ViewProps {
     lyricsVisible: boolean
     lyrics: Array<{ time: number, text: string, translation: string }>
     activeLyric: number
+    seekRevision: number
     playMode: string
     bottomInset: number
   }
@@ -53,6 +54,7 @@ export default ({ componentId }: { componentId: string }) => {
   const lyric = useLrcPlay()
   const playMode = useSettingValue('player.togglePlayMethod')
   const [lyricsVisible, setLyricsVisible] = useState(false)
+  const [seekRevision, setSeekRevision] = useState(0)
   const music = usePlayerMusicInfo()
   const current = usePlayMusicInfo()
   const artistPicker = useRef<ArtistPickerRef>(null)
@@ -71,6 +73,15 @@ export default ({ componentId }: { componentId: string }) => {
       navigationBar: { backgroundColor: '#2A292D' },
     })
   }, [componentId])
+
+  useEffect(() => {
+    // The original event also handles MediaSession/notification seeks, not just this screen.
+    const onSeek = (position: number) => {
+      if (Number.isFinite(position)) setSeekRevision(revision => revision + 1)
+    }
+    global.app_event.on('setProgress', onSeek)
+    return () => { global.app_event.off('setProgress', onSeek) }
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -110,7 +121,9 @@ export default ({ componentId }: { componentId: string }) => {
       case 'previous': if (hasTrack) void playPrev(); break
       case 'next': if (hasTrack) void playNext(); break
       case 'seek':
-        if (hasTrack && progress.maxPlayTime > 0) global.app_event.setProgress(Math.max(0, Math.min(value, progress.maxPlayTime)))
+        if (hasTrack && Number.isFinite(value) && Number.isFinite(progress.maxPlayTime) && progress.maxPlayTime > 0) {
+          global.app_event.setProgress(Math.max(0, Math.min(value, progress.maxPlayTime)))
+        }
         break
       case 'favorite':
         if (hasTrack) { if (favorite) uncollectMusic(); else collectMusic() }
@@ -125,6 +138,7 @@ export default ({ componentId }: { componentId: string }) => {
     }
   }
 
+  const nativeLyrics = useMemo(() => lines.map(line => ({ time: line.time, text: line.text, translation: line.extendedLyrics.join('\n') })), [lines])
   const playerState = useMemo<NativePlayerProps['playerState']>(() => ({
     trackId: music.id ?? '',
     title: hasTrack ? music.name : '暂无播放歌曲',
@@ -139,12 +153,13 @@ export default ({ componentId }: { componentId: string }) => {
     favorite,
     status: !hasTrack ? '选择歌曲后即可播放' : playback == State.Buffering || playback == State.Connecting ? '缓冲中' : statusText,
     lyricsVisible,
-    lyrics: lines.map(line => ({ time: line.time, text: line.text, translation: line.extendedLyrics.join('\n') })),
+    lyrics: nativeLyrics,
     activeLyric: lyric.line,
+    seekRevision,
     playMode,
     topInset,
     bottomInset: 0,
-  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, lines, lyric.line, playMode])
+  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode])
 
   return <>
     <NativeVinylPlayer style={{ flex: 1 }} playerState={playerState} onPlayerAction={onPlayerAction} />

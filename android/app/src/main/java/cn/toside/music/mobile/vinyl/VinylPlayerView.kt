@@ -14,6 +14,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableType
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.annotations.ReactProp
@@ -62,11 +63,16 @@ class VinylPlayerView(context: ThemedReactContext) : FrameLayout(context) {
             duration = number("duration"), favorite = bool("favorite"), status = string("status"),
             topInset = number("topInset").toFloat(), bottomInset = number("bottomInset").toFloat(),
             lyricsVisible = bool("lyricsVisible"), activeLyric = number("activeLyric").toInt(), playMode = string("playMode", "listLoop"),
+            seekRevision = number("seekRevision").toInt(),
             lyrics = if (map.hasKey("lyrics") && !map.isNull("lyrics")) {
                 val lines = map.getArray("lyrics")!!
-                (0 until lines.size()).mapNotNull { index -> lines.getMap(index)?.let { line ->
-                    VinylLyricLine(line.getDouble("time"), line.getString("text") ?: "", line.getString("translation") ?: "")
-                } }
+                // Preserve slots (including duplicate timestamps) so activeLyric keeps its RN index.
+                (0 until lines.size()).map { index ->
+                    val line = if (lines.getType(index) == ReadableType.Map) lines.getMap(index) else null
+                    fun text(key: String) = if (line?.hasKey(key) == true && line.getType(key) == ReadableType.String) line.getString(key) ?: "" else ""
+                    val time = if (line?.hasKey("time") == true && line.getType("time") == ReadableType.Number) line.getDouble("time") else Double.NaN
+                    VinylLyricLine(time, text("text"), text("translation"))
+                }
             } else emptyList(),
         )
         updateSafeArea()
