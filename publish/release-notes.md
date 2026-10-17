@@ -12,7 +12,7 @@ MUSIC++ v1.1.0：沉浸式空间歌词更新，基于 LX Music Mobile v1.9.1 改
 
 打开 APK，按安卓系统提示允许浏览器或文件管理器安装应用。Android 5.0 及以上。常见 64 位安卓手机也可以选择较小的 `arm64-v8a.apk`。
 
-这些文件是正式签名的 Release APK，内置 JS 和资源，无需电脑、开发服务器或 GitHub 账号。v1.0.0 用户可直接覆盖更新；建议更新前备份歌单。SHA-256 校验值见 `SHA256SUMS.txt`。
+这些文件是正式签名的 Release APK，内置 JS 和资源，无需电脑、开发服务器或 GitHub 账号。v1.0.0 用户请下载与原安装相同架构的 APK 覆盖更新；上次使用通用包的用户继续下载 `universal.apk`。从分架构包改装通用包可能被 Android 判定为版本降级，请继续使用原架构包。建议更新前备份歌单。SHA-256 校验值见 `SHA256SUMS.txt`。
 
 安卓使用 APK；此版本不提供 Windows EXE。iOS 和 HarmonyOS NEXT 不支持。
 
