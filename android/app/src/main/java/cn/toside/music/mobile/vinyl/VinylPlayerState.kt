@@ -23,6 +23,11 @@ data class VinylPlayerState(
     val lyrics: List<VinylLyricLine> = emptyList(),
     val activeLyric: Int = -1,
     val seekRevision: Int = 0,
+    val immersiveVisualsEnabled: Boolean = true,
+    val particleQuality: String = "auto",
+    val lyricMotionEnabled: Boolean = true,
+    val backgroundMotion: Boolean = true,
+    val respectReducedMotion: Boolean = true,
     val playMode: String = "listLoop",
 )
 

@@ -6,6 +6,19 @@ import org.junit.Test
 class ImmersiveVisualConfigTest {
     private val config = ImmersiveVisualConfig()
     private val foreground = ImmersiveEnvironment(foreground = true)
+    @Test fun oldBridgeStateGetsTheExistingEnabledDefaults() {
+        assertEquals(config, visualConfigForState(VinylPlayerState()))
+        assertEquals(ParticleQuality.Auto, visualConfigForState(VinylPlayerState(particleQuality = "unknown")).particleQuality)
+    }
+    @Test fun persistedValuesControlIndependentNativeEffects() {
+        val mapped = visualConfigForState(VinylPlayerState(immersiveVisualsEnabled = false,
+            lyricMotionEnabled = false, backgroundMotion = false, respectReducedMotion = false, particleQuality = "high"))
+        assertEquals(ImmersiveVisualConfig(false, false, false, false, ParticleQuality.High), mapped)
+        assertEquals(AmbientPolicy(false, 0, false, false), resolveAmbientPolicy(mapped, foreground, true))
+        for ((wire, expected) in listOf("low" to ParticleQuality.Low, "off" to ParticleQuality.Off)) {
+            assertEquals(expected, visualConfigForState(VinylPlayerState(particleQuality = wire)).particleQuality)
+        }
+    }
     @Test fun qualityUsesBoundedCountsAndLowRamCapsHigh() {
         for ((quality, count) in listOf(ParticleQuality.Auto to 32, ParticleQuality.Low to 16,
             ParticleQuality.High to 42, ParticleQuality.Off to 0)) {

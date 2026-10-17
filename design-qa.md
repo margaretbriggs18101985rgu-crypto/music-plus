@@ -6,9 +6,16 @@
 - TypeScript、ESLint、40 项 Node 测试、29 项 Android 单测与四 ABI standalone Debug 构建通过，覆盖安装成功。真实《Faded》原页回归横/纵拖动、回弹/CANCEL、行/进度 Seek、暂停/播放和黑胶往返。
 - 暂停舞台 36,736 抽样像素差异为 0；HOME/返回继续同一真实播放且视觉相位不补播后台时间。系统动画关闭和 Android 省电实际使粒子归零、停止环境时钟。320×640dp / fontScale 1.3 正文可浏览，控制栏/安全区可见。
 - 红/蓝/白/缺失/失败封面及粒子档位在明确标注无音频的 Debug 工具验证；快速红蓝替换最终配色正确。这些夹具不是实际歌曲/音频证据。83.7456 秒录屏全部来自正式 MainActivity。
-- 本次证据在 `build/immersive-validation/p2/`，文件清单、参数、校验值、测试边界及回滚见 [P2 记录](doc/IMMERSIVE_LYRICS_P2.md)。P3 设置/模式过渡、完整无障碍、真机 30 分钟性能/耗电和下载传输等尚未验收；不宣称 60fps。省电复原后立即注入的点按曾被 Android 过渡快照阻挡，InputDispatcher 日志已定位；等待系统过渡完成后两轮暂停复测通过，保留原失败与定位证据。
+- 本次证据在 `build/immersive-validation/p2/`，文件清单、参数、校验值、测试边界及回滚见 [P2 记录](doc/IMMERSIVE_LYRICS_P2.md)。P3 设置/模式切换已实施；完整无障碍、真机 30 分钟性能/耗电和下载传输仍未验收，不宣称 60fps。省电复原后立即注入的点按曾被 Android 过渡快照阻挡，InputDispatcher 日志已定位；等待系统过渡完成后两轮暂停复测通过，保留原失败与定位证据。
 
 下方 P1 和更早记录为历史阶段事实，其“尚未实施”描述以对应阶段为限。
+
+## 2026-10-18 空间歌词 P3 增量
+
+- 新增 RN 持久化设置，控制总特效、歌词/背景运动、系统减少动画与 Auto/Low/High/Off 粒子档位；Compose 原生读取同一 TrackPlayer 状态桥配置。模式切换增加 300ms Crossfade，减少运动时即时完成；底栏和累计黑胶时钟仍在原页面状态中。
+- TypeScript、ESLint、42 项 Node 测试、31 项 Android 单测及四 ABI standalone Debug 构建通过。API 37 AVD 上通过设置界面验证关闭效果、Low 档、强制结束后保留，再恢复默认启用/Auto；实际歌词页关闭特效仍显示 LRC。19.068 秒录屏含黑胶/歌词和快速反向切换。
+- 本轮设备工作期间播放源自动切换且 position 快照与页面时间不一致，P3 单独行 Seek 复测记为 inconclusive；P2 已有真实行 Seek 通过证据。无人工 TalkBack、物理真机听感或 30 分钟性能/功耗数据。
+- 截图、录屏、构建环境修复、校验值和边界见 [P3 记录](doc/IMMERSIVE_LYRICS_P3.md)；P3 证据文件位于 `build/immersive-validation/p3/`。
 
 ## 2026-10-17 空间歌词 P1 增量
 

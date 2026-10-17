@@ -19,7 +19,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 
 internal enum class ParticleQuality { Auto, Low, High, Off }
 
-/** Internal switches until P3 wires the existing persistent settings architecture. */
+/** RN settings are normalized here; old bridge payloads retain safe defaults. */
 internal data class ImmersiveVisualConfig(
     val visualEffectsEnabled: Boolean = true,
     val lyricMotionEnabled: Boolean = true,
@@ -82,3 +82,16 @@ internal fun rememberImmersiveEnvironment(): ImmersiveEnvironment {
     }
     return environment
 }
+
+internal fun visualConfigForState(state: VinylPlayerState) = ImmersiveVisualConfig(
+    visualEffectsEnabled = state.immersiveVisualsEnabled,
+    lyricMotionEnabled = state.lyricMotionEnabled,
+    respectReducedMotion = state.respectReducedMotion,
+    backgroundMotion = state.backgroundMotion,
+    particleQuality = when (state.particleQuality) {
+        "low" -> ParticleQuality.Low
+        "high" -> ParticleQuality.High
+        "off" -> ParticleQuality.Off
+        else -> ParticleQuality.Auto
+    },
+)

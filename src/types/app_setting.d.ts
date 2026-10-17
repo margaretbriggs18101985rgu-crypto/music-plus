@@ -176,6 +176,13 @@ declare global {
        */
       'player.isShowLyricTranslation': boolean
 
+      /** Android 原生歌词视觉设置；旧配置由默认值合并补齐。 */
+      'player.immersiveVisualsEnabled': boolean
+      'player.particleQuality': 'auto' | 'low' | 'high' | 'off'
+      'player.lyricMotionEnabled': boolean
+      'player.backgroundMotion': boolean
+      'player.respectReducedMotion': boolean
+
       /**
        * 是否显示歌词罗马音
        */

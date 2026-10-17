@@ -54,7 +54,7 @@ class VinylPlayerView(context: ThemedReactContext) : FrameLayout(context) {
         if (map == null) return
         fun string(key: String, fallback: String = "") = if (map.hasKey(key) && !map.isNull(key)) map.getString(key) ?: fallback else fallback
         fun number(key: String) = if (map.hasKey(key) && !map.isNull(key)) map.getDouble(key) else 0.0
-        fun bool(key: String) = map.hasKey(key) && !map.isNull(key) && map.getBoolean(key)
+        fun bool(key: String, fallback: Boolean = false) = if (map.hasKey(key) && map.getType(key) == ReadableType.Boolean) map.getBoolean(key) else fallback
         playerState.value = VinylPlayerState(
             trackId = string("trackId"), title = string("title"), artist = string("artist"),
             artwork = string("artwork").ifBlank { null }, isPlaying = bool("isPlaying"),
@@ -64,6 +64,11 @@ class VinylPlayerView(context: ThemedReactContext) : FrameLayout(context) {
             topInset = number("topInset").toFloat(), bottomInset = number("bottomInset").toFloat(),
             lyricsVisible = bool("lyricsVisible"), activeLyric = number("activeLyric").toInt(), playMode = string("playMode", "listLoop"),
             seekRevision = number("seekRevision").toInt(),
+            immersiveVisualsEnabled = bool("immersiveVisualsEnabled", true),
+            particleQuality = if (map.hasKey("particleQuality") && map.getType("particleQuality") == ReadableType.String) string("particleQuality", "auto") else "auto",
+            lyricMotionEnabled = bool("lyricMotionEnabled", true),
+            backgroundMotion = bool("backgroundMotion", true),
+            respectReducedMotion = bool("respectReducedMotion", true),
             lyrics = if (map.hasKey("lyrics") && !map.isNull("lyrics")) {
                 val lines = map.getArray("lyrics")!!
                 // Preserve slots (including duplicate timestamps) so activeLyric keeps its RN index.

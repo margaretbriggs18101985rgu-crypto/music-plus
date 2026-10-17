@@ -42,6 +42,11 @@ interface NativePlayerProps extends ViewProps {
     lyrics: Array<{ time: number, text: string, translation: string }>
     activeLyric: number
     seekRevision: number
+    immersiveVisualsEnabled: boolean
+    particleQuality: LX.AppSetting['player.particleQuality']
+    lyricMotionEnabled: boolean
+    backgroundMotion: boolean
+    respectReducedMotion: boolean
     playMode: string
     bottomInset: number
   }
@@ -53,6 +58,11 @@ export default ({ componentId }: { componentId: string }) => {
   const lines = useLrcSet()
   const lyric = useLrcPlay()
   const playMode = useSettingValue('player.togglePlayMethod')
+  const immersiveVisualsEnabled = useSettingValue('player.immersiveVisualsEnabled')
+  const particleQuality = useSettingValue('player.particleQuality')
+  const lyricMotionEnabled = useSettingValue('player.lyricMotionEnabled')
+  const backgroundMotion = useSettingValue('player.backgroundMotion')
+  const respectReducedMotion = useSettingValue('player.respectReducedMotion')
   const [lyricsVisible, setLyricsVisible] = useState(false)
   const [seekRevision, setSeekRevision] = useState(0)
   const music = usePlayerMusicInfo()
@@ -156,10 +166,15 @@ export default ({ componentId }: { componentId: string }) => {
     lyrics: nativeLyrics,
     activeLyric: lyric.line,
     seekRevision,
+    immersiveVisualsEnabled,
+    particleQuality,
+    lyricMotionEnabled,
+    backgroundMotion,
+    respectReducedMotion,
     playMode,
     topInset,
     bottomInset: 0,
-  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode])
+  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode, immersiveVisualsEnabled, particleQuality, lyricMotionEnabled, backgroundMotion, respectReducedMotion])
 
   return <>
     <NativeVinylPlayer style={{ flex: 1 }} playerState={playerState} onPlayerAction={onPlayerAction} />
