@@ -19,6 +19,7 @@ import androidx.core.view.WindowInsetsCompat
 /** Debug-only, explicitly labelled animation harness; does not manufacture audio progress. */
 class VinylPreviewActivity : AppCompatActivity() {
     private val clock = VinylRotationClock()
+    private val visualConfig = mutableStateOf(ImmersiveVisualConfig())
     private val state = mutableStateOf(VinylPlayerState(
         trackId = "visual-demo", title = "午后的唱片", artist = "界面演示 · 非音频播放",
         hasTrack = true, isStopped = false, demo = true, favorite = true,
@@ -35,7 +36,7 @@ class VinylPreviewActivity : AppCompatActivity() {
             isAppearanceLightNavigationBars = false
         }
         val content = ComposeView(this).apply {
-            setContent { PlayerScreen(state.value, clock, ::handleAction) }
+            setContent { PlayerScreen(state.value, clock, visualConfig.value, ::handleAction) }
         }
         setContentView(content)
         ViewCompat.setOnApplyWindowInsetsListener(content) { _, insets ->
@@ -51,11 +52,31 @@ class VinylPreviewActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         // Debug harness commands only, for reproducible on-device animation verification.
         val action = intent.getStringExtra("vinyl_action") ?: return
-        if (action in setOf("snapshot", "toggle", "refresh", "buffer", "stop", "resume", "empty")) handleAction(action, 0.0)
+        if (action in setOf("snapshot", "toggle", "refresh", "buffer", "stop", "resume", "empty", "lyrics", "ambient-red", "ambient-blue", "ambient-white", "ambient-missing", "ambient-invalid", "ambient-off", "ambient-low", "ambient-high", "ambient-auto")) handleAction(action, 0.0)
     }
 
     private fun handleAction(action: String, value: Double) {
         when (action) {
+            "lyrics" -> state.value = state.value.copy(lyricsVisible = if (value == 0.0) !state.value.lyricsVisible else value == 1.0)
+            // Solid-color fixtures test palette/failure behavior only; no audio or lyric data is injected.
+            "ambient-red", "ambient-blue", "ambient-white", "ambient-missing", "ambient-invalid" -> {
+                val resource = when (action) {
+                    "ambient-red" -> R.drawable.ambient_test_red
+                    "ambient-blue" -> R.drawable.ambient_test_blue
+                    "ambient-white" -> R.drawable.ambient_test_white
+                    else -> null
+                }
+                state.value = state.value.copy(trackId = "visual-demo-$action",
+                    artwork = resource?.let { "android.resource://$packageName/$it" }
+                        ?: if (action == "ambient-invalid") "file:///nonexistent/ambient-cover.png" else null)
+            }
+            "ambient-off", "ambient-low", "ambient-high", "ambient-auto" -> visualConfig.value = visualConfig.value.copy(
+                visualEffectsEnabled = action != "ambient-off",
+                particleQuality = when (action) {
+                    "ambient-low" -> ParticleQuality.Low
+                    "ambient-high" -> ParticleQuality.High
+                    else -> ParticleQuality.Auto
+                })
             "snapshot" -> Log.i("VinylPreview", "demo=true angle=${clock.angle} playing=${state.value.isPlaying}")
             "refresh" -> state.value = state.value.copy(artist = "界面演示 · 状态刷新 ${System.currentTimeMillis() % 10000}")
             "buffer" -> state.value = state.value.copy(isPlaying = false, isStopped = false)

@@ -6,8 +6,6 @@ import android.graphics.Paint
 import android.graphics.RadialGradient
 import android.graphics.Shader
 import android.graphics.SweepGradient
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,9 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImagePainter
 
 /** Cached once: fine concentric grooves, pressed edge and broad, low-contrast reflections. */
 internal fun createVinylTexture(): Bitmap {
@@ -73,6 +69,7 @@ internal fun VinylRecord(
     state: VinylPlayerState,
     diameter: Dp,
     clock: VinylRotationClock,
+    artworkPainter: AsyncImagePainter,
     modifier: Modifier = Modifier,
 ) {
     val texture = remember { createVinylTexture().asImageBitmap() }
@@ -98,25 +95,15 @@ internal fun VinylRecord(
         .background(Color(0xFF080A0B)).border(1.dp, Color.White.copy(alpha = .09f), CircleShape)) {
         Box(Modifier.fillMaxSize().graphicsLayer { rotationZ = angle }, contentAlignment = Alignment.Center) {
             Image(texture, contentDescription = "黑胶唱片沟槽", modifier = Modifier.fillMaxSize())
-            Crossfade(targetState = state.artwork, animationSpec = tween(300), label = "album crossfade") { artwork ->
-                val context = LocalContext.current
-                val imageRequest = remember(artwork, state.artworkUserAgent) {
-                    ImageRequest.Builder(context).data(artwork).apply {
-                        if (state.artworkUserAgent.isNotBlank()) addHeader("User-Agent", state.artworkUserAgent)
-                    }.build()
-                }
-                var imageError by remember(artwork) { mutableStateOf(false) }
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Box(Modifier.fillMaxSize(.645f).clip(CircleShape).background(Color(0xFF36495B))
-                        .border(.7.dp, Color.Black.copy(alpha = .7f), CircleShape), contentAlignment = Alignment.Center) {
-                        if (artwork.isNullOrBlank() || imageError) {
-                            BasicText("LX / MUSIC", style = TextStyle(color = VinylPalette.Muted,
-                                fontSize = 16.sp, fontWeight = FontWeight.Medium, letterSpacing = 2.sp))
-                        } else {
-                            AsyncImage(model = imageRequest, contentDescription = "专辑封面", contentScale = ContentScale.Crop,
-                                onError = { imageError = true },
-                                modifier = Modifier.fillMaxSize())
-                        }
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxSize(.645f).clip(CircleShape).background(Color(0xFF36495B))
+                    .border(.7.dp, Color.Black.copy(alpha = .7f), CircleShape), contentAlignment = Alignment.Center) {
+                    if (state.artwork.isNullOrBlank() || artworkPainter.state is AsyncImagePainter.State.Error) {
+                        BasicText("LX / MUSIC", style = TextStyle(color = VinylPalette.Muted,
+                            fontSize = 16.sp, fontWeight = FontWeight.Medium, letterSpacing = 2.sp))
+                    } else {
+                        Image(painter = artworkPainter, contentDescription = "专辑封面", contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize())
                     }
                 }
             }
