@@ -20,5 +20,5 @@
       // "@utils": ["src/utils"],
     }
   },
-  "exclude": ["node_modules", "build", "dist"]
+  "exclude": ["node_modules", "build", "dist", "tools/ui-preview"]
 }

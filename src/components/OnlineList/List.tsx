@@ -77,6 +77,7 @@ const List = forwardRef<ListType, ListProps>(({
   useImperativeHandle(ref, () => ({
     setList(list, isAppend, showSource) {
       setList(list)
+      if (!isAppend) requestAnimationFrame(() => flatListRef.current?.scrollToOffset({ offset: 0, animated: false }))
       setShowSource(showSource)
       if (!isAppend && selectedListRef.current.length) setSelectedList(selectedListRef.current = [])
     },

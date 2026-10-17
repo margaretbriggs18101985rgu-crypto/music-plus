@@ -1,8 +1,10 @@
+import { BUILTIN_USER_API_ID } from './builtinUserApi'
+
 const defaultSetting: LX.AppSetting = {
   version: '2.0',
   'common.isAutoTheme': false,
   'common.langId': null,
-  'common.apiSource': '',
+  'common.apiSource': BUILTIN_USER_API_ID,
   'common.sourceNameType': 'alias',
   'common.shareType': 'system',
   'common.isAgreePact': false,
@@ -73,19 +75,13 @@ const defaultSetting: LX.AppSetting = {
   'sync.enable': false,
 
   // 'theme.id': 'blue_plus',
-  'theme.id': 'green',
+  'theme.id': 'mineradio',
   'theme.lightId': 'green',
-  'theme.darkId': 'black',
+  'theme.darkId': 'mineradio',
   'theme.hideBgDark': false,
   'theme.dynamicBg': false,
   'theme.fontShadow': false,
 }
 
-
-// 使用新年皮肤
-if (new Date().getMonth() < 2) {
-  defaultSetting['theme.id'] = 'happy_new_year'
-  defaultSetting['desktopLyric.style.lyricPlayedColor'] = 'rgba(255, 18, 34, 1)'
-}
 
 export default defaultSetting

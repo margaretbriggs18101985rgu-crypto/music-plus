@@ -6,11 +6,18 @@ import com.android.build.OutputFile
 import groovy.json.JsonSlurper
 import org.apache.tools.ant.taskdefs.condition.Os
 
+// Keep normal Metro development available; build a self-contained APK on request.
+def standaloneDebug = project.findProperty("standaloneDebug") == "true"
+
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
  */
 react {
+    extraPackagerArgs = ["--max-workers", "2"]
+    if (standaloneDebug) {
+        debuggableVariants = []
+    }
     /* Folders */
     //   The root of your project, i.e. where "package.json" lives. Default is '..'
     // root = file("../")
@@ -109,12 +116,20 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace "cn.toside.music.mobile"
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        // Kotlin 1.9.24 compatibility, without upgrading the existing toolchain.
+        kotlinCompilerExtensionVersion = "1.5.14"
+    }
     defaultConfig {
-        applicationId "cn.toside.music.mobile"
+        applicationId "io.github.musicplus.player"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode verCode
         versionName verName
+        buildConfigField "boolean", "USE_METRO", "false"
     }
 
     splits {
@@ -132,7 +147,7 @@ android {
                 storePassword MYAPP_UPLOAD_STORE_PASSWORD
                 keyAlias MYAPP_UPLOAD_KEY_ALIAS
                 keyPassword MYAPP_UPLOAD_KEY_PASSWORD
-            } else {
+            } else if (rootProject.file("keystore.properties").exists()) {
                 def keystorePropertiesFile = rootProject.file("keystore.properties")
                 def keystoreProperties = new Properties()
                 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
@@ -153,11 +168,9 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            buildConfigField "boolean", "USE_METRO", standaloneDebug ? "false" : "true"
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
 
@@ -188,6 +201,16 @@ android {
 }
 
 dependencies {
+    implementation "androidx.compose.ui:ui:1.7.8"
+    implementation "androidx.compose.foundation:foundation:1.7.8"
+    implementation "androidx.compose.animation:animation:1.7.8"
+    implementation "androidx.compose.material:material-icons-core:1.7.8"
+    implementation "androidx.compose.ui:ui-tooling-preview:1.7.8"
+    // 2.7 switches to Kotlin 2.0; keep the repository's Kotlin 1.9 toolchain.
+    implementation "io.coil-kt:coil-compose:2.6.0"
+    implementation "androidx.lifecycle:lifecycle-runtime-compose:2.8.7"
+    debugImplementation "androidx.compose.ui:ui-tooling:1.7.8"
+    testImplementation "junit:junit:4.13.2"
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
     implementation("com.facebook.react:flipper-integration")

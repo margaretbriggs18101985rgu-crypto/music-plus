@@ -15,8 +15,8 @@ import CommentText from './CommentText'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const defaultUser = require('@/resources/images/defaultUser.jpg')
 
-const GAP = 12
-const avatarWidth = scaleSizeW(36)
+const GAP = 16
+const avatarWidth = scaleSizeW(44)
 
 const CommentFloor = memo(({ comment, isLast }: {
   comment: Comment
@@ -69,8 +69,8 @@ const CommentFloor = memo(({ comment, isLast }: {
         </View>
         <View style={styles.right}>
           <View style={styles.info}>
-            <View>
-              <Text selectable numberOfLines={1} size={14}>
+            <View style={{ flex: 1, paddingRight: 8 }}>
+              <Text selectable numberOfLines={1} size={15}>
                 {comment.userName}
               </Text>
               <View style={styles.metaInfo}>
@@ -102,11 +102,9 @@ const CommentFloor = memo(({ comment, isLast }: {
 const styles = createStyle({
   container: {
     flex: 1,
-    // backgroundColor: 'rgba(0,0,0,0.1)',
     marginTop: GAP,
     paddingBottom: GAP,
     borderBottomWidth: BorderWidths.normal,
-    borderStyle: 'dashed',
   },
   comment: {
     flex: 1,
@@ -115,7 +113,7 @@ const styles = createStyle({
   },
   right: {
     flex: 1,
-    paddingLeft: 10,
+    paddingLeft: 12,
   },
   info: {
     flex: 1,
@@ -125,7 +123,7 @@ const styles = createStyle({
     alignItems: 'center',
   },
   metaInfo: {
-    marginTop: 2,
+    marginTop: 4,
     flexDirection: 'row',
   },
   location: {
@@ -147,8 +145,6 @@ const styles = createStyle({
     marginTop: GAP,
     marginLeft: 20,
     borderTopWidth: BorderWidths.normal,
-    // backgroundColor: 'rgba(0,0,0,0.1)',
-    borderStyle: 'dashed',
   },
 })
 
@@ -156,7 +152,7 @@ const stylesRaw = StyleSheet.create({
   avatar: {
     height: avatarWidth,
     width: avatarWidth,
-    borderRadius: 4,
+    borderRadius: avatarWidth / 2,
   },
 })
 

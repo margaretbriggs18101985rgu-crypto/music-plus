@@ -23,6 +23,8 @@ export default forwardRef<ListType, ListProps>(({ onTagChange }, ref) => {
   const [list, setList] = useState<TagInfo['tags']>([])
   const t = useI18n()
   const prevSource = useRef('')
+  const generation = useRef(0)
+  const [error, setError] = useState('')
 
   const isUnmountedRef = useRef(false)
   useEffect(() => {
@@ -36,16 +38,18 @@ export default forwardRef<ListType, ListProps>(({ onTagChange }, ref) => {
     loadTag(source, id) {
       if (id != activeId) setActiveId(id)
       if (source != prevSource.current) {
+        const request = ++generation.current
+        setError('')
         setList([{ name: '', list: [{ name: t('songlist_tag_default'), id: '', parent_id: '', parent_name: '', source }] }])
         void getTags(source).then(tagInfo => {
-          if (isUnmountedRef.current) return
+          if (isUnmountedRef.current || request != generation.current) return
           prevSource.current = source
           setList([
             { name: '', list: [{ name: t('songlist_tag_default'), id: '', parent_id: '', parent_name: '', source }] },
             { name: t('songlist_tag_hot'), list: [...tagInfo.hotTag] },
             ...tagInfo.tags,
           ].filter(t => t.list.length))
-        })
+        }).catch(() => { if (!isUnmountedRef.current && request == generation.current) setError('分类加载失败，请关闭分类后重试') })
       }
     },
   }))
@@ -69,7 +73,7 @@ export default forwardRef<ListType, ListProps>(({ onTagChange }, ref) => {
           list.length == 1
             ? (
                 <View style={styles.blankView}>
-                  <Text>{t('list_loading')}</Text>
+                  <Text>{error || t('list_loading')}</Text>
                 </View>
               )
             : null

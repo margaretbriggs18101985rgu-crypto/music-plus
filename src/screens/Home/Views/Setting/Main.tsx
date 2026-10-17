@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useMemo, useState } from 'react'
+import { forwardRef, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import Basic from './settings/Basic'
 import Player from './settings/Player'
@@ -8,8 +8,7 @@ import List from './settings/List'
 import Sync from './settings/Sync'
 import Backup from './settings/Backup'
 import Other from './settings/Other'
-import Version from './settings/Version'
-import About from './settings/About'
+import SceneTransition from '@/components/common/SceneTransition'
 
 export const SETTING_SCREENS = [
   'basic',
@@ -20,8 +19,6 @@ export const SETTING_SCREENS = [
   'sync',
   'backup',
   'other',
-  'version',
-  'about',
 ] as const
 
 export type SettingScreenIds = typeof SETTING_SCREENS[number]
@@ -35,6 +32,14 @@ export interface MainType {
 
 const Main = forwardRef<MainType, {}>((props, ref) => {
   const [id, setId] = useState(global.lx.settingActiveId)
+  const previousId = useRef(id)
+  const direction = SETTING_SCREENS.indexOf(id) < SETTING_SCREENS.indexOf(previousId.current)
+    ? 'horizontal-reverse'
+    : 'horizontal'
+
+  useLayoutEffect(() => {
+    previousId.current = id
+  }, [id])
 
   useImperativeHandle(ref, () => ({
     setActiveId(id) {
@@ -55,14 +60,12 @@ const Main = forwardRef<MainType, {}>((props, ref) => {
       case 'sync': return <Sync />
       case 'backup': return <Backup />
       case 'other': return <Other />
-      case 'version': return <Version />
-      case 'about': return <About />
       case 'basic':
       default: return <Basic />
     }
   }, [id])
 
-  return component
+  return <SceneTransition sceneKey={id} direction={direction}>{component}</SceneTransition>
 })
 
 

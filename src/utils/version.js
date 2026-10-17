@@ -1,5 +1,5 @@
 import { httpGet } from '@/utils/request'
-import { author, name } from '../../package.json'
+import { repository, name } from '../../package.json'
 import { downloadFile, stopDownload, temporaryDirectoryPath } from '@/utils/fs'
 import { getSupportedAbis, installApk } from '@/utils/nativeModules/utils'
 import { APP_PROVIDER_NAME } from '@/config/constant'
@@ -12,15 +12,10 @@ const abis = [
   'universal',
 ]
 
+const repositoryUrl = repository.url.replace(/^git\+/, '').replace(/\.git$/, '')
+const repositoryPath = repositoryUrl.replace('https://github.com/', '')
 const address = [
-  [`https://raw.githubusercontent.com/${author.name}/${name}/master/publish/version.json`, 'direct'],
-  ['https://registry.npmjs.org/lx-music-mobile-version-info/latest', 'npm'],
-  [`https://cdn.jsdelivr.net/gh/${author.name}/${name}/publish/version.json`, 'direct'],
-  [`https://fastly.jsdelivr.net/gh/${author.name}/${name}/publish/version.json`, 'direct'],
-  [`https://gcore.jsdelivr.net/gh/${author.name}/${name}/publish/version.json`, 'direct'],
-  ['https://registry.npmmirror.com/lx-music-mobile-version-info/latest', 'npm'],
-  ['https://gitee.com/lyswhut/lx-music-mobile-versions/raw/master/version.json', 'direct'],
-  ['http://cdn.stsky.cn/lx-music/mobile/version.json', 'direct'],
+  [`https://raw.githubusercontent.com/${repositoryPath}/main/publish/version.json`, 'direct'],
 ]
 
 
@@ -86,8 +81,8 @@ let apkSavePath
 
 export const downloadNewVersion = async(version, onDownload = noop) => {
   const abi = await getTargetAbi()
-  const url = `https://github.com/${author.name}/${name}/releases/download/v${version}/${name}-v${version}-${abi}.apk`
-  let savePath = temporaryDirectoryPath + '/lx-music-mobile.apk'
+  const url = `${repositoryUrl}/releases/download/v${version}/${name}-v${version}-${abi}.apk`
+  let savePath = temporaryDirectoryPath + '/music-plus.apk'
 
   if (downloadJobId) stopDownload(downloadJobId)
 

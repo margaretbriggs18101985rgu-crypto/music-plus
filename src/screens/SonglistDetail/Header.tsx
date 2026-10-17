@@ -12,8 +12,9 @@ import Image from '@/components/common/Image'
 import { useListInfo } from './state'
 import { useAnimateOnecNumber } from '@/utils/hooks/useAnimateNumber'
 import { useStatusbarHeight } from '@/store/common/hook'
+import { decode } from 'he'
 
-const IMAGE_WIDTH = scaleSizeW(70)
+const IMAGE_WIDTH = scaleSizeW(88)
 
 const CountText = memo(({ count }: { count: string }) => {
   const [animFade] = useAnimateOnecNumber(0, 1, 250, false)
@@ -87,10 +88,10 @@ export default forwardRef<HeaderType, HeaderProps>(({ componentId }: { component
     <View style={{ ...styles.container, paddingTop: statusBarHeight, borderBottomColor: theme['c-border-background'] }}>
       <View style={{ flexDirection: 'row', flexGrow: 0, flexShrink: 0, padding: 10 }}>
         <Pic componentId={componentId} playCount={detailInfo.playCount} imgUrl={detailInfo.imgUrl} />
-        <View style={{ flexDirection: 'column', flexGrow: 1, flexShrink: 1, paddingLeft: 5 }} nativeID={NAV_SHEAR_NATIVE_IDS.songlistDetail_title}>
-          <Text size={14} numberOfLines={ 1 }>{detailInfo.name}</Text>
+        <View style={{ flexDirection: 'column', flexGrow: 1, flexShrink: 1, paddingLeft: 16, justifyContent: 'center', gap: 6 }} nativeID={NAV_SHEAR_NATIVE_IDS.songlistDetail_title}>
+          <Text size={20} style={{ fontWeight: '500' }} numberOfLines={ 2 }>{detailInfo.name}</Text>
           <View style={{ flexGrow: 0, flexShrink: 1 }}>
-            <Text size={13} color={theme['c-font-label']} numberOfLines={ 4 }>{detailInfo.desc}</Text>
+            <Text size={13} color={theme['c-font-label']} numberOfLines={ 4 }>{decode(detailInfo.desc.replace(/<br\s*\/?\s*>/gi, '\n').replace(/<[^>]+>/g, ''))}</Text>
           </View>
         </View>
       </View>

@@ -31,13 +31,19 @@ type CacheValue = Map<string, PageCache | ListDetailInfo['list']>
 
 const cache = new Map<string, CacheValue>()
 const LIST_LOAD_LIMIT = 30
+const boardRequests = new Map<LX.OnlineSource, Promise<Board['list']>>()
 
-export const getBoardsList = async(source: LX.OnlineSource) => {
+export const getBoardsList = async(source: LX.OnlineSource, refresh = false) => {
   // const source = (await getLeaderboardSetting()).source as LX.OnlineSource
-  if (leaderboardState.boards[source]) return leaderboardState.boards[source].list
-  const board = await (musicSdk[source]?.leaderboard.getBoards() as Promise<Board>)
-  setBoard(board, source)
-  return leaderboardState.boards[source]!.list
+  if (!refresh && leaderboardState.boards[source]) return leaderboardState.boards[source].list
+  const pending = boardRequests.get(source)
+  if (pending) return pending
+  const request = (musicSdk[source]?.leaderboard.getBoards() as Promise<Board>).then(board => {
+    setBoard(board, source)
+    return board.list
+  }).finally(() => { boardRequests.delete(source) })
+  boardRequests.set(source, request)
+  return request
 }
 
 /**

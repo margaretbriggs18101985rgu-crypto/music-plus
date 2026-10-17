@@ -58,9 +58,8 @@ export default forwardRef<ListNameEditType, {}>((props, ref) => {
   const selectedListInfo = useRef<LX.List.UserListInfo>(initSelectInfo as LX.List.UserListInfo)
   const [visible, setVisible] = useState(false)
 
-  const handleShow = () => {
+  const handleShow = (name: string) => {
     alertRef.current?.setVisible(true)
-    const name = position == -1 ? '' : (selectedListInfo.current.name ?? '')
     requestAnimationFrame(() => {
       nameInputRef.current?.setName(name)
       setTimeout(() => {
@@ -71,22 +70,22 @@ export default forwardRef<ListNameEditType, {}>((props, ref) => {
   useImperativeHandle(ref, () => ({
     showCreate(position) {
       setPosition(position)
-      if (visible) handleShow()
+      if (visible) handleShow('')
       else {
         setVisible(true)
         requestAnimationFrame(() => {
-          handleShow()
+          handleShow('')
         })
       }
     },
     show(listInfo) {
       setPosition(-1)
       selectedListInfo.current = listInfo
-      if (visible) handleShow()
+      if (visible) handleShow(listInfo.name)
       else {
         setVisible(true)
         requestAnimationFrame(() => {
-          handleShow()
+          handleShow(listInfo.name)
         })
       }
     },

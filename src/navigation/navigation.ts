@@ -1,3 +1,4 @@
+import { Dimensions } from 'react-native'
 import { Navigation } from 'react-native-navigation'
 // import { InteractionManager } from 'react-native'
 
@@ -6,6 +7,9 @@ import {
   PLAY_DETAIL_SCREEN,
   SONGLIST_DETAIL_SCREEN,
   COMMENT_SCREEN,
+  ARTIST_SCREEN,
+  ALBUM_SCREEN,
+  ARTIST_SONGS_SCREEN,
   // SETTING_SCREEN,
 } from './screenNames'
 
@@ -14,6 +18,30 @@ import { NAV_SHEAR_NATIVE_IDS } from '@/config/constant'
 import { getStatusBarStyle } from './utils'
 import { windowSizeTools } from '@/utils/windowSizeTools'
 import { type ListInfoItem } from '@/store/songlist/state'
+import { type Artist, type ArtistAlbum } from '@/core/music/artist'
+
+const pushArtistContent = async(componentId: string, name: string, passProps: { artist: Artist } | { album: ArtistAlbum }) => {
+  const theme = themeState.theme
+  return Navigation.push(componentId, {
+    component: {
+      name,
+      passProps,
+      options: {
+        topBar: { visible: false, height: 0, drawBehind: false },
+        statusBar: { drawBehind: true, visible: true, style: getStatusBarStyle(theme.isDark), backgroundColor: 'transparent' },
+        navigationBar: { backgroundColor: theme['c-content-background'] },
+        layout: { componentBackgroundColor: theme['c-content-background'] },
+        animations: {
+          push: { content: { translationX: { from: 32, to: 0, duration: 280, interpolation: { type: 'decelerate' } }, alpha: { from: 0, to: 1, duration: 220 } } },
+          pop: { content: { translationX: { from: 0, to: 32, duration: 220 }, alpha: { from: 1, to: 0, duration: 200 } } },
+        },
+      },
+    },
+  })
+}
+export const pushArtistScreen = async(componentId: string, artist: Artist) => pushArtistContent(componentId, ARTIST_SCREEN, { artist })
+export const pushAlbumScreen = async(componentId: string, album: ArtistAlbum) => pushArtistContent(componentId, ALBUM_SCREEN, { album })
+export const pushArtistSongsScreen = async(componentId: string, artist: Artist) => pushArtistContent(componentId, ARTIST_SONGS_SCREEN, { artist })
 
 // const store = getStore()
 // const getTheme = () => getter('common', 'theme')(store.getState())
@@ -149,47 +177,38 @@ export function pushPlayDetailScreen(componentId: string, skipAnimation = false)
                 {
                   fromId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
                   toId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
-                  interpolation: { type: 'spring' },
+                  interpolation: { type: 'spring', damping: 22, stiffness: 240 },
                 },
               ],
-              elementTransitions: [
-                {
-                  id: NAV_SHEAR_NATIVE_IDS.playDetail_header,
-                  alpha: {
-                    from: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
-                    duration: 300,
-                  },
-                  translationY: {
-                    from: -32, // Animate translationY from 16dp to 0dp
-                    duration: 300,
-                  },
+              content: {
+                translationY: {
+                  from: Dimensions.get('window').height,
+                  to: 0,
+                  duration: 380,
+                  interpolation: { type: 'fastOutSlowIn' },
                 },
-                {
-                  id: NAV_SHEAR_NATIVE_IDS.playDetail_player,
-                  alpha: {
-                    from: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
-                    duration: 300,
-                  },
-                  translationY: {
-                    from: 32, // Animate translationY from 16dp to 0dp
-                    duration: 300,
-                  },
+                alpha: {
+                  from: 0.96,
+                  to: 1,
+                  duration: 260,
+                  interpolation: { type: 'decelerate' },
                 },
-              ],
-              // content: {
-              //   translationX: {
-              //     from: windowSizeTools.getSize().width,
-              //     to: 0,
-              //     duration: 300,
-              //   },
-              // },
+              },
             },
             pop: {
               content: {
-                translationX: {
+                translationY: {
                   from: 0,
-                  to: windowSizeTools.getSize().width,
-                  duration: 300,
+                  to: Dimensions.get('window').height,
+                  duration: 360,
+                  interpolation: { type: 'accelerate' },
+                },
+                alpha: {
+                  from: 1,
+                  to: 0,
+                  startDelay: 220,
+                  duration: 140,
+                  interpolation: { type: 'accelerate' },
                 },
               },
             },

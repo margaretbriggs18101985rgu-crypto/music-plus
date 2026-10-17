@@ -9,6 +9,7 @@ type LimitDetailCache = Map<string, DetailPageCache | ListDetailInfo['list']>
 type CacheValue = LimitDetailCache | ListInfo
 
 const cache = new Map<string, CacheValue>()
+const pendingLists = new Map<string, Promise<ListInfo>>()
 const LIST_LOAD_LIMIT = 30
 
 
@@ -77,12 +78,16 @@ export const getList = async(source: LX.OnlineSource, tabId: string, sortId: str
     else return listCache
   }
 
-  return musicSdk[source]?.songList.getList(sortId, tabId, page).then((result: ListInfo) => {
+  const pending = pendingLists.get(pageKey)
+  if (pending) return pending
+  const request = (musicSdk[source]?.songList.getList(sortId, tabId, page) as Promise<ListInfo>).then((result: ListInfo) => {
     cache.set(pageKey, result)
     return result
     // if (pageKey != listInfo.key) return
     // setList(result, tabId, sortId, page)
-  })
+  }).finally(() => { pendingLists.delete(pageKey) })
+  pendingLists.set(pageKey, request)
+  return request
 }
 
 

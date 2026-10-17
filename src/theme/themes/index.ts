@@ -6,6 +6,7 @@ import themeState from '@/store/theme/state'
 import { isUrl } from '@/utils'
 import { privateStorageDirectoryPath } from '@/utils/fs'
 import { type ImageSourcePropType } from 'react-native'
+import { VINYL_COLORS } from '@/theme/design'
 
 export const BG_IMAGES = {
   'china_ink.jpg': require('./images/china_ink.jpg') as ImageSourcePropType,
@@ -68,7 +69,7 @@ export const buildActiveThemeColors = (theme: LX.Theme): LX.ActiveTheme => {
     theme.config.extInfo[k] = theme.config.themeColors[v.replace(varColorRxp, '$1') as ColorsKey]
   }
 
-  return {
+  const activeTheme = {
     id: theme.id,
     name: theme.name,
     isDark: theme.isDark,
@@ -94,6 +95,11 @@ export const buildActiveThemeColors = (theme: LX.Theme): LX.ActiveTheme => {
     'c-border-background': theme.config.themeColors['c-primary-light-100-alpha-700'],
     'bg-image': bgImg,
   } as const
+  if (theme.id != 'mineradio') return activeTheme
+  return {
+    ...activeTheme,
+    ...VINYL_COLORS,
+  }
 }
 
 

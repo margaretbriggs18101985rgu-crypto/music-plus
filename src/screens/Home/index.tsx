@@ -7,6 +7,9 @@ import Vertical from './Vertical'
 import Horizontal from './Horizontal'
 import { navigations } from '@/navigation'
 import settingState from '@/store/setting/state'
+import PlaybackQueue from '@/components/player/PlaybackQueue'
+import PlayerTools from '@/components/player/PlayerTools'
+import { startRecentTracking } from '@/core/music/library'
 
 
 interface Props {
@@ -16,6 +19,7 @@ interface Props {
 
 export default ({ componentId }: Props) => {
   const isHorizontalMode = useHorizontalMode()
+  useEffect(startRecentTracking, [])
   useEffect(() => {
     setComponentId(COMPONENT_IDS.home, componentId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -28,6 +32,8 @@ export default ({ componentId }: Props) => {
 
   return (
     <PageContent>
+      <PlaybackQueue />
+      <PlayerTools />
       {
         isHorizontalMode
           ? <Horizontal />

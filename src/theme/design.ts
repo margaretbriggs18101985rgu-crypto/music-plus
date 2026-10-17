@@ -1,0 +1,35 @@
+// Quiet, cover-led surfaces shared with the vinyl player. Keep custom themes available.
+export const VINYL_COLORS = {
+  'c-font': '#F3F3F5',
+  'c-font-label': '#929298',
+  'c-250': '#77777F',
+  'c-300': '#85858D',
+  'c-350': '#929298',
+  'c-450': '#929298',
+  'c-500': '#929298',
+  'c-content-background': '#0D0D12',
+  'c-border-background': '#27272D',
+  'c-primary-input-background': '#19191F',
+  'c-button-font': '#F3F3F5',
+  'c-button-font-selected': '#FFFFFF',
+  'c-button-background': '#222228',
+  'c-button-background-selected': '#35353D',
+  'c-primary-font': '#F3F3F5',
+  'c-primary-font-active': '#FFFFFF',
+  'c-primary-background': '#19191F',
+  'c-primary-background-hover': '#26262D',
+  'c-primary-background-active': '#35353D',
+  'c-list-header-border-bottom': '#27272D',
+}
+
+export const getDesignTokens = (theme: LX.ActiveTheme) => ({
+  background: theme.isDark ? '#0D0D12' : '#FAFAFC',
+  surface: theme.isDark ? '#1D1D22' : '#F0F0F3',
+  elevated: theme.isDark ? '#27272E' : '#E7E7EC',
+  border: theme.isDark ? '#27272D' : '#E3E3E8',
+  text: theme.isDark ? '#F3F3F5' : '#1B1B20',
+  muted: theme.isDark ? '#929298' : '#72727A',
+  accent: theme['c-primary'],
+  accentSoft: theme['c-primary-alpha-900'],
+  onAccent: theme.isDark ? '#15151A' : '#FFFFFF',
+})

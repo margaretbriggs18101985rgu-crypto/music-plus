@@ -1,58 +1,19 @@
-import { useEffect, useRef } from 'react'
-import settingState from '@/store/setting/state'
+import { useState } from 'react'
+import { View, TouchableOpacity } from 'react-native'
+import Text from '@/components/common/Text'
 import Content from './Content'
-import TagList from './TagList'
+import MyPlaylists from './MyPlaylists'
 import { useTheme } from '@/store/theme/hook'
-import DrawerLayoutFixed, { type DrawerLayoutFixedType } from '@/components/common/DrawerLayoutFixed'
-import { COMPONENT_IDS } from '@/config/constant'
-import { scaleSizeW } from '@/utils/pixelRatio'
-import type { InitState as CommonState } from '@/store/common/state'
-
-const MAX_WIDTH = scaleSizeW(560)
-
+import SceneTransition from '@/components/common/SceneTransition'
 export default () => {
-  const drawer = useRef<DrawerLayoutFixedType>(null)
+  const [tab, setTab] = useState(0)
   const theme = useTheme()
-
-  useEffect(() => {
-    const handleFixDrawer = (id: CommonState['navActiveId']) => {
-      if (id == 'nav_songlist') drawer.current?.fixWidth()
-    }
-    const handleShow = () => {
-      requestAnimationFrame(() => {
-        drawer.current?.openDrawer()
-      })
-    }
-    const handleHide = () => {
-      drawer.current?.closeDrawer()
-    }
-
-    global.state_event.on('navActiveIdUpdated', handleFixDrawer)
-    global.app_event.on('showSonglistTagList', handleShow)
-    global.app_event.on('hideSonglistTagList', handleHide)
-
-    return () => {
-      global.state_event.off('navActiveIdUpdated', handleFixDrawer)
-      global.app_event.off('showSonglistTagList', handleShow)
-      global.app_event.off('hideSonglistTagList', handleHide)
-    }
-  }, [])
-
-  const navigationView = () => <TagList />
-  // console.log('render drawer content')
-
-  return (
-    <DrawerLayoutFixed
-      ref={drawer}
-      visibleNavNames={[COMPONENT_IDS.home]}
-      widthPercentage={0.8}
-      widthPercentageMax={MAX_WIDTH}
-      drawerPosition={settingState.setting['common.drawerLayoutPosition']}
-      renderNavigationView={navigationView}
-      drawerBackgroundColor={theme['c-content-background']}
-      style={{ elevation: 1 }}
-    >
-      <Content />
-    </DrawerLayoutFixed>
-  )
+  return <View style={{ flex: 1 }}>
+    <View style={{ flexDirection: 'row', paddingHorizontal: 18, gap: 26 }}>
+      {['发现歌单', '我的歌单'].map((label, index) => <TouchableOpacity key={label} accessibilityRole="tab" accessibilityState={{ selected: tab == index }} onPress={() => { setTab(index) }} style={{ minHeight: 48, justifyContent: 'center', borderBottomWidth: 2, borderBottomColor: tab == index ? theme['c-font'] : 'transparent' }}><Text size={16} color={tab == index ? theme['c-font'] : theme['c-font-label']}>{label}</Text></TouchableOpacity>)}
+    </View>
+    <SceneTransition sceneKey={String(tab)} direction="fade">
+      {tab == 0 ? <View style={{ flex: 1 }}><Content /></View> : <MyPlaylists />}
+    </SceneTransition>
+  </View>
 }

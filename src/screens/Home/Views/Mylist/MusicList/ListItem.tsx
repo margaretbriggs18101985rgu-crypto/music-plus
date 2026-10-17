@@ -9,6 +9,8 @@ import { useAssertApiSupport } from '@/store/common/hook'
 import { scaleSizeH } from '@/utils/pixelRatio'
 import Text from '@/components/common/Text'
 import Badge from '@/components/common/Badge'
+import Image from '@/components/common/Image'
+import { getDesignTokens } from '@/theme/design'
 
 export const ITEM_HEIGHT = scaleSizeH(LIST_ITEM_HEIGHT)
 
@@ -26,6 +28,7 @@ export default memo(({ item, index, activeIndex, onPress, onShowMenu, onLongPres
   isShowInterval: boolean
 }) => {
   const theme = useTheme()
+  const colors = getDesignTokens(theme)
 
   const isSelected = selectedList.includes(item)
   // console.log(item.name, selectedList, selectedList.includes(item))
@@ -47,13 +50,14 @@ export default memo(({ item, index, activeIndex, onPress, onShowMenu, onLongPres
     <View style={{ ...styles.listItem, width: rowInfo.rowWidth, height: ITEM_HEIGHT, backgroundColor: isSelected ? theme['c-primary-background-hover'] : 'rgba(0,0,0,0)', opacity: isSupported ? 1 : 0.5 }}>
       <TouchableOpacity style={styles.listItemLeft} onPress={() => { onPress(item, index) }} onLongPress={() => { onLongPress(item, index) }}>
         {
-          active
-            ? <Icon style={styles.sn} name="play-outline" size={13} color={theme['c-primary-font']} />
-            : <Text style={styles.sn} size={13} color={theme['c-300']}>{index + 1}</Text>
+          <View style={styles.artwork}>
+            <Image url={item.meta.picUrl} style={styles.artwork} />
+            {active ? <View style={styles.activeCover}><Icon name="play-outline" size={14} color={colors.accent} /></View> : null}
+          </View>
         }
         <View style={styles.itemInfo}>
           {/* <View style={styles.listItemTitle}> */}
-          <Text color={active ? theme['c-primary-font'] : theme['c-font']} numberOfLines={1}>{item.name}</Text>
+          <Text size={16} color={colors.text} numberOfLines={1}>{item.name}</Text>
           {/* </View> */}
           <View style={styles.listItemSingle}>
             <Badge>{item.source.toUpperCase()}</Badge>
@@ -89,6 +93,8 @@ export default memo(({ item, index, activeIndex, onPress, onShowMenu, onLongPres
 
 const styles = createStyle({
   listItem: {
+    paddingLeft: 18,
+    borderRadius: 0,
     // width: '50%',
     flexDirection: 'row',
     flexWrap: 'nowrap',
@@ -113,6 +119,7 @@ const styles = createStyle({
     paddingRight: 3,
   },
   itemInfo: {
+    paddingLeft: 12,
     flexGrow: 1,
     flexShrink: 1,
     // paddingTop: 10,
@@ -157,4 +164,6 @@ const styles = createStyle({
     // backgroundColor: 'rgba(0,0,0,0.2)',
     justifyContent: 'center',
   },
+  artwork: { width: 46, height: 46, borderRadius: 4 },
+  activeCover: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 4, backgroundColor: 'rgba(13, 13, 18, 0.55)', alignItems: 'center', justifyContent: 'center' },
 })

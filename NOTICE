@@ -1,0 +1,16 @@
+MUSIC++
+Modified Android music player based on LX Music Mobile v1.9.1.
+
+Original project: https://github.com/lyswhut/lx-music-mobile
+Original author: lyswhut and LX Music contributors.
+Original license: Apache License 2.0; see LICENSE.
+The upstream README and additional project terms are preserved in
+doc/UPSTREAM_README.md.
+
+MUSIC++ modifications (2026): redesigned music library, search and artist
+screens, native Compose vinyl player, built-in source integration, and
+independent Android packaging and release configuration.
+
+Third-party source script: molanyinyueyuan v2.3.4 by baiji6, MIT License.
+See android/app/src/main/assets/licenses/molanyinyueyuan-MIT.txt.
+Other bundled dependencies and assets retain their respective notices.

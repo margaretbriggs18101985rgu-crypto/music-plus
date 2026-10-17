@@ -73,6 +73,12 @@ const emojis = {
 
 const songIdMap = new Map()
 const promises = new Map()
+const getPagingInfo = (rawTotal, itemCount, page, limit) => {
+  const total = Number(rawTotal)
+  if (Number.isFinite(total) && total > 0) return { total, maxPage: Math.max(1, Math.ceil(total / limit)) }
+  if (!itemCount) return { total: 0, maxPage: 1 }
+  return { total: null, maxPage: itemCount >= limit ? page + 1 : page }
+}
 
 export default {
   _requestObj: null,
@@ -82,17 +88,19 @@ export default {
     if (songIdMap.has(songmid)) return songIdMap.get(songmid)
     if (promises.has(songmid)) return (await promises.get(songmid)).songId
     const promise = getMusicInfo(songmid)
-    promises.set(promise)
-    const info = await promise
-    songIdMap.set(songmid, info.songId)
-    promises.delete(songmid)
-    return info.songId
+    promises.set(songmid, promise)
+    try {
+      const info = await promise
+      if (!info?.songId) throw new Error('QQ音乐歌曲资料暂不可用')
+      songIdMap.set(songmid, info.songId)
+      return info.songId
+    } finally { promises.delete(songmid) }
   },
   async getComment(mInfo, page = 1, limit = 20) {
     if (this._requestObj) this._requestObj.cancelHttp()
     const songId = await this.getSongId(mInfo)
 
-    const _requestObj = httpFetch('http://c.y.qq.com/base/fcgi-bin/fcg_global_comment_h5.fcg', {
+    const _requestObj = httpFetch('https://c.y.qq.com/base/fcgi-bin/fcg_global_comment_h5.fcg', {
       method: 'POST',
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)',
@@ -114,13 +122,13 @@ export default {
     if (statusCode != 200 || body.code !== 0) throw new Error('获取评论失败')
     // console.log(body, statusCode)
     const comment = body.comment
+    const comments = this.filterNewComment(comment.commentlist)
     return {
       source: 'tx',
-      comments: this.filterNewComment(comment.commentlist),
-      total: comment.commenttotal,
+      comments,
+      ...getPagingInfo(comment.commenttotal, comments.length, page, limit),
       page,
       limit,
-      maxPage: Math.ceil(comment.commenttotal / limit) || 1,
     }
   },
   async getHotComment(mInfo, page = 1, limit = 20) {
@@ -184,13 +192,13 @@ export default {
     // console.log('body', body)
     if (statusCode != 200 || body.code !== 0 || body.req.code !== 0) throw new Error('获取热门评论失败')
     const comment = body.req.data.CommentList
+    const comments = this.filterHotComment(comment.Comments)
     return {
       source: 'tx',
-      comments: this.filterHotComment(comment.Comments),
-      total: comment.Total,
+      comments,
+      ...getPagingInfo(comment.Total, comments.length, page, limit),
       page,
       limit,
-      maxPage: Math.ceil(comment.Total / limit) || 1,
     }
   },
   filterNewComment(rawList) {

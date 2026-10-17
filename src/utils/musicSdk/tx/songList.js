@@ -159,7 +159,7 @@ export default {
 
   // 获取列表数据
   getList(sortId, tagId, page, tryNum = 0) {
-    if (this._requestObj_list) this._requestObj_list.cancelHttp()
+    // Catalog and homepage can request different pages concurrently.
     if (tryNum > 2) return Promise.reject(new Error('try max num'))
     if (!tagId) {
       if (!tagId && sortId == -1) return this.getRecommendList(page)

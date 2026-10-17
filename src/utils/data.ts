@@ -1,6 +1,7 @@
 import { getData, saveData, getAllKeys, removeDataMultiple, saveDataMultiple, removeData, getDataMultiple } from '@/plugins/storage'
 import { DEFAULT_SETTING, LIST_IDS, storageDataPrefix, type NAV_ID_Type } from '@/config/constant'
 import { throttle } from './common'
+import { BUILTIN_USER_API, BUILTIN_USER_API_ID, builtinUserApiScript } from '@/config/builtinUserApi'
 // import { gzip, ungzip } from '@/utils/nativeModules/gzip'
 // import { readFile, writeFile, temporaryDirectoryPath, unlink } from '@/utils/fs'
 // import { isNotificationsEnabled, openNotificationPermissionActivity, shareText } from '@/utils/nativeModules/utils'
@@ -248,6 +249,7 @@ export const saveSearchHistory = async(historyList: typeof searchHistoryList) =>
 export const getSongListSetting = async() => {
   // eslint-disable-next-line require-atomic-updates
   songListSetting ??= await getData(songListSettingKey) ?? { ...DEFAULT_SETTING.songList }
+  if (songListSetting.source != 'wy' && songListSetting.source != 'tx') songListSetting = { source: 'wy', sortId: 'hot', tagId: '', tagName: '' }
   return { ...songListSetting }
 }
 export const saveSongListSetting = async(setting: Partial<typeof DEFAULT_SETTING['songList']>) => {
@@ -516,9 +518,10 @@ export const getUserApiList = async(): Promise<LX.UserApi.UserApiInfo[]> => {
   }
   if (updated) void saveData(userApiPrefix, userApis)
 
-  return [...userApis]
+  return [{ ...BUILTIN_USER_API }, ...userApis.filter(api => api.id != BUILTIN_USER_API_ID)]
 }
 export const getUserApiScript = async(id: string): Promise<string> => {
+  if (id == BUILTIN_USER_API_ID) return builtinUserApiScript
   const script = await getData<string>(`${userApiPrefix}${id}`) ?? ''
   return script
 }
@@ -582,7 +585,7 @@ export const removeUserApi = async(ids: string[]) => {
   }
   await saveData(userApiPrefix, userApis)
   if (_ids.length) await removeDataMultiple(_ids)
-  return [...userApis]
+  return [{ ...BUILTIN_USER_API }, ...userApis.filter(api => api.id != BUILTIN_USER_API_ID)]
 }
 export const setUserApiAllowShowUpdateAlert = async(id: string, enable: boolean) => {
   const targetApi = userApis?.find(api => api.id == id)

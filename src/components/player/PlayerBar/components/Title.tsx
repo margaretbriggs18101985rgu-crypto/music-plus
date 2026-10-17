@@ -2,26 +2,25 @@ import { TouchableOpacity } from 'react-native'
 import { navigations } from '@/navigation'
 import { usePlayerMusicInfo } from '@/store/player/hook'
 // import { toast } from '@/utils/tools'
-import { useSettingValue } from '@/store/setting/hook'
 import { useTheme } from '@/store/theme/hook'
 import commonState from '@/store/common/state'
 import playerState from '@/store/player/state'
 import Text from '@/components/common/Text'
 import { LIST_IDS } from '@/config/constant'
-import { createStyle, formatMusicName } from '@/utils/tools'
+import { createStyle } from '@/utils/tools'
+import { useI18n } from '@/lang'
 
 
-export default ({ isHome }: { isHome: boolean }) => {
+export default ({ isHome, componentId }: { isHome: boolean, componentId?: string }) => {
   // const { t } = useTranslation()
   const musicInfo = usePlayerMusicInfo()
-  const downloadFileName = useSettingValue('download.fileName')
+  const t = useI18n()
   const theme = useTheme()
 
   const handlePress = () => {
     // console.log('')
     // console.log(playMusicInfo)
-    if (!musicInfo.id) return
-    navigations.pushPlayDetailScreen(commonState.componentIds.home!)
+    navigations.pushPlayDetailScreen(componentId ?? commonState.componentIds.home!)
     // toast(global.i18n.t('play_detail_todo_tip'), 'long')
   }
 
@@ -32,15 +31,13 @@ export default ({ isHome }: { isHome: boolean }) => {
   }
   // console.log('render title')
 
-  const title = musicInfo.id
-    ? musicInfo.singer
-      ? formatMusicName(downloadFileName, musicInfo.name, musicInfo.singer)
-      : musicInfo.name
-    : ''
+  const title = musicInfo.id ? musicInfo.name : t('ui_player_empty')
   // console.log(playMusicInfo)
   return (
     <TouchableOpacity style={styles.container} onLongPress={handleLongPress} onPress={handlePress} activeOpacity={0.7} >
-      <Text color={theme['c-font-label']} numberOfLines={1}>{title}</Text>
+      <Text size={14} style={{ fontWeight: '500' }} color={theme['c-font']} numberOfLines={1}>
+        {title}{musicInfo.singer ? <Text size={14} color={theme['c-font-label']}> · {musicInfo.singer}</Text> : null}
+      </Text>
     </TouchableOpacity>
   )
 }

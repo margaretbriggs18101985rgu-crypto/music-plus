@@ -7,13 +7,14 @@ import { type Source } from '@/store/songlist/state'
 
 export interface TagProps {
   onTagChange: (name: string, id: string) => void
+  expanded?: boolean
 }
 
 export interface TagType {
   setSelectedTagInfo: (source: Source, name: string, activeId: string) => void
 }
 
-export default forwardRef<TagType, TagProps>(({ onTagChange }, ref) => {
+export default forwardRef<TagType, TagProps>(({ onTagChange, expanded = false }, ref) => {
   // console.log('render tag btn')
   const currentTagBtnRef = useRef<CurrentTagBtnType>(null)
   // const tagPopupRef = useRef<TagPopupType>(null)
@@ -50,5 +51,5 @@ export default forwardRef<TagType, TagProps>(({ onTagChange }, ref) => {
   //   currentTagBtnRef.current?.setCurrentTagInfo(name)
   // }
 
-  return <CurrentTagBtn ref={currentTagBtnRef} onShowList={handleShowList} />
+  return <CurrentTagBtn ref={currentTagBtnRef} onShowList={handleShowList} expanded={expanded} />
 })

@@ -1,18 +1,14 @@
 import { forwardRef, type Ref, useImperativeHandle, useMemo, useState } from 'react'
-import { View } from 'react-native'
-
-import DorpDownMenu, { type DorpDownMenuProps as _DorpDownMenuProps } from '@/components/common/DorpDownMenu'
-import Text from '@/components/common/Text'
+import InlineOptions from '@/components/common/InlineOptions'
 import { useI18n } from '@/lang'
 
 import { useSettingValue } from '@/store/setting/hook'
-import { createStyle } from '@/utils/tools'
 
 type Sources = Readonly<Array<LX.OnlineSource | 'all'>>
 
 export interface SourceSelectorProps<S extends Sources> {
   fontSize?: number
-  center?: _DorpDownMenuProps<any>['center']
+  center?: boolean
   onSourceChange: (source: S[number]) => void
 }
 
@@ -29,11 +25,9 @@ export const useSourceListI18n = (list: Sources) => {
   }, [list, sourceNameType, t])
 }
 
-const Component = <S extends Sources>({ fontSize = 15, center, onSourceChange }: SourceSelectorProps<S>, ref: Ref<SourceSelectorType<S>>) => {
-  const sourceNameType = useSettingValue('common.sourceNameType')
+const Component = <S extends Sources>({ fontSize = 13, onSourceChange }: SourceSelectorProps<S>, ref: Ref<SourceSelectorType<S>>) => {
   const [list, setList] = useState([] as unknown as S)
   const [source, setSource] = useState<S[number]>('kw')
-  const t = useI18n()
 
   useImperativeHandle(ref, () => ({
     setSourceList(list, activeSource) {
@@ -44,40 +38,12 @@ const Component = <S extends Sources>({ fontSize = 15, center, onSourceChange }:
 
   const sourceList_t = useSourceListI18n(list)
 
-  type DorpDownMenuProps = _DorpDownMenuProps<typeof sourceList_t>
-
-  const handleChangeSource: DorpDownMenuProps['onPress'] = ({ action }) => {
+  const handleChangeSource = (action: S[number]) => {
     onSourceChange(action)
     setSource(action)
   }
 
-  return (
-    <DorpDownMenu
-      menus={sourceList_t}
-      center={center}
-      onPress={handleChangeSource}
-      fontSize={fontSize}
-      activeId={source}
-    >
-      <View style={styles.sourceMenu}>
-        <Text style={{ textAlign: center ? 'center' : 'left' }} numberOfLines={1} size={fontSize}>{t(`source_${sourceNameType}_${source}`)}</Text>
-      </View>
-    </DorpDownMenu>
-  )
+  return <InlineOptions value={source} options={sourceList_t.map(item => ({ value: item.action, label: item.label }))} onChange={handleChangeSource} size={fontSize} />
 }
 
 export default forwardRef(Component) as <S extends Sources>(p: SourceSelectorProps<S> & { ref?: Ref<SourceSelectorType<S>> }) => JSX.Element | null
-
-
-const styles = createStyle({
-  sourceMenu: {
-    height: '100%',
-    justifyContent: 'center',
-    // paddingTop: 12,
-    // paddingBottom: 12,
-    paddingLeft: 15,
-    paddingRight: 15,
-    // backgroundColor: '#ccc',
-
-  },
-})

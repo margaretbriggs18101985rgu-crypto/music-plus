@@ -4,15 +4,17 @@ import { TouchableOpacity } from 'react-native'
 import { useTheme } from '@/store/theme/hook'
 import { createStyle } from '@/utils/tools'
 import Text from '@/components/common/Text'
+import { Icon } from '@/components/common/Icon'
 
 export interface ActiveListNameProps {
   onShowBound: () => void
+  expanded?: boolean
 }
 export interface ActiveListNameType {
   setBound: (id: string, name: string) => void
 }
 
-export default forwardRef<ActiveListNameType, ActiveListNameProps>(({ onShowBound }, ref) => {
+export default forwardRef<ActiveListNameType, ActiveListNameProps>(({ onShowBound, expanded = false }, ref) => {
   const theme = useTheme()
   let [currentListName, setCurrentListName] = useState('')
 
@@ -23,8 +25,9 @@ export default forwardRef<ActiveListNameType, ActiveListNameProps>(({ onShowBoun
   }), [])
 
   return (
-    <TouchableOpacity onPress={onShowBound} style={styles.currentList}>
+    <TouchableOpacity disabled={currentListName == '同步中…'} accessibilityRole="button" accessibilityLabel="选择榜单类型" onPress={onShowBound} style={styles.currentList}>
       <Text numberOfLines={1} style={styles.currentListText} color={theme['c-button-font']}>{currentListName}</Text>
+      <Icon name="chevron-right" size={10} style={{ marginRight: 18, transform: [{ rotate: expanded ? '270deg' : '90deg' }] }} />
     </TouchableOpacity>
   )
 })

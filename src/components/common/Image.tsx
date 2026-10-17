@@ -1,10 +1,11 @@
 import { useTheme } from '@/store/theme/hook'
+import { Icon } from './Icon'
+import { getDesignTokens } from '@/theme/design'
 import { BorderRadius } from '@/theme'
 import { createStyle } from '@/utils/tools'
 import { type ComponentProps, memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { View, type ViewProps, StyleSheet, Image as FastImage } from 'react-native'
 // import FastImage, { type FastImageProps } from 'react-native-fast-image'
-import Text from './Text'
 import { useLayout } from '@/utils/hooks'
 // export type { OnLoadEvent } from 'react-native-fast-image'
 
@@ -23,13 +24,15 @@ export const defaultHeaders = {
 
 const EmptyPic = memo(({ style, nativeID }: { style: ImageProps['style'], nativeID: ImageProps['nativeID'] }) => {
   const theme = useTheme()
+  const colors = getDesignTokens(theme)
   const { onLayout, width } = useLayout()
   const size = width * 0.36
 
   return (
-    <View style={StyleSheet.compose({ ...styles.emptyPic, backgroundColor: theme['c-primary-light-900-alpha-200'], gap: size * 0.1 }, style)} onLayout={onLayout} nativeID={nativeID}>
-      <Text size={size} color={theme['c-primary-light-400-alpha-200']}>L</Text>
-      <Text size={size} color={theme['c-primary-light-400-alpha-200']} style={styles.text}>X</Text>
+    <View style={StyleSheet.compose({ ...styles.emptyPic, backgroundColor: colors.elevated }, style)} onLayout={onLayout} nativeID={nativeID}>
+      <View style={{ width: size * 1.8, height: size * 1.8, borderRadius: size, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' }}>
+        <Icon name="album" rawSize={size * 0.75} color={colors.accent} />
+      </View>
     </View>
   )
 })

@@ -208,7 +208,7 @@ export default {
   // 获取列表数据
   getList(sortId, tagId, page, tryNum = 0) {
     if (tryNum > 2) return Promise.reject(new Error('try max num'))
-    if (this._requestObj_list) this._requestObj_list.cancelHttp()
+    // Catalog and homepage can request different pages concurrently.
     this._requestObj_list = httpFetch('https://music.163.com/weapi/playlist/list', {
       method: 'post',
       form: weapi({

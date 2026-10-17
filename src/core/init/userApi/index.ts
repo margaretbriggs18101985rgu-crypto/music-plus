@@ -5,6 +5,8 @@ import BackgroundTimer from 'react-native-background-timer'
 import { fetchData } from './request'
 import { getUserApiList } from '@/utils/data'
 import { confirmDialog, openUrl, tipDialog } from '@/utils/tools'
+import { BUILTIN_USER_API_ID } from '@/config/builtinUserApi'
+import { updateSetting } from '@/core/common'
 
 
 export default async(setting: LX.AppSetting) => {
@@ -253,4 +255,9 @@ export default async(setting: LX.AppSetting) => {
   })
 
   setUserApiList(await getUserApiList())
+  // Seed only an unset source. Existing imported/selected sources remain selected.
+  if (!setting['common.apiSource']) {
+    setting['common.apiSource'] = BUILTIN_USER_API_ID
+    updateSetting({ 'common.apiSource': BUILTIN_USER_API_ID })
+  }
 }

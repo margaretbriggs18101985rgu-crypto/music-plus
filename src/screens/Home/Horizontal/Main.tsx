@@ -5,6 +5,7 @@ import Mylist from '../Views/Mylist'
 import Leaderboard from '../Views/Leaderboard'
 import Setting from '../Views/Setting'
 import commonState, { type InitState as CommonState } from '@/store/common/state'
+import SceneTransition from '@/components/common/SceneTransition'
 
 
 const Main = () => {
@@ -33,7 +34,7 @@ const Main = () => {
     }
   }, [id])
 
-  return component
+  return <SceneTransition sceneKey={id} direction="fade">{component}</SceneTransition>
 }
 
 

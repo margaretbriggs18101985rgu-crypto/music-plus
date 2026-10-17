@@ -4,8 +4,7 @@ import { View, StyleSheet } from 'react-native'
 
 import { pop } from '@/navigation'
 import StatusBar from '@/components/common/StatusBar'
-import { useTheme } from '@/store/theme/hook'
-import { usePlayerMusicInfo } from '@/store/player/hook'
+import { useI18n } from '@/lang'
 import Text from '@/components/common/Text'
 import { scaleSizeH } from '@/utils/pixelRatio'
 import { HEADER_HEIGHT as _HEADER_HEIGHT, NAV_SHEAR_NATIVE_IDS } from '@/config/constant'
@@ -19,14 +18,12 @@ export const HEADER_HEIGHT = scaleSizeH(_HEADER_HEIGHT)
 
 
 const Title = () => {
-  const theme = useTheme()
-  const musicInfo = usePlayerMusicInfo()
+  const t = useI18n()
 
 
   return (
     <View style={styles.titleContent}>
-      <Text numberOfLines={1} style={styles.title}>{musicInfo.name}</Text>
-      <Text numberOfLines={1} style={styles.title} size={12} color={theme['c-font-label']}>{musicInfo.singer}</Text>
+      <Text numberOfLines={1} style={styles.title} size={17}>{t('ui_now_playing')}</Text>
     </View>
   )
 }
@@ -68,8 +65,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     // alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
+    fontWeight: '600',
     // flex: 1,
     // textAlign: 'center',
   },

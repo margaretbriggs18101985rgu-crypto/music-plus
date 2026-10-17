@@ -36,6 +36,7 @@ keystore.properties
 # node.js
 #
 node_modules/
+/tools/ui-preview/dist/
 npm-debug.log
 yarn-error.log
 
@@ -66,3 +67,14 @@ buck-out/
 
 # testing
 /coverage
+
+# Generated bundles, private signing material and local design inputs
+/index.android.bundle
+/res/
+/Android_Vinyl_Player_Codex_Package/
+*.jks
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example

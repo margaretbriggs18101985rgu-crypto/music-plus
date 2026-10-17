@@ -5,5 +5,9 @@
     <application
         android:usesCleartextTraffic="true"
         tools:targetApi="28"
-        tools:ignore="GoogleAppIndexingWarning" />
+        tools:ignore="GoogleAppIndexingWarning">
+        <!-- Visual/animation test harness only; it never claims to play audio. -->
+        <activity android:name=".vinyl.VinylPreviewActivity"
+            android:exported="true" android:launchMode="singleTop" android:label="黑胶播放器 · 界面演示" />
+    </application>
 </manifest>

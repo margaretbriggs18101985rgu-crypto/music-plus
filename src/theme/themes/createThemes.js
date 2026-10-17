@@ -6,6 +6,23 @@ const { createThemeColors } = require('./utils')
 
 const defaultThemes = [
   {
+    id: 'mineradio',
+    name: '黑胶 · 深色',
+    isDark: true,
+    config: {
+      primary: 'rgb(235, 235, 240)',
+      font: 'rgb(243, 243, 245)',
+      'c-app-background': '#0D0D12',
+      'c-main-background': '#0D0D12',
+      'bg-image': '',
+      'bg-image-position': 'center',
+      'bg-image-size': 'cover',
+      'c-badge-primary': 'var(c-primary)',
+      'c-badge-secondary': '#A4A4AC',
+      'c-badge-tertiary': '#929298',
+    },
+  },
+  {
     id: 'green',
     name: '绿意盎然',
     isDark: false,

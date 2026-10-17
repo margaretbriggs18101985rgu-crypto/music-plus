@@ -1,5 +1,5 @@
 export const HEADER_HEIGHT = 42
-export const LIST_ITEM_HEIGHT = 54
+export const LIST_ITEM_HEIGHT = 64
 export const LIST_SCROLL_POSITION_KEY = '__LIST_SCROLL_POSITION_KEY__'
 
 export const SPLIT_CHAR = {
@@ -95,7 +95,7 @@ export const storageDataPrefixOld = {
   notificationTipEnable: '@notification_tip_enable',
 } as const
 
-export const APP_PROVIDER_NAME = 'cn.toside.music.mobile.provider'
+export const APP_PROVIDER_NAME = 'io.github.musicplus.player.provider'
 
 
 export const NAV_MENUS = [
@@ -130,13 +130,13 @@ export const MUSIC_TOGGLE_MODE_LIST = [
 
 export const DEFAULT_SETTING = {
   leaderboard: {
-    source: 'kw' as LX.OnlineSource,
-    boardId: 'kw__16',
+    source: 'wy' as LX.OnlineSource,
+    boardId: 'wy__3778678',
   },
 
   songList: {
-    source: 'kw' as LX.OnlineSource,
-    sortId: 'new',
+    source: 'wy' as LX.OnlineSource,
+    sortId: 'hot',
     tagName: '',
     tagId: '',
   },

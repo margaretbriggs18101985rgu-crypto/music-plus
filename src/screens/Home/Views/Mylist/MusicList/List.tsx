@@ -4,7 +4,7 @@ import { FlatList, type NativeScrollEvent, type NativeSyntheticEvent, type FlatL
 
 import listState from '@/store/list/state'
 import playerState from '@/store/player/state'
-import { getListPosition, getListPrevSelectId, saveListPosition } from '@/utils/data'
+import { getListPosition, saveListPosition } from '@/utils/data'
 // import { useMusicList } from '@/store/list/hook'
 import { getListMusics, setActiveList } from '@/core/list'
 import ListItem, { ITEM_HEIGHT } from './ListItem'
@@ -163,8 +163,8 @@ const List = forwardRef<ListType, ListProps>(({ onShowMenu, onMuiltSelectMode, o
       if (playerState.playMusicInfo.listId) {
         waitJumpListPositionRef.current = true
         updateList(playerState.playMusicInfo.listId)
-      } else void getListPrevSelectId().then(updateList)
-    } else void getListPrevSelectId().then(updateList)
+      } else updateList(listState.activeListId)
+    } else updateList(listState.activeListId)
 
     global.state_event.on('mylistToggled', updateList)
     global.app_event.on('myListMusicUpdate', handleChange)

@@ -8,11 +8,11 @@ import { useTheme } from '@/store/theme/hook'
 
 
 const DefaultBar = memo(() => {
-  // const theme = useTheme()
+  const theme = useTheme()
 
   return <View style={{
     ...styles.progressBar,
-    // backgroundColor: theme['c-primary-light-200-alpha-900'],
+    backgroundColor: theme['c-border-background'],
     position: 'absolute',
     width: '100%',
     left: 0,
@@ -88,7 +88,7 @@ export const ProgressPlain = ({ progress, duration, buffered, paddingTop }: {
       <View style={{ flex: 1 }}>
         <DefaultBar />
         <BufferedBar progress={buffered} />
-        <View style={{ ...styles.progressBar, backgroundColor: theme['c-primary-alpha-900'], width: progressStr, position: 'absolute', left: 0, top: 0 }} />
+        <View style={{ ...styles.progressBar, backgroundColor: theme['c-primary'], width: progressStr, position: 'absolute', left: 0, top: 0 }} />
       </View>
       <View style={styles.pressBar} />
     </View>
@@ -129,7 +129,7 @@ const Progress = ({ progress, duration, buffered, paddingTop }: {
                   <View style={{ ...styles.progressBar, backgroundColor: theme['c-primary-light-100-alpha-800'], width: `${dragProgress * 100}%`, position: 'absolute', left: 0, top: 0 }} />
                 </>
               ) : (
-                <View style={{ ...styles.progressBar, backgroundColor: theme['c-primary-alpha-900'], width: progressStr, position: 'absolute', left: 0, top: 0 }} />
+                <View style={{ ...styles.progressBar, backgroundColor: theme['c-primary'], width: progressStr, position: 'absolute', left: 0, top: 0 }} />
               )
         }
       </View>

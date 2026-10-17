@@ -4,6 +4,29 @@
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
+        <item name="android:alertDialogTheme">@style/MusicPlusDialogTheme</item>
+        <item name="alertDialogTheme">@style/MusicPlusCompatDialogTheme</item>
+    </style>
+
+    <style name="MusicPlusDialogTheme" parent="android:style/Theme.Material.Dialog.Alert">
+        <item name="android:colorAccent">#F3F3F5</item>
+        <item name="android:colorBackground">#1D1D22</item>
+        <item name="android:colorBackgroundFloating">#1D1D22</item>
+        <item name="android:textColorPrimary">#F3F3F5</item>
+        <item name="android:textColorSecondary">#929298</item>
+        <item name="android:windowBackground">@drawable/musicplus_dialog_background</item>
+        <item name="android:buttonBarButtonStyle">@style/MusicPlusDialogButton</item>
+    </style>
+    <style name="MusicPlusDialogButton" parent="android:style/Widget.Material.Button.Borderless">
+        <item name="android:textColor">#F3F3F5</item>
+    </style>
+    <style name="MusicPlusCompatDialogTheme" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="colorAccent">#F3F3F5</item>
+        <item name="android:colorBackground">#1D1D22</item>
+        <item name="android:colorBackgroundFloating">#1D1D22</item>
+        <item name="android:textColorPrimary">#F3F3F5</item>
+        <item name="android:textColorSecondary">#929298</item>
+        <item name="android:windowBackground">@drawable/musicplus_dialog_background</item>
     </style>
 
 </resources>

@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef } from 'react'
+import { memo, useEffect, useMemo, useRef } from 'react'
 import { View, TouchableOpacity, FlatList, type NativeScrollEvent, type NativeSyntheticEvent, type FlatListProps } from 'react-native'
 
 import { Icon } from '@/components/common/Icon'
@@ -6,7 +6,7 @@ import { Icon } from '@/components/common/Icon'
 import { useTheme } from '@/store/theme/hook'
 import { useActiveListId, useListFetching, useMyList } from '@/store/list/hook'
 import { createStyle } from '@/utils/tools'
-import { LIST_SCROLL_POSITION_KEY } from '@/config/constant'
+import { LIST_SCROLL_POSITION_KEY, LIST_IDS } from '@/config/constant'
 import { getListPosition, saveListPosition } from '@/utils/data'
 import { setActiveList } from '@/core/list'
 import Text from '@/components/common/Text'
@@ -74,7 +74,8 @@ export default ({ onShowMenu }: {
   onShowMenu: (info: { listInfo: LX.List.MyListInfo, index: number }, position: Position) => void
 }) => {
   const flatListRef = useRef<FlatList>(null)
-  const allList = useMyList()
+  const all = useMyList()
+  const allList = useMemo(() => all.filter(item => item.id != LIST_IDS.DEFAULT), [all])
   const activeListId = useActiveListId()
 
   const handleToggleList = (item: LX.List.MyListInfo) => {
@@ -91,7 +92,7 @@ export default ({ onShowMenu }: {
   }
 
   const showMenu = (listInfo: LX.List.MyListInfo, index: number, position: Position) => {
-    onShowMenu({ listInfo, index }, position)
+    onShowMenu({ listInfo, index: all.findIndex(item => item.id == listInfo.id) }, position)
   }
 
   useEffect(() => {

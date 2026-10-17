@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react'
+import { forwardRef, useImperativeHandle, useMemo, useState } from 'react'
 import { TouchableOpacity } from 'react-native'
 
 import { Icon } from '@/components/common/Icon'
@@ -7,8 +7,6 @@ import { useTheme } from '@/store/theme/hook'
 import { useActiveListId, useListFetching } from '@/store/list/hook'
 import listState from '@/store/list/state'
 import { createStyle } from '@/utils/tools'
-import { getListPrevSelectId } from '@/utils/data'
-import { setActiveList } from '@/core/list'
 import Text from '@/components/common/Text'
 import { LIST_IDS } from '@/config/constant'
 import Loading from '@/components/common/Loading'
@@ -51,12 +49,6 @@ export default forwardRef<ActiveListType, ActiveListProps>(({ onShowSearchBar, o
   const showList = () => {
     global.app_event.changeLoveListVisible(true)
   }
-
-  useEffect(() => {
-    void getListPrevSelectId().then((id) => {
-      setActiveList(id)
-    })
-  }, [])
 
   return (
     <TouchableOpacity onPress={showList} onLongPress={onScrollToTop} style={{ ...styles.currentList, opacity: visibleBar ? 1 : 0, borderBottomColor: theme['c-border-background'] }}>

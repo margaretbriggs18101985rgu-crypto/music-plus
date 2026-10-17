@@ -15,17 +15,17 @@ const styles = StyleSheet.create({
   image: {
     width: PIC_HEIGHT,
     height: PIC_HEIGHT,
-    borderRadius: 2,
+    borderRadius: PIC_HEIGHT / 2,
   },
+  disc: { width: PIC_HEIGHT + 12, height: PIC_HEIGHT + 12, padding: 6, borderRadius: (PIC_HEIGHT + 12) / 2, backgroundColor: '#09090D' },
 })
 
-export default ({ isHome }: { isHome: boolean }) => {
+export default ({ isHome, componentId }: { isHome: boolean, componentId?: string }) => {
   const musicInfo = usePlayerMusicInfo()
   const handlePress = () => {
     // console.log('')
     // console.log(playMusicInfo)
-    if (!musicInfo.id) return
-    navigations.pushPlayDetailScreen(commonState.componentIds.home!)
+    navigations.pushPlayDetailScreen(componentId ?? commonState.componentIds.home!)
 
     // toast(global.i18n.t('play_detail_todo_tip'), 'long')
   }
@@ -45,7 +45,7 @@ export default ({ isHome }: { isHome: boolean }) => {
   }, [])
 
   return (
-    <TouchableOpacity onLongPress={handleLongPress} onPress={handlePress} activeOpacity={0.7} >
+    <TouchableOpacity style={styles.disc} onLongPress={handleLongPress} onPress={handlePress} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel={global.i18n.t('ui_open_player')}>
       <Image url={musicInfo.pic} nativeID={NAV_SHEAR_NATIVE_IDS.playDetail_pic} style={styles.image} onError={handleError} />
     </TouchableOpacity>
   )

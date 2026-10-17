@@ -403,6 +403,21 @@ const handlePlayNext = async(playMusicInfo: LX.Player.PlayMusicInfo) => {
   setPlayMusicInfo(playMusicInfo.listId, playMusicInfo.musicInfo, playMusicInfo.isTempPlay)
   await handlePlay()
 }
+
+/** Select a queued item without discarding the rest of “play later”. */
+export const playQueuedItem = async(listId: string | null, index: number, later = false) => {
+  if (later) {
+    const item = playerState.tempPlayList[index]
+    if (!item) return
+    removeTempPlayList(index)
+    await handlePlayNext(item)
+  } else if (listId) {
+    const musicInfo = getList(listId)[index]
+    if (!musicInfo) return
+    setPlayListId(listId)
+    await handlePlayNext({ listId, musicInfo, isTempPlay: false })
+  }
+}
 /**
  * 下一曲
  * @param isAutoToggle 是否自动切换

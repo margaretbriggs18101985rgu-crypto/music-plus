@@ -1,45 +1,14 @@
-import { forwardRef, useImperativeHandle, useRef } from 'react'
-import { StyleSheet, View, type ViewStyle } from 'react-native'
-
-import { createStyle } from '@/utils/tools'
-import SourceSelector, {
-  type SourceSelectorType as _SourceSelectorType,
-  type SourceSelectorProps as _SourceSelectorProps,
-} from '@/components/SourceSelector'
-import leaderboardState, { type Source, type InitState } from '@/store/leaderboard/state'
-
-type Sources = Readonly<InitState['sources']>
-type SourceSelectorCommonProps = _SourceSelectorProps<Sources>
-type SourceSelectorCommonType = _SourceSelectorType<Sources>
-
-export interface SourceSelectorProps {
-  onSourceChange: SourceSelectorCommonProps['onSourceChange']
-  style?: ViewStyle
-}
-
-export interface SourceSelectorType {
-  setSource: (source: Source) => void
-}
-
-export default forwardRef<SourceSelectorType, SourceSelectorProps>(({ style, onSourceChange }, ref) => {
-  const sourceSelectorRef = useRef<SourceSelectorCommonType>(null)
-
-  useImperativeHandle(ref, () => ({
-    setSource(source) {
-      sourceSelectorRef.current?.setSourceList(leaderboardState.sources, source)
-    },
-  }), [])
-
-
-  return (
-    <View style={StyleSheet.compose<ViewStyle, ViewStyle, ViewStyle>(styles.selector, style)}>
-      <SourceSelector ref={sourceSelectorRef} onSourceChange={onSourceChange} center />
-    </View>
-  )
-})
-
-const styles = createStyle({
-  selector: {
-    // width: 86,
-  },
+import { forwardRef, useImperativeHandle, useState } from 'react'
+import InlineOptions, { OFFICIAL_PLATFORMS } from '@/components/common/InlineOptions'
+import { type Source } from '@/store/leaderboard/state'
+export interface SourceSelectorProps { onSourceChange: (source: Source) => void }
+export interface SourceSelectorType { setSource: (source: Source) => void }
+export default forwardRef<SourceSelectorType, SourceSelectorProps>(({ onSourceChange }, ref) => {
+  const [source, setSource] = useState<Source>('wy')
+  useImperativeHandle(ref, () => ({ setSource }), [])
+  const handleChange = (next: Source) => {
+    setSource(next)
+    onSourceChange(next)
+  }
+  return <InlineOptions value={source} options={OFFICIAL_PLATFORMS} onChange={handleChange} size={12} style={{ width: 148, flexShrink: 0 }} />
 })

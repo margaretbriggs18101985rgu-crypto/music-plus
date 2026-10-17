@@ -12,6 +12,7 @@ import type { InitState } from '@/store/common/state'
 import { exitApp, setNavActiveId } from '@/core/common'
 import Text from '@/components/common/Text'
 import { useSettingValue } from '@/store/setting/hook'
+import { getDesignTokens } from '@/theme/design'
 
 const styles = createStyle({
   container: {
@@ -39,6 +40,9 @@ const styles = createStyle({
     paddingBottom: 10,
   },
   menuItem: {
+    marginHorizontal: 12,
+    marginVertical: 3,
+    borderRadius: 4,
     flexDirection: 'row',
     paddingTop: 13,
     paddingBottom: 13,
@@ -60,11 +64,12 @@ const styles = createStyle({
 const Header = () => {
   const theme = useTheme()
   const statusBarHeight = useStatusbarHeight()
+  const colors = getDesignTokens(theme)
   return (
-    <View style={{ paddingTop: statusBarHeight, backgroundColor: theme['c-primary-light-700-alpha-500'] }}>
+    <View style={{ paddingTop: statusBarHeight, backgroundColor: colors.background }}>
       <View style={styles.header}>
-        <Icon name="logo" color={theme['c-primary-dark-100-alpha-300']} size={28} />
-        <Text style={styles.headerText} size={28} color={theme['c-primary-dark-100-alpha-300']}>LX Music</Text>
+        <Icon name="logo" color={colors.accent} size={28} />
+        <Text style={styles.headerText} size={26} color={colors.text}>LX Music</Text>
       </View>
     </View>
   )
@@ -82,7 +87,7 @@ const MenuItem = ({ id, icon, onPress }: {
   const theme = useTheme()
 
   return activeId == id
-    ? <View style={styles.menuItem}>
+    ? <View style={[styles.menuItem, { backgroundColor: theme['c-primary-alpha-900'] }]}>
         <View style={styles.iconContent}>
           <Icon name={icon} size={20} color={theme['c-primary-font-active']} />
         </View>

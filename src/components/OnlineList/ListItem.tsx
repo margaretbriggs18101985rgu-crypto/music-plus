@@ -1,4 +1,4 @@
-import { memo, useRef } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { View, TouchableOpacity } from 'react-native'
 // import Button from '@/components/common/Button'
 import Text from '@/components/common/Text'
@@ -9,16 +9,16 @@ import { useTheme } from '@/store/theme/hook'
 import { scaleSizeH } from '@/utils/pixelRatio'
 import { LIST_ITEM_HEIGHT } from '@/config/constant'
 import { createStyle, type RowInfo } from '@/utils/tools'
+import Image from '@/components/common/Image'
+import { getDesignTokens } from '@/theme/design'
+import { getPicPath } from '@/core/music'
 
 export const ITEM_HEIGHT = scaleSizeH(LIST_ITEM_HEIGHT)
 
 const useQualityTag = (musicInfo: LX.Music.MusicInfoOnline) => {
   const t = useI18n()
   let info: { type: BadgeType | null, text: string } = { type: null, text: '' }
-  if (musicInfo.meta._qualitys.flac24bit) {
-    info.type = 'secondary'
-    info.text = t('quality_lossless_24bit')
-  } else if (musicInfo.meta._qualitys.flac ?? musicInfo.meta._qualitys.ape) {
+  if (musicInfo.meta._qualitys.flac ?? musicInfo.meta._qualitys.ape) {
     info.type = 'secondary'
     info.text = t('quality_lossless')
   } else if (musicInfo.meta._qualitys['320k']) {
@@ -42,6 +42,23 @@ export default memo(({ item, index, showSource, onPress, onLongPress, onShowMenu
   isShowInterval: boolean
 }) => {
   const theme = useTheme()
+  const colors = getDesignTokens(theme)
+  const [coverUrl, setCoverUrl] = useState(item.meta.picUrl)
+
+  useEffect(() => {
+    let isActive = true
+    const currentCoverUrl = item.meta.picUrl
+    setCoverUrl(currentCoverUrl)
+    if (currentCoverUrl) return () => { isActive = false }
+
+    void getPicPath({ musicInfo: item }).then(url => {
+      if (!isActive || !url) return
+      item.meta.picUrl = url
+      setCoverUrl(url)
+    }).catch(() => {})
+
+    return () => { isActive = false }
+  }, [item])
 
   const isSelected = selectedList.includes(item)
 
@@ -61,9 +78,9 @@ export default memo(({ item, index, showSource, onPress, onLongPress, onShowMenu
   return (
     <View style={{ ...styles.listItem, width: rowInfo.rowWidth, height: ITEM_HEIGHT, backgroundColor: isSelected ? theme['c-primary-background-hover'] : 'rgba(0,0,0,0)' }}>
       <TouchableOpacity style={styles.listItemLeft} onPress={() => { onPress(item, index) }} onLongPress={() => { onLongPress(item, index) }}>
-        <Text style={styles.sn} size={13} color={theme['c-300']}>{index + 1}</Text>
+        <Image url={coverUrl} style={styles.artwork} />
         <View style={styles.itemInfo}>
-          <Text numberOfLines={1}>{item.name}</Text>
+          <Text numberOfLines={1} size={16} color={colors.text}>{item.name}</Text>
           <View style={styles.listItemSingle}>
             { tagInfo.type ? <Badge type={tagInfo.type}>{tagInfo.text}</Badge> : null }
             { showSource ? <Badge type="tertiary">{item.source}</Badge> : null }
@@ -92,6 +109,8 @@ export default memo(({ item, index, showSource, onPress, onLongPress, onShowMenu
 
 const styles = createStyle({
   listItem: {
+    paddingLeft: 18,
+    borderRadius: 0,
     // width: '100%',
     flexDirection: 'row',
     flexWrap: 'nowrap',
@@ -116,6 +135,7 @@ const styles = createStyle({
     paddingRight: 3,
   },
   itemInfo: {
+    paddingLeft: 12,
     flexGrow: 1,
     flexShrink: 1,
     paddingRight: 2,
@@ -167,5 +187,6 @@ const styles = createStyle({
     // backgroundColor: 'rgba(0,0,0,0.2)',
     justifyContent: 'center',
   },
+  artwork: { width: 46, height: 46, borderRadius: 4 },
 })
 

@@ -19,9 +19,46 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath('com.android.tools.build:gradle:8.6.1')
+        classpath('com.android.tools.build:gradle:8.10.1')
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+    }
+}
+
+// Native libraries declare historical AGP versions in their own buildscript blocks.
+// Compile all application subprojects with the same API-36-compatible plugin.
+subprojects {
+    plugins.withId("com.android.library") {
+        android.ndkVersion = rootProject.ext.ndkVersion
+        android.buildToolsVersion = rootProject.ext.buildToolsVersion
+    }
+    buildscript.repositories {
+        google()
+    }
+    buildscript.configurations.configureEach {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == "com.android.tools.build" && details.requested.name == "gradle") {
+                details.useVersion("8.10.1")
+            }
+        }
+    }
+}
+
+allprojects {
+    repositories.configureEach { repository ->
+        if (repository instanceof org.gradle.api.artifacts.repositories.MavenArtifactRepository) {
+            def repositoryUrl = repository.url.toString()
+            // RN registers this historical snapshot repository first. Stable AndroidX
+            // artifacts belong to Google Maven, not the retired snapshot endpoint.
+            if (repositoryUrl.startsWith("https://oss.sonatype.org/content/repositories/snapshots")) {
+                repository.content {
+                    includeVersionByRegex("com.facebook.react", ".*", ".*-SNAPSHOT")
+                }
+            }
+            if (repositoryUrl.startsWith("https://repo.maven.apache.org/maven2")) {
+                repository.content { excludeGroupByRegex("androidx\\..*") }
+            }
+        }
     }
 }
 

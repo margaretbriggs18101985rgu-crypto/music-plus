@@ -14,6 +14,7 @@ import cn.toside.music.mobile.crypto.CryptoPackage;
 import cn.toside.music.mobile.lyric.LyricPackage;
 import cn.toside.music.mobile.userApi.UserApiPackage;
 import cn.toside.music.mobile.utils.UtilsPackage;
+import cn.toside.music.mobile.vinyl.VinylPackage;
 
 public class MainApplication extends NavigationApplication {
 
@@ -21,7 +22,7 @@ public class MainApplication extends NavigationApplication {
       new NavigationReactNativeHost(this) {
         @Override
         public boolean getUseDeveloperSupport() {
-          return BuildConfig.DEBUG;
+          return BuildConfig.DEBUG && BuildConfig.USE_METRO;
         }
 
         @Override
@@ -35,6 +36,7 @@ public class MainApplication extends NavigationApplication {
           packages.add(new UtilsPackage());
           packages.add(new CryptoPackage());
           packages.add(new UserApiPackage());
+          packages.add(new VinylPackage());
           return packages;
         }
 

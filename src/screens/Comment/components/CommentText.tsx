@@ -50,11 +50,12 @@ export default memo(({ text }: { text: string }) => {
 
 const styles = createStyle({
   text: {
-    marginTop: 5,
-    lineHeight: 19,
+    marginTop: 8,
+    lineHeight: 24,
+    fontSize: 16,
   },
   toggle: {
-    marginTop: 15,
+    marginTop: 10,
     alignSelf: 'flex-end',
   },
 })

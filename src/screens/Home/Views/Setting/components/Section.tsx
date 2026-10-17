@@ -3,6 +3,7 @@ import { View } from 'react-native'
 import { createStyle } from '@/utils/tools'
 import { useTheme } from '@/store/theme/hook'
 import Text from '@/components/common/Text'
+import { getDesignTokens } from '@/theme/design'
 
 
 interface Props {
@@ -12,10 +13,11 @@ interface Props {
 
 export default ({ title, children }: Props) => {
   const theme = useTheme()
+  const colors = getDesignTokens(theme)
 
   return (
     <View style={styles.container}>
-      <Text style={{ ...styles.title, borderLeftColor: theme['c-primary'] }} size={16} >{title}</Text>
+      <Text style={styles.title} color={colors.text} size={17} >{title}</Text>
       <View>
         {children}
       </View>
@@ -26,13 +28,16 @@ export default ({ title, children }: Props) => {
 
 const styles = createStyle({
   container: {
+    paddingHorizontal: 6,
+    paddingTop: 10,
+    paddingBottom: 20,
+    marginBottom: 8,
     // paddingLeft: 10,
     // backgroundColor: 'rgba(0,0,0,0.2)',
   },
   title: {
-    borderLeftWidth: 5,
-    paddingLeft: 12,
-    marginBottom: 10,
+    fontWeight: '600',
+    marginBottom: 14,
     // lineHeight: 16,
   },
 })

@@ -13,6 +13,7 @@ import { Icon } from '@/components/common/Icon'
 import settingState from '@/store/setting/state'
 import apiSourceInfo from '@/utils/musicSdk/api-source-info'
 import { setApiSource } from '@/core/apiSource'
+import { BUILTIN_USER_API_ID } from '@/config/builtinUserApi'
 
 const formatVersionName = (version: string) => {
   return /^\d/.test(version) ? `v${version}` : version
@@ -53,13 +54,15 @@ const ListItem = ({ item, activeId, onRemove, onChangeAllowShowUpdateAlert }: {
             <Text size={12} color={theme['c-font-label']}>{item.description}</Text>
           ) : null
         }
-        <CheckBox check={item.allowShowUpdateAlert} label={t('user_api_allow_show_update_alert')} onChange={changeAllowShowUpdateAlert} size={0.86} />
+        {item.id == BUILTIN_USER_API_ID
+          ? <Text size={12} color={theme['c-font-label']}>{t('ui_builtin_source')} · {t('ui_builtin_source_update')}</Text>
+          : <CheckBox check={item.allowShowUpdateAlert} label={t('user_api_allow_show_update_alert')} onChange={changeAllowShowUpdateAlert} size={0.86} />}
       </View>
-      <View style={styles.listItemRight}>
+      {item.id != BUILTIN_USER_API_ID ? <View style={styles.listItemRight}>
         <TouchableOpacity style={styles.btn} onPress={handleRemove}>
           <Icon name="close" color={theme['c-button-font']} />
         </TouchableOpacity>
-      </View>
+      </View> : null}
     </View>
   )
 }

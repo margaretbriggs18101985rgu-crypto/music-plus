@@ -7,11 +7,18 @@ import PlayInfo from './components/PlayInfo'
 import ControlBtn from './components/ControlBtn'
 import { createStyle } from '@/utils/tools'
 import { NAV_SHEAR_NATIVE_IDS } from '@/config/constant'
+import Text from '@/components/common/Text'
+import { usePlayerMusicInfo } from '@/store/player/hook'
+import { useTheme } from '@/store/theme/hook'
 
 
 export default memo(() => {
+  const musicInfo = usePlayerMusicInfo()
+  const theme = useTheme()
   return (
     <View style={styles.container} nativeID={NAV_SHEAR_NATIVE_IDS.playDetail_player}>
+      <Text size={24} style={styles.trackTitle} numberOfLines={1}>{musicInfo.name}</Text>
+      <Text size={13} color={theme['c-font-label']} style={styles.singer} numberOfLines={1}>{musicInfo.singer}</Text>
       <PlayInfo />
       <ControlBtn />
       <MoreBtn />
@@ -26,7 +33,7 @@ const styles = createStyle({
     // paddingTop: progressContentPadding,
     // marginTop: -progressContentPadding,
     // backgroundColor: 'rgba(0, 0, 0, .1)',
-    paddingHorizontal: 15,
+    paddingHorizontal: 28,
     paddingBottom: 15,
     paddingTop: 5,
     // backgroundColor: AppColors.primary,
@@ -41,4 +48,6 @@ const styles = createStyle({
     justifyContent: 'space-evenly',
     // backgroundColor: 'rgba(0, 0, 0, .1)',
   },
+  trackTitle: { fontWeight: '700', marginBottom: 6 },
+  singer: { marginBottom: 16 },
 })

@@ -1,9 +1,10 @@
 {
-  "name": "lx-music-mobile",
-  "version": "1.9.1",
-  "versionCode": 78,
+  "name": "music-plus",
+  "version": "1.0.0",
+  "versionCode": 1,
   "private": true,
   "scripts": {
+    "postinstall": "node dependencies-patch.js",
     "dev": "react-native run-android --active-arch-only",
     "ios": "react-native run-ios",
     "start": "react-native start",
@@ -14,21 +15,23 @@
     "menu": "adb shell input keyevent 82",
     "bundle-android": "react-native bundle --platform android --dev true --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res",
     "build-test": "react-native bundle --platform android --dev true --entry-file index.js --bundle-output index.android.bundle --assets-dest res",
-    "pack:android:debug": "./gradlew assembleDebug",
+    "pack:android:debug": "node tools/build-android-debug.cjs",
+    "typecheck": "tsc --noEmit",
     "pack": "npm run pack:android",
-    "pack:android": "cd android && gradlew.bat assembleRelease",
+    "pack:android": "node tools/build-android-release.cjs",
+    "test": "node --test tools/test-*.cjs",
     "clear": "cd android && gradlew.bat clean",
     "clear:full": "git clean -fdx -e android/keystore.properties -e android/app/*.keystore",
     "build:theme": "node src/theme/themes/createThemes.js",
     "publish": "node publish"
   },
   "engines": {
-    "node": ">= 18",
+    "node": ">=24.22.0 <25",
     "npm": ">= 8.5.2"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lyswhut/lx-music-mobile.git"
+    "url": "git+https://github.com/margaretbriggs18101985rgu-crypto/music-plus.git"
   },
   "keywords": [
     "music-player",
@@ -39,10 +42,13 @@
     "email": "lyswhut@qq.com"
   },
   "license": "Apache-2.0",
+  "contributors": [
+    "margaretbriggs18101985rgu-crypto"
+  ],
   "bugs": {
-    "url": "https://github.com/lyswhut/lx-music-mobile/issues"
+    "url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/issues"
   },
-  "homepage": "https://github.com/lyswhut/lx-music-mobile#readme",
+  "homepage": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus#readme",
   "dependencies": {
     "@craftzdog/react-native-buffer": "^6.1.2",
     "@react-native-async-storage/async-storage": "~2.1.2",

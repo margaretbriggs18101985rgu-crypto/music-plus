@@ -14,6 +14,7 @@ import Button from '../../components/Button'
 import UserApiEditModal, { type UserApiEditModalType } from './UserApiEditModal'
 import Text from '@/components/common/Text'
 import { useTheme } from '@/store/theme/hook'
+import { BUILTIN_USER_API_ID } from '@/config/builtinUserApi'
 // import { importUserApi, removeUserApi } from '@/core/userApi'
 
 const apiSourceList = apiSourceInfo.map(api => ({
@@ -81,7 +82,7 @@ export default memo(() => {
         id: api.id,
         name: api.name,
         label: `${api.name}${statusLabel}`,
-        desc: [/^\d/.test(api.version) ? `v${api.version}` : api.version].filter(Boolean).join(', '),
+        desc: [/^\d/.test(api.version) ? `v${api.version}` : api.version, api.id == BUILTIN_USER_API_ID ? t('ui_builtin_source') : ''].filter(Boolean).join(' · '),
         statusLabel,
         // status: apiStatus.status,
         // message: apiStatus.message,

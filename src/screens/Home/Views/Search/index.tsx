@@ -7,8 +7,6 @@ import { type LayoutChangeEvent, View } from 'react-native'
 // import MusicList from './components/MusicList'
 import HeaderBar, { type HeaderBarProps, type HeaderBarType } from './HeaderBar'
 import searchState, { type SearchType } from '@/store/search/state'
-import searchMusicState from '@/store/search/music/state'
-import searchSonglistState from '@/store/search/songlist/state'
 import { getSearchSetting, saveSearchSetting } from '@/utils/data'
 import { createStyle } from '@/utils/tools'
 import TipList, { type TipListType } from './TipList'
@@ -17,7 +15,6 @@ import { addHistoryWord } from '@/core/search/search'
 
 
 interface SearchInfo {
-  temp_source: LX.OnlineSource
   source: LX.OnlineSource | 'all'
   searchType: 'music' | 'songlist'
 }
@@ -27,23 +24,14 @@ export default () => {
   const searchTipListRef = useRef<TipListType>(null)
   const listRef = useRef<ListType>(null)
   const layoutHeightRef = useRef<number>(0)
-  const searchInfo = useRef<SearchInfo>({ temp_source: 'kw', source: 'kw', searchType: 'music' })
+  const searchInfo = useRef<SearchInfo>({ source: 'kw', searchType: 'music' })
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     void getSearchSetting().then(info => {
       // info.type = 'music'
-      searchInfo.current.temp_source = info.temp_source
       searchInfo.current.source = info.source
       searchInfo.current.searchType = info.type
-      switch (info.type) {
-        case 'music':
-          headerBarRef.current?.setSourceList(searchMusicState.sources, info.source)
-          break
-        case 'songlist':
-          headerBarRef.current?.setSourceList(searchSonglistState.sources, info.source)
-          break
-      }
       headerBarRef.current?.setText(searchState.searchText)
       listRef.current?.loadList(searchState.searchText, searchInfo.current.source, searchInfo.current.searchType)
     })
@@ -65,11 +53,6 @@ export default () => {
     layoutHeightRef.current = e.nativeEvent.layout.height
   }
 
-  const handleSourceChange: HeaderBarProps['onSourceChange'] = (source) => {
-    searchInfo.current.source = source
-    void saveSearchSetting({ source })
-    listRef.current?.loadList(searchState.searchText, source, searchInfo.current.searchType)
-  }
   const handleTipSearch: HeaderBarProps['onTipSearch'] = (text) => {
     setTimeout(() => {
       searchTipListRef.current?.search(text, layoutHeightRef.current)
@@ -101,7 +84,6 @@ export default () => {
     <View style={styles.container}>
       <HeaderBar
         ref={headerBarRef}
-        onSourceChange={handleSourceChange}
         onTipSearch={handleTipSearch}
         onSearch={handleSearch}
         onHideTipList={handleHideTipList}

@@ -1,0 +1,7 @@
+{
+  "name": "lx-native-ui-preview",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node server.mjs", "build": "node server.mjs --build" },
+  "dependencies": { "esbuild": "0.25.12", "react": "18.2.0", "react-dom": "18.2.0", "react-native-web": "0.19.13" }
+}

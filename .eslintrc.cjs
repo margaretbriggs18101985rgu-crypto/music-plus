@@ -76,7 +76,9 @@ module.exports = {
     },
   },
   ignorePatterns: [
+    '**/build/**',
     'node_modules',
+    'tools/ui-preview',
     '*.min.js',
     'test.js',
     '*Test.ts',

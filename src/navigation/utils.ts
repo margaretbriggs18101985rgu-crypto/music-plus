@@ -6,6 +6,27 @@ import {
 } from './screenNames'
 import themeState from '@/store/theme/state'
 
+const overlayAnimations = {
+  showModal: {
+    enter: {
+      alpha: {
+        from: 0,
+        to: 1,
+        duration: 190,
+        interpolation: { type: 'decelerate' as const },
+      },
+    },
+    exit: {
+      alpha: {
+        from: 1,
+        to: 0,
+        duration: 150,
+        interpolation: { type: 'accelerate' as const },
+      },
+    },
+  },
+}
+
 
 export const getStatusBarStyle = (isDark: boolean) => isDark ? 'light' : 'dark'
 
@@ -22,6 +43,7 @@ export const showPactModal = () => {
     component: {
       name: PACT_MODAL,
       options: {
+        animations: overlayAnimations,
         layout: {
           componentBackgroundColor: 'transparent',
         },
@@ -71,6 +93,7 @@ export const showVersionModal = () => {
     component: {
       name: VERSION_MODAL,
       options: {
+        animations: overlayAnimations,
         layout: {
           componentBackgroundColor: 'transparent',
         },
@@ -120,6 +143,7 @@ export const showSyncModeModal = () => {
     component: {
       name: SYNC_MODE_MODAL,
       options: {
+        animations: overlayAnimations,
         layout: {
           componentBackgroundColor: 'transparent',
         },

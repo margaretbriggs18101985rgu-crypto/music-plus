@@ -1,12 +1,10 @@
-import Text from '@/components/common/Text'
-import { useI18n } from '@/lang'
 import { useSettingValue } from '@/store/setting/hook'
-import { useTheme } from '@/store/theme/hook'
 import { createStyle } from '@/utils/tools'
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react'
-import { ScrollView, View } from 'react-native'
+import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react'
+import { RefreshControl, ScrollView, View } from 'react-native'
 import HistorySearch, { type HistorySearchType } from './HistorySearch'
 import HotSearch, { type HotSearchType } from './HotSearch'
+import ListeningHome from './ListeningHome'
 
 interface BlankViewProps {
   onSearch: (keyword: string) => void
@@ -20,12 +18,26 @@ export interface BlankViewType {
 export default forwardRef<BlankViewType, BlankViewProps>(({ onSearch }, ref) => {
   // const [listType, setListType] = useState<SearchState['searchType']>('music')
   const [visible, setVisible] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const refreshKeyRef = useRef(0)
+  const completedRefreshParts = useRef(new Set<string>())
   const hotSearchRef = useRef<HotSearchType>(null)
   const historySearchRef = useRef<HistorySearchType>(null)
   const isShowHotSearch = useSettingValue('search.isShowHotSearch')
   const isShowHistorySearch = useSettingValue('search.isShowHistorySearch')
-  const t = useI18n()
-  const theme = useTheme()
+  const onRefresh = useCallback(() => {
+    const key = refreshKeyRef.current + 1
+    refreshKeyRef.current = key
+    completedRefreshParts.current.clear()
+    setRefreshing(true)
+    setRefreshKey(key)
+  }, [])
+  const onRefreshComplete = useCallback((key: number, part: string) => {
+    if (key != refreshKeyRef.current) return
+    completedRefreshParts.current.add(part)
+    if (completedRefreshParts.current.has('catalog') && completedRefreshParts.current.has('songs')) setRefreshing(false)
+  }, [])
 
   const handleShow = (source: Source) => {
     hotSearchRef.current?.show(source)
@@ -46,20 +58,18 @@ export default forwardRef<BlankViewType, BlankViewProps>(({ onSearch }, ref) => 
 
   return (
     visible
-      ? isShowHotSearch || isShowHistorySearch
-        ? (
-            <ScrollView>
+      ? (
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            >
               <View style={styles.content}>
+                <ListeningHome refreshKey={refreshKey} onRefreshComplete={onRefreshComplete} />
                 { isShowHotSearch ? <HotSearch ref={hotSearchRef} onSearch={onSearch} /> : null }
                 { isShowHistorySearch ? <HistorySearch ref={historySearchRef} onSearch={onSearch} /> : null }
               </View>
             </ScrollView>
-          )
-        : (
-            <View style={styles.welcome}>
-              <Text size={22} color={theme['c-font-label']}>{t('search__welcome')}</Text>
-            </View>
-          )
+        )
       : null
 
   )
@@ -70,12 +80,7 @@ const styles = createStyle({
   content: {
     // paddingTop: 15,
     paddingBottom: 15,
-    paddingLeft: 15,
-    paddingRight: 15,
-  },
-  welcome: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingLeft: 18,
+    paddingRight: 18,
   },
 })

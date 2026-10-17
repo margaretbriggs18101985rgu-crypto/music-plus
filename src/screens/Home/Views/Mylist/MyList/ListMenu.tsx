@@ -21,6 +21,7 @@ const menuItemWidth = scaleSizeW(110)
 export interface ListMenuProps {
   onNew: (position: number) => void
   onRename: (listInfo: LX.List.UserListInfo) => void
+  onCover?: (listInfo: LX.List.MyListInfo) => void
   onSort: (listInfo: LX.List.MyListInfo) => void
   onDuplicateMusic: (listInfo: LX.List.MyListInfo) => void
   onImport: (listInfo: LX.List.MyListInfo, index: number) => void
@@ -40,6 +41,7 @@ export type {
 export default forwardRef<ListMenuType, ListMenuProps>(({
   onNew,
   onRename,
+  onCover,
   onSort,
   onDuplicateMusic,
   onImport,
@@ -89,11 +91,12 @@ export default forwardRef<ListMenuType, ListMenuProps>(({
     setMenus([
       { action: 'new', label: t('list_create') },
       { action: 'rename', disabled: !rename, label: t('list_rename') },
+      ...(onCover ? [{ action: 'cover', label: '更换封面' }] : []),
       { action: 'sort', label: t('list_sort') },
       { action: 'duplicateMusic', label: t('lists__duplicate') },
       { action: 'local_file', disabled: !local_file, label: t('list_select_local_file') },
       { action: 'sync', disabled: !sync || !local_file, label: t('list_sync') },
-      { action: 'import', label: t('list_import') },
+      { action: 'import', label: '导入备份文件' },
       { action: 'export', label: t('list_export') },
       // { action: 'changePosition', label: t('change_position') },
       { action: 'remove', disabled: !remove, label: t('list_remove') },
@@ -108,6 +111,9 @@ export default forwardRef<ListMenuType, ListMenuProps>(({
         break
       case 'rename':
         onRename(selectInfo.listInfo as LX.List.UserListInfo)
+        break
+      case 'cover':
+        onCover?.(selectInfo.listInfo)
         break
       case 'sort':
         onSort(selectInfo.listInfo)
