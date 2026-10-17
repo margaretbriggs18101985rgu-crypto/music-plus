@@ -35,8 +35,12 @@ internal fun PlayerTopNavigation(state: VinylPlayerState, onAction: PlayerAction
 
 @Composable
 internal fun PlayerViewSwitch(state: VinylPlayerState, onAction: PlayerAction) {
-    Row(Modifier.fillMaxWidth().height(52.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-        PlayerIconButton(PlayerIcon.Info, "歌曲信息", 22, state.hasTrack && !state.demo, color = VinylPalette.Muted) { onAction("info", 0.0) }
-        PlayerIconButton(PlayerIcon.Download, "下载歌曲", 23, state.hasTrack && !state.demo, color = VinylPalette.Muted) { onAction("download", 0.0) }
+    BoxWithConstraints(Modifier.fillMaxWidth().height(52.dp), contentAlignment = Alignment.CenterStart) {
+        PlayerIconButton(PlayerIcon.Info, "歌曲信息", 22, state.hasTrack && !state.demo, color = VinylPalette.Muted,
+            modifier = Modifier.offset(x = maxWidth / 3 - 24.dp)) { onAction("info", 0.0) }
+        PlayerIconButton(PlayerIcon.Download, "下载歌曲", 23, state.hasTrack && !state.demo, color = VinylPalette.Muted,
+            modifier = Modifier.offset(x = maxWidth * 2 / 3 - 24.dp)) { onAction("download", 0.0) }
+        PlayerIconButton(PlayerIcon.More, "更多播放设置", 23, color = VinylPalette.Muted,
+            modifier = Modifier.offset(x = maxWidth * .88f - 24.dp).rotate(90f)) { onAction("settings", 0.0) }
     }
 }

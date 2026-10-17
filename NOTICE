@@ -14,3 +14,12 @@ independent Android packaging and release configuration.
 Third-party source script: molanyinyueyuan v2.3.4 by baiji6, MIT License.
 See android/app/src/main/assets/licenses/molanyinyueyuan-MIT.txt.
 Other bundled dependencies and assets retain their respective notices.
+
+Player menu icons: Feather v4.28.0 by Cole Bemis and contributors,
+MIT License. Font packaged by react-native-vector-icons, copyright
+Joel Arvidsson, MIT License. See assets/licenses/Feather-MIT.txt and
+assets/licenses/react-native-vector-icons-MIT.txt in the APK.
+
+Spatial lyric interaction and star-field appearance reference:
+https://github.com/MorsBrenn/mineradio-mobile
+Implemented for Android Compose with a read-only Media3 PCM analyser.

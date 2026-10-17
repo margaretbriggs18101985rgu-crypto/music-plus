@@ -5,20 +5,20 @@ import org.junit.Test
 
 class AmbientParticlesTest {
     @Test fun seedIsStableAndQualityOnlyTruncatesThePopulation() {
-        val high = createAmbientParticles(17, 42)
-        assertEquals(high, createAmbientParticles(17, 42))
-        assertEquals(high.take(16), createAmbientParticles(17, 16))
-        assertNotEquals(high, createAmbientParticles(18, 42))
-        assertEquals(42, createAmbientParticles(17, 1000).size)
+        val high = createAmbientParticles(17, 420)
+        assertEquals(high, createAmbientParticles(17, 420))
+        assertEquals(high.take(80), createAmbientParticles(17, 80))
+        assertNotEquals(high, createAmbientParticles(18, 420))
+        assertEquals(420, createAmbientParticles(17, 1000).size)
         assertTrue(createAmbientParticles(17, -1).isEmpty())
     }
     @Test fun particlesHaveBoundedCoordinatesSpeedAndThreeParallaxDepths() {
-        val particles = createAmbientParticles(17, 42)
+        val particles = createAmbientParticles(17, 420)
         assertEquals(setOf(.15f, .30f, .45f), particles.map { it.depth }.toSet())
         for (particle in particles) {
             assertTrue(particle.x in 0f..1f && particle.y in 0f..1f)
             assertTrue(particle.speed in .0015f.. .0045f)
-            assertTrue(particle.radius in .65f..1.8f)
+            assertTrue(particle.radius in .65f..2.5f)
         }
     }
     @Test fun wrapAroundAndInvalidTimeAreSafe() {

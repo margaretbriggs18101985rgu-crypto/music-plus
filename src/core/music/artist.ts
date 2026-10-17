@@ -123,6 +123,25 @@ export const getTrackArtists = async(music: LX.Music.MusicInfo): Promise<Artist[
   if (!result.length) throw new Error('暂未获取到这首歌的歌手资料，请重试')
   return result
 }
+
+/** Resolve the track's actual official album before opening its existing album page. */
+export const getTrackAlbum = async(music: LX.Music.MusicInfo): Promise<ArtistAlbum> => {
+  let target: LX.Music.MusicInfoOnline
+  try { target = await resolveOfficialTrack(music, music.source == 'tx' ? 'tx' : 'wy') } catch (error) {
+    if (music.source == 'wy' || music.source == 'tx') throw error
+    target = await resolveOfficialTrack(music, 'tx')
+  }
+  if (target.source == 'wy') {
+    const detail = await (getWyMusicInfo(target.meta.songId).promise as unknown as Promise<RawSong>)
+    const album = detail?.al ?? detail?.album
+    if (!album?.id || !album.name) throw new Error('未获取到这首歌曲的专辑')
+    return { source: 'wy', id: String(album.id), name: album.name, cover: album.picUrl }
+  }
+  const detail = await qqRequest<{ track_info?: RawSong }>('music.pf_song_detail_svr', 'get_song_detail_yqq', { song_type: 0, song_mid: String(target.meta.songId) })
+  const album = detail.track_info?.album
+  if (!album?.mid || !album.name) throw new Error('未获取到这首歌曲的专辑')
+  return { source: 'tx', id: album.mid, name: album.name, cover: qqImage(album.mid) }
+}
 const normalizeArtistQuery = (value: string) => value.toLocaleLowerCase().replace(/[\s\p{P}\p{S}]/gu, '')
 const matchArtist = (keyword: string, results: ArtistSearchResult[]): ArtistSearchResult | null => {
   const query = normalizeArtistQuery(keyword)

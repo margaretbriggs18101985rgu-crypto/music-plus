@@ -42,3 +42,33 @@ if (!navigationBuild.includes(projectBuildTools)) {
 }
 fs.writeFileSync(navigationBuildFile, navigationBuild)
 console.log('Verified Android build tools compatibility patch: react-native-navigation')
+
+// Keep playback changes reproducible after npm install, rather than editing node_modules only.
+const playerRoot = path.join(__dirname, 'node_modules/react-native-track-player/android/src/main/java/com/guichaguri/trackplayer')
+const playerPatches = [
+  ['service/MusicManager.java', [
+    ['new DefaultRenderersFactory(service)', 'new com.guichaguri.trackplayer.service.player.ReactiveAudio(service)'],
+    ['return new LocalPlayback(service, this, player, cacheMaxSize, autoUpdateMetadata);',
+      'com.guichaguri.trackplayer.service.player.ReactiveAudio.attach(player);\n        return new LocalPlayback(service, this, player, cacheMaxSize, autoUpdateMetadata);'],
+  ]],
+  ['service/player/LocalPlayback.java', [
+    ['    public void destroy() {\n        super.destroy();', '    public void destroy() {\n        ReactiveAudio.detach(player);\n        super.destroy();'],
+  ]],
+  ['service/models/Track.java', [
+    ['.setConstantBitrateSeekingEnabled(true)', '.setConstantBitrateSeekingEnabled(true)\n                        .setMp3ExtractorFlags(androidx.media3.extractor.mp3.Mp3Extractor.FLAG_ENABLE_INDEX_SEEKING)'],
+  ]],
+]
+for (const [file, replacements] of playerPatches) {
+  const target = path.join(playerRoot, file)
+  let source = fs.readFileSync(target, 'utf8').replaceAll('\r\n', '\n')
+  for (const [before, after] of replacements) {
+    if (source.includes(after)) continue
+    if (!source.includes(before)) throw new Error(`Playback patch target changed: ${file}`)
+    source = source.replace(before, after)
+  }
+  fs.writeFileSync(target, source)
+}
+for (const name of ['ReactiveAudio.java', 'AudioBands.java']) {
+  fs.copyFileSync(path.join(__dirname, 'android/player-patches', name), path.join(playerRoot, 'service/player', name))
+}
+console.log('Verified audio analysis and MP3 seek patches: react-native-track-player')

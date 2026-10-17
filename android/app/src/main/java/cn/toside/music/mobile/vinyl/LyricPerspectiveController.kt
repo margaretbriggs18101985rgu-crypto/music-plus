@@ -1,43 +1,29 @@
 package cn.toside.music.mobile.vinyl
 
 import kotlin.math.abs
+import kotlin.math.pow
 
-internal data class LyricPerspective(
-    val dragPx: Float = 0f,
-    val translationPx: Float = 0f,
-    val yaw: Float = 0f,
-    val backgroundPx: Float = 0f,
-    val midgroundPx: Float = 0f,
-    val foregroundPx: Float = 0f,
-)
+/** mineradio pointer sensitivity and 0.90/frame inertia, in logical screen pixels. */
+internal data class LyricRotation(val pitch: Float = 0f, val yaw: Float = 0f)
+internal data class LyricSpin(val rotation: LyricRotation = LyricRotation(), val pitchSpeed: Float = 0f, val yawSpeed: Float = 0f)
+internal fun wrapLyricAngle(degrees: Float): Float =
+    if (degrees.isFinite()) ((degrees + 180f) % 360f + 360f) % 360f - 180f else 0f
 
-/** All inputs/outputs use pixels except yaw (degrees). No playback state is changed here. */
-internal fun lyricPerspective(dragPx: Float, widthPx: Float, density: Float): LyricPerspective {
-    if (!dragPx.isFinite() || !widthPx.isFinite() || widthPx <= 0f ||
-        !density.isFinite() || density <= 0f) return LyricPerspective()
-    val drag = dragPx.coerceIn(-widthPx * .28f, widthPx * .28f)
-    val normalized = (drag / (widthPx * .25f).coerceAtLeast(.001f)).coerceIn(-1f, 1f)
-    return LyricPerspective(drag, (drag * .85f).coerceIn(-48f * density, 48f * density),
-        normalized * 9f, drag * .15f, drag * .30f, drag * .45f)
+internal fun rotateLyric(rotation: LyricRotation, x: Float, y: Float): LyricRotation {
+    if (!x.isFinite() || !y.isFinite()) return rotation
+    return LyricRotation(wrapLyricAngle(rotation.pitch + y * .18335f), wrapLyricAngle(rotation.yaw + x * .19481f))
 }
 
-internal enum class LyricDragAxis { Pending, Horizontal, Vertical }
+internal fun lyricReleaseSpin(rotation: LyricRotation, xSpeed: Float, ySpeed: Float): LyricSpin {
+    fun speed(value: Float, sensitivity: Float) =
+        if (value.isFinite()) (value * sensitivity * .46f).coerceIn(-355.2f, 355.2f) else 0f
+    return LyricSpin(rotation, speed(ySpeed, .18335f), speed(xSpeed, .19481f))
+}
 
-/** Locks once per touch; a diagonal with equal displacement belongs to vertical scrolling. */
-internal class LyricDragSession {
-    var axis = LyricDragAxis.Pending
-        private set
-    var dragPx = 0f
-        private set
-
-    fun move(x: Float, y: Float, slop: Float) {
-        if (!x.isFinite() || !y.isFinite() || !slop.isFinite() || slop < 0f) { reset(); return }
-        if (axis == LyricDragAxis.Pending && maxOf(abs(x), abs(y)) > slop) {
-            axis = if (abs(x) > abs(y)) LyricDragAxis.Horizontal else LyricDragAxis.Vertical
-        }
-        if (axis == LyricDragAxis.Horizontal) dragPx = x
-    }
-
-    // Both release and cancel discard the input state; the view alone owns the return spring.
-    fun reset() { axis = LyricDragAxis.Pending; dragPx = 0f }
+internal fun advanceLyricSpin(spin: LyricSpin, seconds: Float): LyricSpin {
+    val dt = if (seconds.isFinite()) seconds.coerceIn(0f, .08f) else 0f
+    val decay = .90f.pow(dt * 60f)
+    fun remaining(speed: Float) = (speed * decay).let { if (abs(it) < .57f) 0f else it }
+    return LyricSpin(LyricRotation(wrapLyricAngle(spin.rotation.pitch + spin.pitchSpeed * dt),
+        wrapLyricAngle(spin.rotation.yaw + spin.yawSpeed * dt)), remaining(spin.pitchSpeed), remaining(spin.yawSpeed))
 }

@@ -38,9 +38,9 @@ internal fun resolveAmbientPolicy(config: ImmersiveVisualConfig, environment: Im
         (!config.respectReducedMotion || environment.systemMotion) && !environment.powerSave
     val count = if (!allowed || !lyricsVisible) 0 else when {
         config.particleQuality == ParticleQuality.Off -> 0
-        environment.lowRam || config.particleQuality == ParticleQuality.Low -> 16
-        config.particleQuality == ParticleQuality.High -> 42
-        else -> 32
+        environment.lowRam || config.particleQuality == ParticleQuality.Low -> 80
+        config.particleQuality == ParticleQuality.High -> 420
+        else -> 240
     }
     return AmbientPolicy(allowed && lyricsVisible && config.backgroundMotion,
         count, allowed && config.lyricMotionEnabled, allowed)

@@ -180,6 +180,10 @@ declare global {
       'player.immersiveVisualsEnabled': boolean
       'player.particleQuality': 'auto' | 'low' | 'high' | 'off'
       'player.lyricMotionEnabled': boolean
+      'player.lyricDisplayMode': 'single' | 'multiple'
+      'player.lyricColor': string
+      'player.lyricFontSize': number
+      'player.lyricAlign': 'left' | 'center' | 'right'
       'player.backgroundMotion': boolean
       'player.respectReducedMotion': boolean
 

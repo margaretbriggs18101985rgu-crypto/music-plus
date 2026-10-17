@@ -121,3 +121,19 @@ final result: passed
 - 类型检查、完整 ESLint、15 项数据合约测试和 Android Debug 构建全部通过。
 - `emulator-5554` 覆盖安装并启动成功。模拟器截图确认搜索首页来源标签行已移除、真实搜索仍返回歌曲、黑胶页没有顶部三点菜单。评论页真实加载网易云 172 条评论；切到 QQ 最新时真实返回评论，接口总量字段不一致时正确显示“20+”。最终评论截图：`build/qa/ui-cleanup-comments-final.png`、`build/qa/ui-cleanup-qq-latest-final.png`；首页和播放器截图：`build/qa/ui-cleanup-home.png`、`build/qa/ui-cleanup-vinyl.png`。
 - Debug APK：`build/apk/lx-music-mobile-v1.9.1-debug-universal.apk`；SHA-256：`13b5b5165d93faa2b5725d1b7745d09115ff0c8ca26275cd78e5a9652a483d5f`。
+
+## 2026-10-18 v1.1.1 播放器更多面板与播放同步
+
+- 视觉来源：用户提供的 `83d6d74b34f0ce5cad6538ced98547d3.jpg`（1220×2656）。原生实现初版截图 `build/player-menu-qa.png`（1080×2400，411dp 宽、2.625 密度）。
+- 将两张图按相同 540px 宽归一化，保留各自纵横比，生成 `build/menu-qa/comparison-v1.png`；歌曲、封面、平台会员/关注按钮及系统状态栏为动态内容或本产品差异，不复制参考图数据。局部检查：`build/menu-qa/details-v1.png`。
+- V1 [P2] 面板起点较参考偏低，行高及字号略大，降低信息密度。已将高度改为窗口的 74%，行高 54dp，正文 15、标题 17，并减少头部及快捷操作留白。
+- 已检查字体、布局、颜色、图片和文案；使用当前歌曲真实封面和 Feather 字体图标，保留本产品真实功能。底部系统导航栏由 Android 管理。
+
+- V2：同一输入中对照参考图与实际 APK 截图，见 `build/menu-qa/comparison-v2.png`、`details-v2.png`。字体、留白、深色底与分隔线、真实封面、图标及文案已复查，无本范围待修复 P0/P1/P2。
+- 交互复测发现 [P1] 仅用移动判定会丢失下拉手势；抓手开始触摸即取得响应后修复。最终安装包在 `[0,708][1080,766]` 抓手区域向下滑动，确认面板关闭、底层播放器恢复交互，见 `build/menu-qa/drag-dismiss-fixed.png`。
+- 已实际验证睡眠定时开始／取消、单句切换多排、樱粉颜色、字号／对齐面板、音量／倍速面板、播放列表跳转。重启应用确认多排和颜色保留；真实本地音频显示多排歌词，见 `build/menu-qa/interaction-results.json`、`multiple-pink-persisted.png`。
+- 300 秒本地 PCM 音频的三次暂停跳转：实际媒体会话位置分别约 73.874、211.917、27.690 秒；对应歌词为 70、210、20 秒行。恢复后继续前进；双轴旋转保留角度，音频分析读取到非零 PCM 能量。证据见 `build/playback-fix-qa/results.json`、`native-audio.log`。本次不是用 UI 请求值代替实际播放位置。
+- 工程检查：完整 TypeScript、ESLint、53 项 JS 测试，Debug／Release 各 35 项 Android 单元测试。五架构签名 Release 构建及签名／ZIP 对齐检查；证书与 v1.1.0 相同。
+- 限制：无声模拟器验证解码、媒体会话与交互；未宣称通过真机听感、长时性能／功耗、完整 TalkBack、所有第三方在线音源或蓝牙验收。
+
+final result: passed

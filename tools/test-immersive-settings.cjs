@@ -38,6 +38,8 @@ test('old saved settings gain immersive defaults without changing existing prefe
   assert.equal(setting['player.immersiveVisualsEnabled'], true)
   assert.equal(setting['player.particleQuality'], 'auto')
   assert.equal(setting['player.lyricMotionEnabled'], true)
+  assert.equal(setting['player.lyricDisplayMode'], 'single')
+  assert.equal(setting['player.lyricColor'], '#A8F6FF')
   assert.equal(setting['player.backgroundMotion'], true)
   assert.equal(setting['player.respectReducedMotion'], true)
   assert.equal(setting['player.volume'], 0.3)
@@ -53,10 +55,13 @@ test('disabled effects and an explicit particle selection survive the real setti
   const { setting, updatedSettingKeys } = first.settings.updateSetting({
     'player.immersiveVisualsEnabled': false, 'player.particleQuality': 'low',
     'player.lyricMotionEnabled': false, 'player.backgroundMotion': false, 'player.respectReducedMotion': false,
+    'player.lyricDisplayMode': 'multiple', 'player.lyricColor': '#FF9FCF',
   })
   assert.ok(updatedSettingKeys.includes('player.immersiveVisualsEnabled'))
   const second = settingsFixture(JSON.parse(JSON.stringify(setting)))
   assert.deepEqual((await second.settings.initSetting()).setting, setting)
   assert.equal(setting['player.particleQuality'], 'low')
   assert.equal(setting['player.immersiveVisualsEnabled'], false)
+  assert.equal(setting['player.lyricDisplayMode'], 'multiple')
+  assert.equal(setting['player.lyricColor'], '#FF9FCF')
 })

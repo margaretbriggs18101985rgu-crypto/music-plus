@@ -10,11 +10,12 @@ import { useI18n } from '@/lang'
 import styles from './style'
 
 
-const LrcFontSize = ({ direction }: {
+const LrcFontSize = ({ direction, native = false }: {
   direction: 'horizontal' | 'vertical'
+  native?: boolean
 }) => {
   const theme = useTheme()
-  const settingKey = direction == 'horizontal' ? 'playDetail.horizontal.style.lrcFontSize' : 'playDetail.vertical.style.lrcFontSize'
+  const settingKey = native ? 'player.lyricFontSize' : direction == 'horizontal' ? 'playDetail.horizontal.style.lrcFontSize' : 'playDetail.vertical.style.lrcFontSize'
   const lrcFontSize = useSettingValue(settingKey)
   const [sliderSize, setSliderSize] = useState(lrcFontSize)
   const [isSliding, setSliding] = useState(false)
@@ -38,12 +39,12 @@ const LrcFontSize = ({ direction }: {
       <View style={styles.content}>
         <Text style={styles.label} color={theme['c-font-label']}>{isSliding ? sliderSize : lrcFontSize}</Text>
         <Slider
-          minimumValue={100}
-          maximumValue={300}
+          minimumValue={native ? 16 : 100}
+          maximumValue={native ? 56 : 300}
           onSlidingComplete={handleSlidingComplete}
           onValueChange={handleValueChange}
           onSlidingStart={handleSlidingStart}
-          step={2}
+          step={native ? 1 : 2}
           value={lrcFontSize}
         />
       </View>

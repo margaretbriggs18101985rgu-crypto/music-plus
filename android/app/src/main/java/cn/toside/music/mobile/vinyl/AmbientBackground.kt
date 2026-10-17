@@ -50,7 +50,7 @@ internal fun AmbientBackground(palette: AmbientPalette, phase: State<Double>, dr
             val glow = Brush.radialGradient(listOf(accent, Color.Transparent), center = Offset.Zero, radius = radius)
             onDrawBehind {
                 val time = phase.value
-                val shift = drag.offset.floatValue * .15f
+                val shift = sin(drag.rotation.yaw * Math.PI / 180).toFloat() * size.width * .04f
                 for (i in 0..3) {
                     val x = size.width * (.18f + i * .23f + sin(time / (17 + i * 4) + i) * .055f).toFloat() + shift
                     val y = size.height * (.22f + i * .15f + cos(time / (21 + i * 3) + i) * .035f).toFloat()

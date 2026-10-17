@@ -11,13 +11,16 @@ import { updateSetting, setNavActiveId } from '@/core/common'
 import { LIST_IDS, MUSIC_TOGGLE_MODE_LIST } from '@/config/constant'
 import { pop, navigations } from '@/navigation'
 import settingState from '@/store/setting/state'
-import { toast } from '@/utils/tools'
+import { shareMusic, toast } from '@/utils/tools'
 import { defaultHeaders } from '@/components/common/Image'
 import { showPlaybackQueue } from '@/components/player/PlaybackQueue'
 import { showPlayerTool } from '@/components/player/PlayerTools'
 import { useSettingValue } from '@/store/setting/hook'
 import { useLrcSet, useLrcPlay } from '@/plugins/lyric'
 import ArtistPicker, { type ArtistPickerRef } from '../components/ArtistPicker'
+import PlayerMoreSheet, { type PlayerMoreSheetRef } from '../components/PlayerMoreSheet'
+import MusicAddModal, { type MusicAddModalType } from '@/components/MusicAddModal'
+import { getTrackAlbum } from '@/core/music/artist'
 
 interface PlayerActionEvent {
   action: string
@@ -45,6 +48,10 @@ interface NativePlayerProps extends ViewProps {
     immersiveVisualsEnabled: boolean
     particleQuality: LX.AppSetting['player.particleQuality']
     lyricMotionEnabled: boolean
+    lyricDisplayMode: LX.AppSetting['player.lyricDisplayMode']
+    lyricColor: string
+    lyricFontSize: number
+    lyricAlign: LX.AppSetting['player.lyricAlign']
     backgroundMotion: boolean
     respectReducedMotion: boolean
     playMode: string
@@ -61,6 +68,10 @@ export default ({ componentId }: { componentId: string }) => {
   const immersiveVisualsEnabled = useSettingValue('player.immersiveVisualsEnabled')
   const particleQuality = useSettingValue('player.particleQuality')
   const lyricMotionEnabled = useSettingValue('player.lyricMotionEnabled')
+  const lyricDisplayMode = useSettingValue('player.lyricDisplayMode')
+  const lyricColor = useSettingValue('player.lyricColor')
+  const lyricFontSize = useSettingValue('player.lyricFontSize')
+  const lyricAlign = useSettingValue('player.lyricAlign')
   const backgroundMotion = useSettingValue('player.backgroundMotion')
   const respectReducedMotion = useSettingValue('player.respectReducedMotion')
   const [lyricsVisible, setLyricsVisible] = useState(false)
@@ -68,6 +79,14 @@ export default ({ componentId }: { componentId: string }) => {
   const music = usePlayerMusicInfo()
   const current = usePlayMusicInfo()
   const artistPicker = useRef<ArtistPickerRef>(null)
+  const lyricSettings = useRef<PlayerMoreSheetRef>(null)
+  const musicAdd = useRef<MusicAddModalType>(null)
+  const albumRequest = useRef(0)
+  useEffect(() => {
+    const counter = albumRequest
+    counter.current++
+    return () => { counter.current++ }
+  }, [music.id])
   const song = current.musicInfo && ('progress' in current.musicInfo ? current.musicInfo.metadata.musicInfo : current.musicInfo)
   const progress = useProgress()
   const playback = usePlaybackState()
@@ -89,8 +108,8 @@ export default ({ componentId }: { componentId: string }) => {
     const onSeek = (position: number) => {
       if (Number.isFinite(position)) setSeekRevision(revision => revision + 1)
     }
-    global.app_event.on('setProgress', onSeek)
-    return () => { global.app_event.off('setProgress', onSeek) }
+    global.app_event.on('seekCompleted', onSeek)
+    return () => { global.app_event.off('seekCompleted', onSeek) }
   }, [])
 
   useEffect(() => {
@@ -111,7 +130,7 @@ export default ({ componentId }: { componentId: string }) => {
     void pop(componentId)
   }, [componentId])
 
-  const onPlayerAction = ({ nativeEvent: { action, value } }: NativeSyntheticEvent<PlayerActionEvent>) => {
+  const handlePlayerAction = (action: string, value: number) => {
     switch (action) {
       case 'back': goHome(); break
       case 'lyrics': setLyricsVisible(value == 1); break
@@ -125,6 +144,18 @@ export default ({ componentId }: { componentId: string }) => {
       case 'comment': if (hasTrack) navigations.pushCommentScreen(componentId); break
       case 'artist': if (hasTrack) artistPicker.current?.open(); break
       case 'queue': showPlaybackQueue(); break
+      case 'settings': lyricSettings.current?.show(); break
+      case 'addToPlaylist': if (song) musicAdd.current?.show({ musicInfo: song, listId: current.listId ?? '', isMove: false }); break
+      case 'share': if (song) shareMusic('system', settingState.setting['download.fileName'], song); break
+      case 'album':
+        if (song) {
+          const request = ++albumRequest.current
+          toast('正在读取专辑资料')
+          void getTrackAlbum(song).then(async album => {
+            if (request == albumRequest.current) return navigations.pushAlbumScreen(componentId, album)
+          }).catch((error: unknown) => { if (request == albumRequest.current) toast(error instanceof Error ? error.message : '专辑打开失败') })
+        }
+        break
       case 'info': if (hasTrack) showPlayerTool('info'); break
       case 'download': if (hasTrack) showPlayerTool('download'); break
       case 'toggle': if (hasTrack) togglePlay(); break
@@ -169,15 +200,22 @@ export default ({ componentId }: { componentId: string }) => {
     immersiveVisualsEnabled,
     particleQuality,
     lyricMotionEnabled,
+    lyricDisplayMode,
+    lyricColor,
+    lyricFontSize,
+    lyricAlign,
     backgroundMotion,
     respectReducedMotion,
     playMode,
     topInset,
     bottomInset: 0,
-  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode, immersiveVisualsEnabled, particleQuality, lyricMotionEnabled, backgroundMotion, respectReducedMotion])
+  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode, immersiveVisualsEnabled, particleQuality, lyricMotionEnabled, lyricDisplayMode, lyricColor, lyricFontSize, lyricAlign, backgroundMotion, respectReducedMotion])
 
   return <>
-    <NativeVinylPlayer style={{ flex: 1 }} playerState={playerState} onPlayerAction={onPlayerAction} />
+    <NativeVinylPlayer style={{ flex: 1 }} playerState={playerState} onPlayerAction={({ nativeEvent }) => { handlePlayerAction(nativeEvent.action, nativeEvent.value) }} />
     <ArtistPicker ref={artistPicker} componentId={componentId} music={song} />
+    <MusicAddModal ref={musicAdd} />
+    <PlayerMoreSheet ref={lyricSettings} music={music} hasTrack={hasTrack} favorite={favorite}
+      onAction={action => { handlePlayerAction(action, 0) }} />
   </>
 }

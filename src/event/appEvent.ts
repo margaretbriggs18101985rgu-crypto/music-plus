@@ -52,6 +52,10 @@ export class AppEvent extends Event {
     this.emit('setProgress', progress, maxPlayTime)
   }
 
+  seekCompleted(position: number) {
+    this.emit('seekCompleted', position)
+  }
+
   /**
    * 设置音量大小
    * @param volume 音量大小

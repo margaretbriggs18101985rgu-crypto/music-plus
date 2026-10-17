@@ -16,30 +16,32 @@ const ALIGN_LIST = [
   'right',
 ] as const
 
-const useActive = (id: Align_Type) => {
-  const x = useSettingValue('playDetail.style.align')
+const useActive = (id: Align_Type, settingKey: 'player.lyricAlign' | 'playDetail.style.align') => {
+  const x = useSettingValue(settingKey)
   const isActive = useMemo(() => x == id, [x, id])
   return isActive
 }
 
-const Item = ({ id, name, change }: {
+const Item = ({ id, name, change, settingKey }: {
   id: Align_Type
   name: string
   change: (id: Align_Type) => void
+  settingKey: 'player.lyricAlign' | 'playDetail.style.align'
 }) => {
-  const isActive = useActive(id)
+  const isActive = useActive(id, settingKey)
   // const [toggleCheckBox, setToggleCheckBox] = useState(false)
   return <CheckBox marginBottom={3} check={isActive} label={name} onChange={() => { change(id) }} need />
 }
 
-export default () => {
+export default ({ native = false }: { native?: boolean }) => {
+  const settingKey = native ? 'player.lyricAlign' : 'playDetail.style.align'
   const t = useI18n()
   const list = useMemo(() => {
     return ALIGN_LIST.map(id => ({ id, name: t(`play_detail_setting_lrc_align_${id}`) }))
   }, [t])
 
   const setPosition = (id: Align_Type) => {
-    updateSetting({ 'playDetail.style.align': id })
+    updateSetting({ [settingKey]: id })
   }
 
   return (
@@ -48,7 +50,7 @@ export default () => {
       <View style={styles.content}>
         <View style={styles.list}>
           {
-            list.map(({ id, name }) => <Item name={name} id={id} key={id} change={setPosition} />)
+            list.map(({ id, name }) => <Item name={name} id={id} key={id} change={setPosition} settingKey={settingKey} />)
           }
         </View>
       </View>

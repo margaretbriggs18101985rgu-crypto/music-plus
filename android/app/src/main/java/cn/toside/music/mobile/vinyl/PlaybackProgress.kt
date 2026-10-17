@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -34,7 +35,8 @@ internal fun PlaybackProgress(state: VinylPlayerState, onAction: PlayerAction) {
     val enabled = state.hasTrack && duration > 0
     // A new track cancels an in-progress scrub; regular position updates do not.
     LaunchedEffect(state.trackId) { dragging = false }
-    fun ratio(x: Float) = ((x - 6f) / (width - 12f).coerceAtLeast(1f)).coerceIn(0f, 1f)
+    val insetPx = with(LocalDensity.current) { 4.dp.toPx() }
+    fun ratio(x: Float) = ((x - insetPx) / (width - insetPx * 2).coerceAtLeast(1f)).coerceIn(0f, 1f)
     Column(Modifier.fillMaxWidth().padding(horizontal = 27.dp)) {
         Canvas(Modifier.fillMaxWidth().height(44.dp).onSizeChanged { width = it.width.toFloat() }
             .semantics {
@@ -42,10 +44,10 @@ internal fun PlaybackProgress(state: VinylPlayerState, onAction: PlayerAction) {
                 progressBarRangeInfo = ProgressBarRangeInfo(progress, 0f..1f)
                 if (enabled) setProgress { value -> currentAction("seek", value.coerceIn(0f, 1f) * duration); true }
             }
-            .pointerInput(enabled, state.trackId) {
+            .pointerInput(enabled, state.trackId, duration, insetPx) {
                 if (enabled) detectTapGestures { currentAction("seek", ratio(it.x) * duration) }
             }
-            .pointerInput(enabled, state.trackId, duration) {
+            .pointerInput(enabled, state.trackId, duration, insetPx) {
                 if (enabled) detectDragGestures(
                     onDragStart = { preview = ratio(it.x); dragging = true },
                     onDragEnd = { currentAction("seek", preview * duration); dragging = false },

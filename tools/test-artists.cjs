@@ -242,3 +242,16 @@ test('NetEase portraits are fetched by artist ID and upgrade returned HTTP image
   assert.equal(artist.avatar, 'https://p1.music.126.net/avatar.jpg')
   assert.equal(artist.cover, 'https://p1.music.126.net/cover.jpg')
 })
+
+test('player menu resolves the actual official album on both platforms', async() => {
+  const wyAlbum = await api({ wy: wySong }).getTrackAlbum({ source: 'wy', meta: { songId: 12 } })
+  assert.deepEqual(wyAlbum, { source: 'wy', id: '30', name: 'Album', cover: wySong.album.picUrl })
+  const qqAlbum = await api({ respond: () => qq({ track_info: qqSong }) }).getTrackAlbum({ source: 'tx', meta: { songId: 'SONG_MID' } })
+  assert.equal(qqAlbum.source, 'tx')
+  assert.equal(qqAlbum.id, 'ALBUM_MID')
+  assert.equal(qqAlbum.name, 'QQ Album')
+})
+
+test('missing album metadata is reported rather than opening a guessed album', async() => {
+  await assert.rejects(api({ wy: { id: 12 } }).getTrackAlbum({ source: 'wy', meta: { songId: 12 } }), /专辑/)
+})

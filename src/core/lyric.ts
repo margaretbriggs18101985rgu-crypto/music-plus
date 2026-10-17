@@ -20,6 +20,9 @@ import playerState from '@/store/player/state'
 import settingState from '@/store/setting/state'
 import { updateNowPlayingTitles } from '@/plugins/player/utils'
 
+let positionRevision = 0
+let lyricAnchor: { time: number, at: number } | null = null
+
 /**
  * init lyric
  */
@@ -47,6 +50,7 @@ const handleSetLyric = async(lyric: string, translation = '', romalrc = '') => {
  * @param time play time
  */
 export const handlePlay = (time: number) => {
+  lyricAnchor = { time, at: Date.now() }
   lrcPlay(time)
   void playDesktopLyric(time)
 }
@@ -55,6 +59,8 @@ export const handlePlay = (time: number) => {
  * pause lyric
  */
 export const pause = () => {
+  positionRevision++
+  lyricAnchor = null
   lrcPause()
   void pauseDesktopLyric()
 }
@@ -63,7 +69,20 @@ export const pause = () => {
  * stop lyric
  */
 export const stop = () => {
+  positionRevision++
+  lyricAnchor = null
   void handleSetLyric('')
+}
+
+/** Audio is the master clock, including during buffering, pauses and failed seeks. */
+export const syncPosition = (seconds: number, force = false) => {
+  if (!Number.isFinite(seconds)) return
+  const time = seconds * 1000
+  const expected = lyricAnchor && lyricAnchor.time + (playerState.isPlay ? (Date.now() - lyricAnchor.at) * settingState.setting['player.playbackRate'] : 0)
+  if (!force && expected != null && Math.abs(expected - time) < 200) return
+  positionRevision++
+  handlePlay(time)
+  if (!playerState.isPlay) pause()
 }
 
 /**
@@ -74,11 +93,7 @@ export const setPlaybackRate = async(playbackRate: number) => {
   lrcSetPlaybackRate(playbackRate)
   await setDesktopLyricPlaybackRate(playbackRate)
   if (playerState.isPlay) {
-    setTimeout(() => {
-      void getPosition().then((position) => {
-        handlePlay(position * 1000)
-      })
-    })
+    play()
   }
 }
 
@@ -103,9 +118,12 @@ export const toggleRoma = async(isShowLyricRoma: boolean) => {
 }
 
 export const play = () => {
+  const revision = ++positionRevision
+  const id = playerState.musicInfo.id
   void getPosition().then((position) => {
-    handlePlay(position * 1000)
-  })
+    if (revision != positionRevision || id != playerState.musicInfo.id || !playerState.isPlay) return
+    syncPosition(position, true)
+  }).catch(error => { console.warn('Lyric clock unavailable', error) })
 }
 
 

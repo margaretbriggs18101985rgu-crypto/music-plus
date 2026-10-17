@@ -147,7 +147,7 @@ export const initTrackInfo = async(musicInfo: LX.Player.PlayMusic, mInfo: LX.Pla
 }
 
 
-const handlePlayMusic = async(musicInfo: LX.Player.PlayMusic, url: string, time: number) => {
+const handlePlayMusic = async(musicInfo: LX.Player.PlayMusic, url: string, time: number, autoPlay = true) => {
 // console.log(tracks, time)
   const tracks = buildTracks(musicInfo, url)
   const track = tracks[0]
@@ -160,7 +160,7 @@ const handlePlayMusic = async(musicInfo: LX.Player.PlayMusic, url: string, time:
   if (currentTrackIndex == null) {
     if (!isTempTrack(track.id as string)) {
       if (time) await TrackPlayer.seekTo(time)
-      if (global.lx.restorePlayInfo) {
+      if (global.lx.restorePlayInfo != null || !autoPlay) {
         await TrackPlayer.pause()
         // let startupAutoPlay = settingState.setting['player.startupAutoPlay']
         global.lx.restorePlayInfo = null
@@ -175,7 +175,7 @@ const handlePlayMusic = async(musicInfo: LX.Player.PlayMusic, url: string, time:
     await TrackPlayer.pause()
     if (!isTempTrack(track.id as string)) {
       await TrackPlayer.seekTo(time)
-      await TrackPlayer.play()
+      if (autoPlay) await TrackPlayer.play()
     }
   }
 
@@ -185,12 +185,14 @@ const handlePlayMusic = async(musicInfo: LX.Player.PlayMusic, url: string, time:
 }
 let playPromise = Promise.resolve()
 let actionId = Math.random()
-export const playMusic = (musicInfo: LX.Player.PlayMusic, url: string, time: number) => {
+export const playMusic = async(musicInfo: LX.Player.PlayMusic, url: string, time: number, autoPlay = true) => {
   const id = actionId = Math.random()
-  void playPromise.finally(() => {
+  const operation = playPromise.catch(() => {}).then(async() => {
     if (id != actionId) return
-    playPromise = handlePlayMusic(musicInfo, url, time)
+    await handlePlayMusic(musicInfo, url, time, autoPlay)
   })
+  playPromise = operation
+  return operation
 }
 
 // let musicId = null

@@ -34,12 +34,14 @@ internal fun PlayerScreen(state: VinylPlayerState, clock: VinylRotationClock = r
     val palette = rememberArtworkPalette(artwork)
     val active = policy.animate && state.isPlaying && state.hasTrack
     val phase = rememberAmbientPhase(state.trackId, active)
+    val audio = rememberAudioMotion(state.trackId, state.lyricsVisible && state.hasTrack &&
+        (policy.lyricMotion || policy.animate), state.isPlaying)
     val ambientAlpha = animateFloatAsState(if (state.lyricsVisible) 1f else 0f, tween(if (policy.colorMotion) 300 else 0), label = "ambient mode alpha")
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(VinylPalette.Top, VinylPalette.Middle, VinylPalette.Bottom)))) {
         if (state.lyricsVisible || ambientAlpha.value > 0f) Box(Modifier.fillMaxSize().graphicsLayer { alpha = ambientAlpha.value }) {
             val colors = if (visualConfig.visualEffectsEnabled) palette.value else AmbientPalette.Fallback
             AmbientBackground(colors, phase, drag, active, policy.colorMotion)
-            AmbientParticles(state.trackId, policy.particleCount, colors, phase, drag, active, policy.colorMotion)
+            AmbientParticles(state.trackId, policy.particleCount, colors, phase, drag, active, policy.colorMotion, audio)
         }
         Column(Modifier.fillMaxSize()
             .padding(top = state.topInset.dp, bottom = state.bottomInset.dp)) {
@@ -49,7 +51,7 @@ internal fun PlayerScreen(state: VinylPlayerState, clock: VinylRotationClock = r
                 val bodyAction: PlayerAction = { action, value -> if (current) onAction(action, value) }
                 Column(Modifier.fillMaxSize()) {
                     if (lyrics) {
-                        ImmersiveLyricStage(state, drag, policy.lyricMotion && current, Modifier.weight(1f), bodyAction)
+                        ImmersiveLyricStage(state, drag, policy.lyricMotion && current, Modifier.weight(1f), audio, phase)
                         Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalArrangement = Arrangement.End) {
                             ArtistLink(state, bodyAction, Modifier.weight(1f).padding(start = 4.dp, end = 8.dp))
                             PlayerIconButton(PlayerIcon.Heart, if (state.favorite) "取消喜欢" else "喜欢", enabled = state.hasTrack,

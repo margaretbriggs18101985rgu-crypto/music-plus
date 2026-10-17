@@ -9,6 +9,8 @@ import playerState from '@/store/player/state'
 import settingState from '@/store/setting/state'
 import { onScreenStateChange } from '@/utils/nativeModules/utils'
 import { AppState } from 'react-native'
+import { createPlaybackSeeker } from '@/core/player/seek'
+import { syncPosition as syncLyricPosition } from '@/core/lyric'
 
 const delaySavePlayInfo = throttleBackgroundTimer(() => {
   void savePlayInfo({
@@ -26,20 +28,38 @@ export default () => {
 
   let isScreenOn = true
 
+  const seeker = createPlaybackSeeker({
+    trackId: () => playerState.musicInfo.id,
+    seek: setCurrentTime,
+    position: getPosition,
+    commit: position => {
+      setNowPlayTime(position)
+      syncLyricPosition(position, true)
+      global.app_event.seekCompleted(position)
+    },
+    failed: error => { console.warn('Audio seek failed', error) },
+  })
+
   const getCurrentTime = () => {
+    if (seeker.busy) return
+    const revision = seeker.revision
     let id = playerState.musicInfo.id
     void getPosition().then(position => {
-      if (!position || id != playerState.musicInfo.id) return
+      if (!Number.isFinite(position) || id != playerState.musicInfo.id || revision != seeker.revision || seeker.busy) return
       setNowPlayTime(position)
+      syncLyricPosition(position)
       if (!playerState.isPlay) return
 
       if (settingState.setting['player.isSavePlayTime'] && !playerState.playMusicInfo.isTempPlay && isScreenOn) {
         delaySavePlayInfo()
       }
-    })
+    }).catch(error => { console.warn('Audio position unavailable', error) })
   }
   const getMaxTime = async() => {
-    setMaxplayTime(await getDuration())
+    const id = playerState.musicInfo.id
+    const duration = await getDuration()
+    if (id != playerState.musicInfo.id) return
+    setMaxplayTime(duration)
 
     if (playerState.playMusicInfo.musicInfo && 'source' in playerState.playMusicInfo.musicInfo && !playerState.playMusicInfo.musicInfo.interval) {
       // console.log(formatPlayTime2(playProgress.maxPlayTime))
@@ -66,19 +86,15 @@ export default () => {
     clearUpdateTimeout()
     updateTimeout = BackgroundTimer.setInterval(() => {
       getCurrentTime()
-    }, 1000 / settingState.setting['player.playbackRate'])
+    }, 500 / settingState.setting['player.playbackRate'])
     getCurrentTime()
   }
 
   const setProgress = (time: number, maxTime?: number) => {
-    if (!playerState.musicInfo.id) return
-    // console.log('setProgress', time, maxTime)
-    setNowPlayTime(time)
-    void setCurrentTime(time)
-
+    if (!playerState.musicInfo.id || !Number.isFinite(time)) return
     if (maxTime != null) setMaxplayTime(maxTime)
-
-    // if (!isPlay) audio.play()
+    const duration = playerState.progress.maxPlayTime
+    seeker.request(duration > 0 ? Math.min(time, duration) : time)
   }
 
 
@@ -96,6 +112,7 @@ export default () => {
   }
 
   const handleStop = () => {
+    seeker.invalidate()
     clearUpdateTimeout()
     setNowPlayTime(0)
     setMaxplayTime(0)
@@ -113,6 +130,7 @@ export default () => {
 
 
   const handleSetPlayInfo = () => {
+    seeker.invalidate()
     // restorePlayTime = playProgress.nowPlayTime
     // void setCurrentTime(playerState.progress.nowPlayTime)
     // setMaxplayTime(playProgress.maxPlayTime)
