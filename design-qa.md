@@ -134,6 +134,8 @@ final result: passed
 - 已实际验证睡眠定时开始／取消、单句切换多排、樱粉颜色、字号／对齐面板、音量／倍速面板、播放列表跳转。重启应用确认多排和颜色保留；真实本地音频显示多排歌词，见 `build/menu-qa/interaction-results.json`、`multiple-pink-persisted.png`。
 - 300 秒本地 PCM 音频的三次暂停跳转：实际媒体会话位置分别约 73.874、211.917、27.690 秒；对应歌词为 70、210、20 秒行。恢复后继续前进；双轴旋转保留角度，音频分析读取到非零 PCM 能量。证据见 `build/playback-fix-qa/results.json`、`native-audio.log`。本次不是用 UI 请求值代替实际播放位置。
 - 工程检查：完整 TypeScript、ESLint、53 项 JS 测试，Debug／Release 各 35 项 Android 单元测试。五架构签名 Release 构建及签名／ZIP 对齐检查；证书与 v1.1.0 相同。
+- 补充验证：1 分钟自定义定时到期，实际媒体会话移除、进程退出，日志为 `Handle Exit App, Reason: Timeout Exit`；勾选播完当前歌曲时，到期进入等待当前歌曲结束状态。
+- [GitHub 发布构建](https://github.com/margaretbriggs18101985rgu-crypto/music-plus/actions/runs/39055356069) 成功，五个 APK 与校验文件已公开发布；下载发布页通用包再次验证 SHA-256、原签名、版本及 ZIP 对齐。可随源码查看的结果：[v1.1.1-results.json](doc/qa/v1.1.1-results.json)。
 - 限制：无声模拟器验证解码、媒体会话与交互；未宣称通过真机听感、长时性能／功耗、完整 TalkBack、所有第三方在线音源或蓝牙验收。
 
 final result: passed

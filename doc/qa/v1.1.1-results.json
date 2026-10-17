@@ -1,0 +1,80 @@
+{
+  "version": "1.1.1",
+  "source_commit": "a26c69ee8aba9c7488ed1457e355704662c53a1b",
+  "checks": {
+    "typecheck": "passed",
+    "eslint": "passed",
+    "js_tests": 53,
+    "android_tests_per_variant": 35,
+    "release_apks": 5,
+    "signature_matches_v1_1_0": true,
+    "sha256_verified": true,
+    "zipalign_verified": true
+  },
+  "playback": {
+    "paused_seeks": [
+      {
+        "ratio": 0.25,
+        "ui_seconds": 73,
+        "lyric": "Audio sync 70 seconds",
+        "media": {
+          "state": "PAUSED",
+          "position_ms": 73874
+        }
+      },
+      {
+        "ratio": 0.7,
+        "ui_seconds": 211,
+        "lyric": "Audio sync 210 seconds",
+        "media": {
+          "state": "PAUSED",
+          "position_ms": 211917
+        }
+      },
+      {
+        "ratio": 0.1,
+        "ui_seconds": 26,
+        "lyric": "Audio sync 20 seconds",
+        "media": {
+          "state": "PAUSED",
+          "position_ms": 27690
+        }
+      }
+    ],
+    "resumed_seconds": 31,
+    "rotation": [
+      "31.37555",
+      "40.280884"
+    ],
+    "pcm_observed": true,
+    "audio_output": "Headless emulator; real decoder and media session verified, audible output not verified"
+  },
+  "menu": {
+    "sleep_start_cancel": true,
+    "single_to_multiple": true,
+    "color_saved": "Pink",
+    "restart_persistence": true,
+    "multiple_native_lines": true,
+    "typography_panel": true,
+    "audio_panel": true,
+    "queue_navigation": true,
+    "drag_dismiss": true,
+    "sleep_expiry_one_minute": true,
+    "sleep_finish_current_after_expiry": true,
+    "sleep_expiry_evidence": "Media3 session removed, process exited, log: Handle Exit App, Reason: Timeout Exit"
+  },
+  "limits": [
+    "Headless emulator: audible output not verified",
+    "Long duration performance and power not measured",
+    "Manual TalkBack, physical Bluetooth and all online providers not verified"
+  ],
+  "release": {
+    "url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/tag/v1.1.1",
+    "workflow": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/actions/runs/39055356069",
+    "workflow_conclusion": "success",
+    "downloaded_universal_sha256_verified": true,
+    "downloaded_universal_signature_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+    "downloaded_universal_zipalign_verified": true,
+    "all_five_release_digests_match_checksums": true
+  }
+}
