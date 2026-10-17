@@ -67,8 +67,8 @@ npm run pack:android:debug -- --architectures arm64-v8a
 
 ```powershell
 adb devices -l
-adb install -r .\build\apk\lx-music-mobile-v1.9.1-debug-universal.apk
-adb shell am start -n cn.toside.music.mobile/.MainActivity
+adb install -r .\build\apk\music-plus-v1.0.0-debug-universal.apk
+adb shell am start -n io.github.musicplus.player/cn.toside.music.mobile.MainActivity
 ```
 
 如果设备上的同包名应用使用不同签名，覆盖安装会失败；请先保留原应用数据，不要直接卸载。
