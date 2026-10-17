@@ -1,4 +1,25 @@
-# lx-music-mobile change log
+# MUSIC++ change log
+
+## [1.1.0](https://github.com/margaretbriggs18101985rgu-crypto/music-plus/compare/v1.0.0...v1.1.0) - 2026-10-18
+
+### 新增
+
+- 沉浸式空间歌词：大字柔光、切句弹跳、横向跟手拖动、透视和回弹。
+- 封面取色动态背景、配色过渡与三层视差粒子。
+- 可持久化的特效开关、歌词运动、动态背景、系统减少动画及粒子档位设置。
+
+### 优化
+
+- 黑胶与歌词模式渐变切换，保留播放状态、固定控制栏和黑胶累计旋转时钟。
+- 适配暂停、后台、系统减少动画和省电模式。
+- 修复 GitHub Actions 发布时请求已移除的 Android SDK `tools` 包导致失败的问题。
+
+## [1.0.0](https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/tag/v1.0.0) - 2026-10-17
+
+- 首次开源发布 MUSIC++，基于 LX Music Mobile v1.9.1 改造。
+- 音乐库、搜索、歌手浏览、原生黑胶播放页及正式签名 Android APK。
+
+# LX Music Mobile upstream change log
 
 All notable changes to this project will be documented in this file.
 
