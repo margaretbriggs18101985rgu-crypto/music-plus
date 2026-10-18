@@ -28,8 +28,14 @@
 
 旧 APK 需要先安装本版，才具备新增的前台检查逻辑；应用完全关闭时不发送系统推送。完整备份不包含音乐文件、下载任务、系统目录授权及外部图片，恢复后可能需要重新授权或选择路径。
 
-此前模拟器已验证歌词修改跨重启保存、完整备份导出及恢复闭环、桌面歌词颜色跨重启保存，以及播放器布局和交互。自动同步核心和菜单通过隔离测试，未逐个验证音乐平台的真实网络接口；实体手机、长期功耗、蓝牙、人工 TalkBack 和 iOS 构建尚未验收。
+此前模拟器已验证歌词修改跨重启保存、完整备份导出及恢复闭环、桌面歌词颜色跨重启保存，以及播放器布局和交互。发布时另用公开的 v1.1.2 通用包创建测试歌单，再用公开的 v1.1.3 通用包直接覆盖升级，确认版本码 5、新建歌单保留并正常启动；点击“检查更新”显示当前与最新均为 1.1.3，并读到本版更新说明。自动同步核心和菜单通过隔离测试，未逐个验证音乐平台的真实网络接口；实体手机、长期功耗、蓝牙、人工 TalkBack 和 iOS 构建尚未验收。
 
 ## GitHub 发布状态
 
-本记录随正式发布提交。GitHub 工作流、公开资产及线上更新元数据的实际核验结果，将在发布成功后补充；`publish/version.json` 在云端资产验证之前保留上一版。
+- 源码提交：`4a956fd232f3c766f8701febc94e9c0047bd5f5d`，标签 `v1.1.3`；源码已同步到 `main` 和 `codex/immersive-lyrics`。
+- [源码检查工作流](https://github.com/margaretbriggs18101985rgu-crypto/music-plus/actions/runs/39147561456) 和 [正式发布工作流](https://github.com/margaretbriggs18101985rgu-crypto/music-plus/actions/runs/39147561400) 均成功。
+- [v1.1.3 正式 Release](https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/tag/v1.1.3) 于 2026-10-19 01:06:54（Asia/Hong_Kong）公开发布，不是草稿或预发布，包含五种 APK 和 `SHA256SUMS.txt`。
+- 五种 APK 的 GitHub asset digest 均与实际下载的校验清单一致。已独立下载公开通用包，核对 SHA-256、签名证书、包名、版本码、非调试状态、对齐、Hermes 及原生架构。
+- 公开通用包大小为 45,293,645 字节，SHA-256 为 `f5ea5835b94f05cab3a6aa73849c2e287c8f8b990458cadd8d9e52efd581c9c5`。云端和本地构建结果各自独立校验，不要求文件哈希相同。
+- 在上述云端资产校验通过后，将 `publish/version.json` 更新到 1.1.3，并保留 1.1.2 及更早的历史记录。
+- 云端证据及升级截图保存在忽略的 `build/release-v1.1.3/`：`workflow-status.json`、`release.json`、`verification-cloud.json`、`cloud/`、`upgrade-before.xml`、`upgrade-after.xml`、`upgrade-after.png` 和 `manual-update-check.png`。
