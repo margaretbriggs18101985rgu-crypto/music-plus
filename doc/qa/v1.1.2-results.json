@@ -55,9 +55,73 @@
     }
   ],
   "ui_evidence": "doc/qa/immersive-player-results.json",
-  "public_release_verification": "pending",
+  "public_release_verification": {
+    "status": "verified",
+    "release": {
+      "url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/tag/v1.1.2",
+      "published_at": "2026-10-18T13:36:55Z",
+      "tag": "v1.1.2",
+      "assets": [
+        {
+          "name": "music-plus-v1.1.2-arm64-v8a.apk",
+          "size": 30268594,
+          "digest": "sha256:fbafccc6f013a463b0f2c11b22eb2181beb9e24bf4f968e31234ec24fc598dbf",
+          "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.2/music-plus-v1.1.2-arm64-v8a.apk"
+        },
+        {
+          "name": "music-plus-v1.1.2-armeabi-v7a.apk",
+          "size": 29261391,
+          "digest": "sha256:293bb75c618a158fbb9779216f024683672959860da2aed90cd317f9b83be517",
+          "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.2/music-plus-v1.1.2-armeabi-v7a.apk"
+        },
+        {
+          "name": "music-plus-v1.1.2-universal.apk",
+          "size": 45281345,
+          "digest": "sha256:3f68c7ebd01479308fc20925225ac51fb587304db59c2c563ab5a5e0184bd252",
+          "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.2/music-plus-v1.1.2-universal.apk"
+        },
+        {
+          "name": "music-plus-v1.1.2-x86.apk",
+          "size": 30712960,
+          "digest": "sha256:1ba3282782ae9726978bcf41b6770635787d5212fcbc7d323a77bfa77d766732",
+          "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.2/music-plus-v1.1.2-x86.apk"
+        },
+        {
+          "name": "music-plus-v1.1.2-x86_64.apk",
+          "size": 30592946,
+          "digest": "sha256:3225fbae5c727ee0fe2f1d118f1a2aa01d43cc697aa8eed068844ba5298a71c2",
+          "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.2/music-plus-v1.1.2-x86_64.apk"
+        },
+        {
+          "name": "SHA256SUMS.txt",
+          "size": 483,
+          "digest": "sha256:f23e40728e7b6715e57a71d7def0dbee627090f351f3798995a75acf8fee93ae",
+          "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.2/SHA256SUMS.txt"
+        }
+      ]
+    },
+    "downloaded_universal_apk": {
+      "sha256": "3f68c7ebd01479308fc20925225ac51fb587304db59c2c563ab5a5e0184bd252",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "same_certificate_as_previous_release": true,
+      "zip_aligned": true,
+      "package": "io.github.musicplus.player",
+      "version": "1.1.2",
+      "version_code": 4,
+      "debuggable": false,
+      "bytes": 45281345,
+      "hermes_bundle": true,
+      "all_four_abis": true,
+      "font_binaries_and_licenses_verified": true,
+      "sha256_matches_published_manifest": true
+    },
+    "release_workflow": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/actions/runs/39131577625",
+    "source_test_workflow": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/actions/runs/39131577910",
+    "workflow_conclusions": "success"
+  },
   "limits": [
     "UI interactions tested on a headless emulator using standalone Debug before the version bump",
     "No physical phone audio quality, power or stable frame-rate acceptance"
-  ]
+  ],
+  "source_commit": "a1df9639c15aa618d12fb015ec8b4b9ed2ed82aa"
 }

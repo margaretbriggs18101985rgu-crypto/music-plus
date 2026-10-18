@@ -166,3 +166,14 @@ final result: passed within the stated emulator and build scope
 - 最终通用签名候选包 45,283,609 字节，SHA-256 `a1b631a8caeea8b96848cf0ae84b54c1608f0b6c08ffa7943486a89d3bde31fe`，与已发布包证书相同，ZIP 对齐及三款字体文件／授权完整性通过。候选包已覆盖更新 `build/apk/music-plus-v1.1.1-immersive-universal.apk`。
 
 final result: passed within the stated emulator and build scope
+
+## 2026-10-18 v1.1.2 公开发布验证
+
+- 版本提升至 1.1.2、基础版本码 4；通用包为 4，四个分架构包为 4001–4004。源码和标签 `v1.1.2` 指向 `a1df9639c15aa618d12fb015ec8b4b9ed2ed82aa`。
+- 本地类型检查、ESLint、63 项 JS 测试及 38 项 Release Android 单元测试通过；此前同播放器源码的 Debug 38 项单元测试和横竖屏交互复测记录继续保留。五个本地 APK 的签名、版本、ABI、ZIP 对齐、Hermes、字库／授权及 SHA256SUMS 均通过。
+- GitHub [源码检查](https://github.com/margaretbriggs18101985rgu-crypto/music-plus/actions/runs/39131577910)和[Android 正式发布](https://github.com/margaretbriggs18101985rgu-crypto/music-plus/actions/runs/39131577625)均成功，公开发布五个 APK 和 SHA256SUMS.txt，发布状态为非草稿、非预发布。
+- 五个云端 APK 的服务端哈希均与公开校验清单一致。独立下载的通用 APK 为 45,281,345 字节，SHA-256 `3f68c7ebd01479308fc20925225ac51fb587304db59c2c563ab5a5e0184bd252`；再次验证签名与旧版证书一致、版本 1.1.2／版本码 4、不可调试、四 ABI、ZIP 对齐、Hermes 及三款字体与完整授权。
+- 公开资产验证完成后更新应用内 `publish/version.json`，保留 v1.1.1 及更早更新历史。发布说明包含相同架构覆盖升级提示；真机听感、长时间性能／功耗、蓝牙及人工 TalkBack 仍未验收。
+- 可审阅的本地与云端结果：[v1.1.2-results.json](doc/qa/v1.1.2-results.json)。[公开发布页](https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/tag/v1.1.2)。
+
+final result: release and public assets verified
