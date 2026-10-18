@@ -40,6 +40,7 @@ test('old saved settings gain immersive defaults without changing existing prefe
   assert.equal(setting['player.lyricMotionEnabled'], true)
   assert.equal(setting['player.lyricDisplayMode'], 'single')
   assert.equal(setting['player.lyricColor'], '#A8F6FF')
+  assert.equal(setting['player.lyricFontFamily'], 'system')
   assert.equal(setting['player.backgroundMotion'], true)
   assert.equal(setting['player.respectReducedMotion'], true)
   assert.equal(setting['player.volume'], 0.3)
@@ -56,6 +57,7 @@ test('disabled effects and an explicit particle selection survive the real setti
     'player.immersiveVisualsEnabled': false, 'player.particleQuality': 'low',
     'player.lyricMotionEnabled': false, 'player.backgroundMotion': false, 'player.respectReducedMotion': false,
     'player.lyricDisplayMode': 'multiple', 'player.lyricColor': '#FF9FCF',
+    'player.lyricFontFamily': 'wenkai',
   })
   assert.ok(updatedSettingKeys.includes('player.immersiveVisualsEnabled'))
   const second = settingsFixture(JSON.parse(JSON.stringify(setting)))
@@ -64,4 +66,19 @@ test('disabled effects and an explicit particle selection survive the real setti
   assert.equal(setting['player.immersiveVisualsEnabled'], false)
   assert.equal(setting['player.lyricDisplayMode'], 'multiple')
   assert.equal(setting['player.lyricColor'], '#FF9FCF')
+  assert.equal(setting['player.lyricFontFamily'], 'wenkai')
 })
+
+for (const font of ['system', 'wenkai', 'xiaowei', 'huangyou']) {
+  test(`lyric font ${font} survives a settings reload without changing typography or playback preferences`, async () => {
+    const first = settingsFixture({ version: '2.0', 'player.lyricFontSize': 36, 'player.lyricAlign': 'right', 'player.volume': 0.4 })
+    first.state.setting = (await first.settings.initSetting()).setting
+    const { setting } = first.settings.updateSetting({ 'player.lyricFontFamily': font })
+    const second = settingsFixture(JSON.parse(JSON.stringify(setting)))
+    const reloaded = (await second.settings.initSetting()).setting
+    assert.equal(reloaded['player.lyricFontFamily'], font)
+    assert.equal(reloaded['player.lyricFontSize'], 36)
+    assert.equal(reloaded['player.lyricAlign'], 'right')
+    assert.equal(reloaded['player.volume'], 0.4)
+  })
+}

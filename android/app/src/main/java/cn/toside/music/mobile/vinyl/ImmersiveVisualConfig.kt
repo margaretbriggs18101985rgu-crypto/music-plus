@@ -33,16 +33,16 @@ internal data class ImmersiveEnvironment(val foreground: Boolean = false, val sy
 
 internal data class AmbientPolicy(val animate: Boolean, val particleCount: Int, val lyricMotion: Boolean, val colorMotion: Boolean)
 
-internal fun resolveAmbientPolicy(config: ImmersiveVisualConfig, environment: ImmersiveEnvironment, lyricsVisible: Boolean): AmbientPolicy {
+internal fun resolveAmbientPolicy(config: ImmersiveVisualConfig, environment: ImmersiveEnvironment, stageVisible: Boolean): AmbientPolicy {
     val allowed = config.visualEffectsEnabled && environment.foreground &&
         (!config.respectReducedMotion || environment.systemMotion) && !environment.powerSave
-    val count = if (!allowed || !lyricsVisible) 0 else when {
+    val count = if (!allowed || !stageVisible) 0 else when {
         config.particleQuality == ParticleQuality.Off -> 0
-        environment.lowRam || config.particleQuality == ParticleQuality.Low -> 80
-        config.particleQuality == ParticleQuality.High -> 420
-        else -> 240
+        environment.lowRam || config.particleQuality == ParticleQuality.Low -> 1200
+        config.particleQuality == ParticleQuality.High -> MAX_AMBIENT_STARS
+        else -> 3600
     }
-    return AmbientPolicy(allowed && lyricsVisible && config.backgroundMotion,
+    return AmbientPolicy(allowed && stageVisible && config.backgroundMotion,
         count, allowed && config.lyricMotionEnabled, allowed)
 }
 

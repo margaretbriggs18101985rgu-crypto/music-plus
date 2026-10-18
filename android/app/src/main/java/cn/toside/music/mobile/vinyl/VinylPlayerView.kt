@@ -40,6 +40,7 @@ class VinylPlayerView(context: ThemedReactContext) : FrameLayout(context) {
     }
 
     init {
+        registerLyricPreviewFonts(context)
         // React Navigation owns the activity; explicitly supply its owners to Compose.
         (context.currentActivity as? LifecycleOwner)?.let { setViewTreeLifecycleOwner(it) }
         (context.currentActivity as? SavedStateRegistryOwner)?.let { setViewTreeSavedStateRegistryOwner(it) }
@@ -70,6 +71,7 @@ class VinylPlayerView(context: ThemedReactContext) : FrameLayout(context) {
             lyricDisplayMode = string("lyricDisplayMode", "single").let { if (it == "multiple") it else "single" },
             lyricColor = string("lyricColor", "#A8F6FF"),
             lyricFontSize = if (map.hasKey("lyricFontSize")) number("lyricFontSize").toFloat().let { if (it.isFinite()) it.coerceIn(16f, 56f) else 40f } else 40f,
+            lyricFontFamily = normalizeLyricFont(string("lyricFontFamily", "system")),
             lyricAlign = string("lyricAlign", "center"),
             backgroundMotion = bool("backgroundMotion", true),
             respectReducedMotion = bool("respectReducedMotion", true),
@@ -92,15 +94,24 @@ class VinylPlayerView(context: ThemedReactContext) : FrameLayout(context) {
     private fun updateSafeArea(insets: WindowInsetsCompat? = ViewCompat.getRootWindowInsets(this)) {
         if (insets == null || width == 0 || height == 0) return
         val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+        val stableBars = insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+        // RNN can consume the status-bar inset during an orientation transition.
+        // Its window keeps the status bar visible; retain the platform height as
+        // a fallback, then subtract this view's actual window offset below.
+        val statusHeightId = resources.getIdentifier("status_bar_height", "dimen", "android")
+        val statusHeight = if (statusHeightId != 0) resources.getDimensionPixelSize(statusHeightId) else 0
         val position = IntArray(2)
         val rootPosition = IntArray(2)
         getLocationInWindow(position)
         rootView.getLocationInWindow(rootPosition)
         val density = resources.displayMetrics.density
-        val top = (rootPosition[1] + bars.top - position[1]).coerceAtLeast(0) / density
+        val top = (rootPosition[1] + maxOf(bars.top, stableBars.top, statusHeight) - position[1]).coerceAtLeast(0) / density
         val bottom = (position[1] + height - (rootPosition[1] + rootView.height - bars.bottom)).coerceAtLeast(0) / density
-        if (playerState.value.topInset != top || playerState.value.bottomInset != bottom) {
-            playerState.value = playerState.value.copy(topInset = top, bottomInset = bottom)
+        val start = (rootPosition[0] + bars.left - position[0]).coerceAtLeast(0) / density
+        val end = (position[0] + width - (rootPosition[0] + rootView.width - bars.right)).coerceAtLeast(0) / density
+        if (playerState.value.topInset != top || playerState.value.bottomInset != bottom ||
+            playerState.value.startInset != start || playerState.value.endInset != end) {
+            playerState.value = playerState.value.copy(topInset = top, bottomInset = bottom, startInset = start, endInset = end)
         }
     }
 

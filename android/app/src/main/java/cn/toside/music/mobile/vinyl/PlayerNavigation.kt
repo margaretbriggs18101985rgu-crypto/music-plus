@@ -1,12 +1,17 @@
 package cn.toside.music.mobile.vinyl
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -19,8 +24,9 @@ import androidx.compose.ui.unit.sp
 @Composable
 internal fun PlayerTopNavigation(state: VinylPlayerState, onAction: PlayerAction) {
     Box(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 48.dp).semantics { contentDescription = if (state.lyricsVisible) "切换到唱片" else "切换到歌词" }
-            .clickable(role = Role.Button) { onAction("lyrics", if (state.lyricsVisible) 0.0 else 1.0) }, horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 72.dp).heightIn(min = 48.dp).semantics { contentDescription = if (state.lyricsVisible) "切换到唱片" else "切换到歌词" }
+            .clickable(role = Role.Button) { onAction("lyrics", if (state.lyricsVisible) 0.0 else 1.0) },
+            horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             BasicText(if (state.hasTrack) state.title else "正在播放", maxLines = 1, overflow = TextOverflow.Ellipsis,
                 style = TextStyle(color = VinylPalette.White, fontSize = 15.sp, fontWeight = FontWeight.Medium))
             if (state.lyricsVisible && state.hasTrack) {
@@ -29,7 +35,18 @@ internal fun PlayerTopNavigation(state: VinylPlayerState, onAction: PlayerAction
                     style = TextStyle(color = VinylPalette.Muted, fontSize = 12.sp))
             }
         }
-        PlayerIconButton(PlayerIcon.Back, "收起播放器", 24, modifier = Modifier.align(Alignment.CenterStart).rotate(-90f)) { onAction("back", 0.0) }
+        PlayerIconButton(PlayerIcon.Back, "收起播放器", 24, modifier = Modifier.align(Alignment.CenterStart).width(64.dp).height(48.dp).rotate(-90f)) { onAction("back", 0.0) }
+        // An explicit return target lives outside the rotating/drag-consuming lyric stage.
+        Box(Modifier.align(Alignment.CenterEnd).size(width = 64.dp, height = 48.dp)
+            .semantics { contentDescription = if (state.lyricsVisible) "返回黑胶唱片" else "打开歌词页面" }
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color.White.copy(alpha = .06f))
+            .border(1.dp, Color.White.copy(alpha = .10f), RoundedCornerShape(24.dp))
+            .clickable(role = Role.Button) { onAction("lyrics", if (state.lyricsVisible) 0.0 else 1.0) },
+            contentAlignment = Alignment.Center) {
+            BasicText(if (state.lyricsVisible) "唱片" else "歌词",
+                style = TextStyle(color = VinylPalette.White, fontSize = 13.sp, fontWeight = FontWeight.Medium))
+        }
     }
 }
 

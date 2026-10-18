@@ -1,91 +1,107 @@
 package cn.toside.music.mobile.vinyl
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import android.graphics.Paint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
-import kotlin.math.sin
-import kotlin.math.cos
+import kotlin.math.*
 import kotlin.random.Random
 
-internal data class AmbientParticle(val x: Float, val y: Float, val speed: Float, val radius: Float, val depth: Float, val phase: Float)
+internal const val STAR_BUCKETS = 24
+internal const val MAX_AMBIENT_STARS = 6400
+internal data class AmbientStar(val x: Float, val y: Float, val z: Float, val bucket: Int)
 
-internal fun createAmbientParticles(seed: Int, count: Int): List<AmbientParticle> {
+/** Two uneven, narrow ribbons in a sparse volume. Positions are sampled once,
+ * not randomized each frame. Quality changes preserve the existing population. */
+internal fun createAmbientStars(seed: Int, count: Int): List<AmbientStar> {
     val random = Random(seed)
-    return List(count.coerceIn(0, 420)) { index ->
-        AmbientParticle(random.nextFloat(), random.nextFloat(), .0015f + random.nextFloat() * .003f,
-            .65f + random.nextFloat() * 1.85f, listOf(.15f, .30f, .45f)[index % 3], random.nextFloat() * 6.28f)
+    return List(count.coerceIn(0, MAX_AMBIENT_STARS)) { index ->
+        val u = random.nextFloat() * 2f - 1f
+        val v = random.nextFloat()
+        val w = random.nextFloat()
+        val scatter = (random.nextFloat() + random.nextFloat() + random.nextFloat() - 1.5f)
+        val ribbon = index % 10 < 7
+        val arm = index % 2
+        val x = u * 1.65f
+        val y = if (ribbon) -.40f * u + sin(u * 3.1f + arm * .9f) * .22f +
+            (arm - .5f) * .10f + scatter * (.025f + v * .10f)
+            else (v - .5f) * 2.3f
+        val z = if (ribbon) cos(u * 2.7f + arm) * .34f + (arm - .5f) * .35f + (w - .5f) * .16f
+            else (w - .5f) * 1.7f
+        val magnitude = random.nextFloat()
+        val size = when { magnitude < .74f -> 0; magnitude < .96f -> 1; else -> 2 }
+        val tint = random.nextInt(4)
+        val brightness = if (random.nextFloat() < .66f) 0 else 1
+        AmbientStar(x, y, z, size * 8 + tint * 2 + brightness)
     }
 }
 
-internal fun ambientFraction(value: Double): Float = if (value.isFinite()) (value - kotlin.math.floor(value)).toFloat() else 0f
+/** Shared camera and caller-owned point buffers: no per-star allocations or trig per frame. */
+internal fun projectAmbientStars(stars: List<AmbientStar>, width: Float, height: Float,
+    yaw: Float, pitch: Float, points: Array<FloatArray>, used: IntArray) {
+    used.fill(0)
+    if (width <= 0f || height <= 0f || !yaw.isFinite() || !pitch.isFinite()) return
+    val cy = cos(yaw); val sy = sin(yaw); val cp = cos(pitch); val sp = sin(pitch)
+    val unit = minOf(width, height)
+    val focal = unit * 2.8f
+    for (star in stars) {
+        val x = star.x * width * .38f
+        val y = star.y * height * .68f
+        val z = star.z * unit * .8f
+        val rx = x * cy + z * sy
+        val rz = z * cy - x * sy
+        val ry = y * cp - rz * sp
+        val depth = y * sp + rz * cp
+        if (focal + depth < focal * .25f) continue
+        val perspective = focal / (focal + depth)
+        val px = width * .5f + rx * perspective
+        val py = height * .48f + ry * perspective
+        if (px < -4f || px > width + 4f || py < -4f || py > height + 4f) continue
+        val bucket = star.bucket
+        val offset = used[bucket]
+        points[bucket][offset] = px
+        points[bucket][offset + 1] = py
+        used[bucket] = offset + 2
+    }
+}
+
+internal fun ambientStarBuffers(stars: List<AmbientStar>): Array<FloatArray> {
+    val sizes = IntArray(STAR_BUCKETS)
+    for (star in stars) sizes[star.bucket] += 2
+    return Array(STAR_BUCKETS) { FloatArray(sizes[it]) }
+}
 
 @Composable
-internal fun AmbientParticles(trackId: String, count: Int, palette: AmbientPalette, phase: State<Double>,
-    drag: LyricStageDrag, active: Boolean, motionAllowed: Boolean, audio: State<AudioMotion>) {
+internal fun AmbientParticles(trackId: String, count: Int, phase: State<Double>, drag: LyricStageDrag) {
     if (count == 0) return
-    val particles = remember(trackId, count) { createAmbientParticles(trackId.hashCode(), count) }
-    val strength = animateFloatAsState(if (active) .48f else .16f, tween(if (motionAllowed) 240 else 0), label = "particle strength")
-    val accent by animateColorAsState(Color(palette.accent), tween(if (motionAllowed) 700 else 0), label = "particle accent")
+    val stars = remember(trackId, count) { createAmbientStars(trackId.hashCode(), count) }
     Box(Modifier.fillMaxSize().clipToBounds().clearAndSetSemantics { }.drawWithCache {
-        val color = accent
-        val bokehRadius = 22.dp.toPx()
-        val bokeh = Brush.radialGradient(listOf(color.copy(alpha = .16f), Color.Transparent), Offset.Zero, bokehRadius)
+        val points = ambientStarBuffers(stars)
+        val used = IntArray(STAR_BUCKETS)
+        val colors = intArrayOf(0xFF6F889F.toInt(), 0xFF92A4BB.toInt(), 0xFF9FBAC8.toInt(), 0xFFBCD0DD.toInt())
+        val paints = Array(STAR_BUCKETS) { bucket -> Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = colors[(bucket % 8) / 2]
+            strokeCap = Paint.Cap.ROUND
+            strokeWidth = when (bucket / 8) { 0 -> .50.dp.toPx(); 1 -> .80.dp.toPx(); else -> 1.10.dp.toPx() }
+        } }
         onDrawBehind {
             val time = phase.value
-            val sound = if (active) audio.value else AudioMotion()
-            particles.forEachIndexed { index, particle ->
-                val drift = sin(time / (9 + index % 7) + particle.phase) * (.025 + particle.depth * .05)
-                val flow = ambientFraction(particle.x + time * (.030 + particle.speed * 12))
-                val river = index % 3 != 0 && count > 80
-                val px = if (river) (flow - .5f) * 1.16f + .5f
-                    else ambientFraction(particle.x + drift)
-                val py = if (river) .43f + (index % 5 - 2) * .012f +
-                    sin(flow * 6.283 * (1 + particle.depth) + particle.phase + time * .34).toFloat() * (.024f + particle.depth * .04f)
-                    else ambientFraction(particle.y - time * particle.speed)
-                val yaw = drag.rotation.yaw * Math.PI / 180
-                val pitch = drag.rotation.pitch * Math.PI / 180
-                val localX = (px - .5f) * size.width
-                val localY = (py - .43f) * size.height
-                val z = (particle.depth - .3f) * size.width * 1.8f
-                val rotatedX = localX * cos(yaw) + z * sin(yaw)
-                val rotatedZ = z * cos(yaw) - localX * sin(yaw)
-                val perspective = (size.width * 2 / (size.width * 2 + rotatedZ)).toFloat().coerceIn(.7f, 1.4f)
-                val x = size.width * .5f + rotatedX.toFloat() * perspective
-                val y = size.height * .43f + (localY * cos(pitch) - rotatedZ * sin(pitch)).toFloat() * perspective
-                val edge = minOf(y / (size.height * .1f), (size.height - y) / (size.height * .1f)).coerceIn(0f, 1f)
-                val center = Offset(x +
-                    (x - size.width / 2) * sound.bass * .035f, y - sound.mid * particle.depth * 14.dp.toPx())
-                // Keep the lyric column quieter; brighter foreground dust lives near the edges.
-                val readingMask = if (x in size.width * .18f..size.width * .82f && y in size.height * .22f..size.height * .72f) .45f else 1f
-                val twinkle = (.65 + sin(time / (2 + index % 5) + particle.phase) * .35).toFloat()
-                val alpha = (strength.value + sound.treble * .22f) * edge * twinkle * readingMask
-                val radius = particle.radius.dp.toPx() * perspective * (1f + sound.bass * .6f)
-                val tint = if (index % 3 == 0) Color.White else color
-                drawCircle(tint, radius, center, alpha = alpha)
-                if (index % 7 == 0 && count > 40) {
-                    val tail = Offset(center.x - (3f + sound.treble * 9f).dp.toPx(), center.y + 7.dp.toPx())
-                    drawLine(tint, tail, center, radius * .65f, cap = StrokeCap.Round, alpha = alpha * .45f)
-                }
-                if (index < (if (count <= 40) 3 else 10)) {
-                    translate(center.x, center.y) { drawCircle(bokeh, bokehRadius, Offset.Zero, alpha = strength.value) }
-                }
-                if (index % 19 == 0 && count > 40) {
-                    val arm = radius * (2f + sound.treble)
-                    drawLine(tint, center - Offset(arm, 0f), center + Offset(arm, 0f), .65.dp.toPx(), alpha = alpha * .7f)
-                    drawLine(tint, center - Offset(0f, arm), center + Offset(0f, arm), .65.dp.toPx(), alpha = alpha * .7f)
+            // A slow orbit reveals real depth; no wrapping lanes, streaks, blur or old-frame feedback.
+            val yaw = (drag.rotation.yaw * PI / 180.0 + sin(time * .025) * .045).toFloat()
+            val pitch = (drag.rotation.pitch * PI / 180.0 + sin(time * .019) * .025).toFloat()
+            projectAmbientStars(stars, size.width, size.height, yaw, pitch, points, used)
+            drawIntoCanvas { canvas ->
+                for (bucket in 0 until STAR_BUCKETS) {
+                    val twinkle = .96f + sin(time * .19 + bucket * 1.7).toFloat() * .035f
+                    paints[bucket].alpha = ((if (bucket % 2 == 0) 105 else 185) * twinkle).roundToInt()
+                    if (used[bucket] > 0) canvas.nativeCanvas.drawPoints(points[bucket], 0, used[bucket], paints[bucket])
                 }
             }
         }

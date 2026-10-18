@@ -183,6 +183,7 @@ declare global {
       'player.lyricDisplayMode': 'single' | 'multiple'
       'player.lyricColor': string
       'player.lyricFontSize': number
+      'player.lyricFontFamily': 'system' | 'wenkai' | 'xiaowei' | 'huangyou'
       'player.lyricAlign': 'left' | 'center' | 'right'
       'player.backgroundMotion': boolean
       'player.respectReducedMotion': boolean

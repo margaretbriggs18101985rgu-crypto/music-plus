@@ -1,0 +1,63 @@
+{
+  "version": "1.1.2",
+  "version_code": 4,
+  "checks": {
+    "typecheck": "passed",
+    "eslint": "passed",
+    "js_tests": 63,
+    "release_android_tests": 38,
+    "debug_android_tests_same_player_source": 38,
+    "signed_apks": 5,
+    "hermes_bundle": true,
+    "font_binaries_and_licenses_verified": true,
+    "checksums_verified": true
+  },
+  "local_apks": [
+    {
+      "name": "music-plus-v1.1.2-arm64-v8a.apk",
+      "sha256": "923a30232734a25b295250b80413a17ae32fd25320bfce4ce931ef7f2c3c059a",
+      "bytes": 30270992,
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 4003,
+      "zip_aligned": true
+    },
+    {
+      "name": "music-plus-v1.1.2-armeabi-v7a.apk",
+      "sha256": "015e498ad5aed04f186319d16a570d46f81376a9bb53a27d9deeee96c5a744fb",
+      "bytes": 29263785,
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 4001,
+      "zip_aligned": true
+    },
+    {
+      "name": "music-plus-v1.1.2-universal.apk",
+      "sha256": "8a22fdb1e261bbe9fea4c3d89173d43cedb4020df4939fdcc2346414405bedf0",
+      "bytes": 45283750,
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 4,
+      "zip_aligned": true
+    },
+    {
+      "name": "music-plus-v1.1.2-x86_64.apk",
+      "sha256": "c2fb962b533daf0c62efbe7ec2670598b097f64a2fc7b6d6a688e9a55dd6e2c1",
+      "bytes": 30595363,
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 4004,
+      "zip_aligned": true
+    },
+    {
+      "name": "music-plus-v1.1.2-x86.apk",
+      "sha256": "012032f91dde29920e9655053ebec399eb76899a2b8660ed211f1b75cf524a70",
+      "bytes": 30715355,
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 4002,
+      "zip_aligned": true
+    }
+  ],
+  "ui_evidence": "doc/qa/immersive-player-results.json",
+  "public_release_verification": "pending",
+  "limits": [
+    "UI interactions tested on a headless emulator using standalone Debug before the version bump",
+    "No physical phone audio quality, power or stable frame-rate acceptance"
+  ]
+}

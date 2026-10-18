@@ -36,6 +36,7 @@ const defaultSetting: LX.AppSetting = {
   'player.lyricDisplayMode': 'single',
   'player.lyricColor': '#A8F6FF',
   'player.lyricFontSize': 40,
+  'player.lyricFontFamily': 'system',
   'player.lyricAlign': 'center',
   'player.backgroundMotion': true,
   'player.respectReducedMotion': true,

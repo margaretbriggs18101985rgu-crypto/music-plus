@@ -21,6 +21,7 @@ import ArtistPicker, { type ArtistPickerRef } from '../components/ArtistPicker'
 import PlayerMoreSheet, { type PlayerMoreSheetRef } from '../components/PlayerMoreSheet'
 import MusicAddModal, { type MusicAddModalType } from '@/components/MusicAddModal'
 import { getTrackAlbum } from '@/core/music/artist'
+import { normalizeLyricFont } from '@/utils/lyricAppearance'
 
 interface PlayerActionEvent {
   action: string
@@ -51,6 +52,7 @@ interface NativePlayerProps extends ViewProps {
     lyricDisplayMode: LX.AppSetting['player.lyricDisplayMode']
     lyricColor: string
     lyricFontSize: number
+    lyricFontFamily: LX.AppSetting['player.lyricFontFamily']
     lyricAlign: LX.AppSetting['player.lyricAlign']
     backgroundMotion: boolean
     respectReducedMotion: boolean
@@ -71,6 +73,7 @@ export default ({ componentId }: { componentId: string }) => {
   const lyricDisplayMode = useSettingValue('player.lyricDisplayMode')
   const lyricColor = useSettingValue('player.lyricColor')
   const lyricFontSize = useSettingValue('player.lyricFontSize')
+  const lyricFontFamily = normalizeLyricFont(useSettingValue('player.lyricFontFamily'))
   const lyricAlign = useSettingValue('player.lyricAlign')
   const backgroundMotion = useSettingValue('player.backgroundMotion')
   const respectReducedMotion = useSettingValue('player.respectReducedMotion')
@@ -98,6 +101,7 @@ export default ({ componentId }: { componentId: string }) => {
 
   useEffect(() => {
     Navigation.mergeOptions(componentId, {
+      layout: { orientation: ['portrait', 'landscape'] },
       statusBar: { style: 'light', backgroundColor: 'transparent' },
       navigationBar: { backgroundColor: '#2A292D' },
     })
@@ -203,13 +207,14 @@ export default ({ componentId }: { componentId: string }) => {
     lyricDisplayMode,
     lyricColor,
     lyricFontSize,
+    lyricFontFamily,
     lyricAlign,
     backgroundMotion,
     respectReducedMotion,
     playMode,
     topInset,
     bottomInset: 0,
-  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode, immersiveVisualsEnabled, particleQuality, lyricMotionEnabled, lyricDisplayMode, lyricColor, lyricFontSize, lyricAlign, backgroundMotion, respectReducedMotion])
+  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode, immersiveVisualsEnabled, particleQuality, lyricMotionEnabled, lyricDisplayMode, lyricColor, lyricFontSize, lyricFontFamily, lyricAlign, backgroundMotion, respectReducedMotion])
 
   return <>
     <NativeVinylPlayer style={{ flex: 1 }} playerState={playerState} onPlayerAction={({ nativeEvent }) => { handlePlayerAction(nativeEvent.action, nativeEvent.value) }} />

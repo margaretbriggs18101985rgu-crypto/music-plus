@@ -20,11 +20,11 @@ class ImmersiveVisualConfigTest {
         }
     }
     @Test fun qualityUsesBoundedCountsAndLowRamCapsHigh() {
-        for ((quality, count) in listOf(ParticleQuality.Auto to 240, ParticleQuality.Low to 80,
-            ParticleQuality.High to 420, ParticleQuality.Off to 0)) {
+        for ((quality, count) in listOf(ParticleQuality.Auto to 3600, ParticleQuality.Low to 1200,
+            ParticleQuality.High to 6400, ParticleQuality.Off to 0)) {
             assertEquals(count, resolveAmbientPolicy(config.copy(particleQuality = quality), foreground, true).particleCount)
         }
-        assertEquals(80, resolveAmbientPolicy(config.copy(particleQuality = ParticleQuality.High), foreground.copy(lowRam = true), true).particleCount)
+        assertEquals(1200, resolveAmbientPolicy(config.copy(particleQuality = ParticleQuality.High), foreground.copy(lowRam = true), true).particleCount)
     }
     @Test fun invisiblePowerSaveOrReducedMotionStopsAllEffects() {
         for (environment in listOf(foreground.copy(foreground = false), foreground.copy(powerSave = true), foreground.copy(systemMotion = false))) {
@@ -32,13 +32,13 @@ class ImmersiveVisualConfigTest {
         }
         assertEquals(AmbientPolicy(false, 0, false, false), resolveAmbientPolicy(config.copy(visualEffectsEnabled = false), foreground, true))
     }
-    @Test fun vinylDoesNotRunAmbientLoopOrParticles() {
+    @Test fun absentStageDoesNotRunAmbientLoopOrParticles() {
         val policy = resolveAmbientPolicy(config, foreground, false)
         assertFalse(policy.animate); assertEquals(0, policy.particleCount)
     }
     @Test fun independentSwitchesAndReducedMotionOverrideAreReal() {
         val policy = resolveAmbientPolicy(config.copy(backgroundMotion = false, lyricMotionEnabled = false), foreground, true)
-        assertFalse(policy.animate); assertFalse(policy.lyricMotion); assertEquals(240, policy.particleCount)
+        assertFalse(policy.animate); assertFalse(policy.lyricMotion); assertEquals(3600, policy.particleCount)
         assertTrue(resolveAmbientPolicy(config.copy(respectReducedMotion = false), foreground.copy(systemMotion = false), true).animate)
     }
 }

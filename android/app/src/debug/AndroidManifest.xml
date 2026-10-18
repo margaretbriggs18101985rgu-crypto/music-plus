@@ -8,6 +8,7 @@
         tools:ignore="GoogleAppIndexingWarning">
         <!-- Visual/animation test harness only; it never claims to play audio. -->
         <activity android:name=".vinyl.VinylPreviewActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
             android:exported="true" android:launchMode="singleTop" android:label="黑胶播放器 · 界面演示" />
     </application>
 </manifest>

@@ -17,6 +17,7 @@ import SettingVolume from './SettingPopup/settings/SettingVolume'
 import SettingPlaybackRate from './SettingPopup/settings/SettingPlaybackRate'
 import SettingSleepTimer from './SettingPopup/settings/SettingSleepTimer'
 import SettingLrcFontSize from './SettingPopup/settings/SettingLrcFontSize'
+import SettingLrcFontFamily from './SettingPopup/settings/SettingLrcFontFamily'
 import SettingLrcAlign from './SettingPopup/settings/SettingLrcAlign'
 import SettingQuality from './SettingPopup/settings/SettingQuality'
 
@@ -131,7 +132,7 @@ export default forwardRef<PlayerMoreSheetRef, Props>(({ music, hasTrack, favorit
                 <SheetIcon name="heart" size={17} color="#FF4C57" /><Text size={12} color={favorite ? '#FF4C57' : '#C4C4C9'}>{favorite ? '已喜欢' : '喜欢'}</Text>
               </TouchableOpacity>
             </View>
-            <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+            <ScrollView key="main" contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
               <View style={styles.divider} />
               <View style={styles.quickActions}>{([
                 ['folder-plus', '收藏到歌单', () => { action('addToPlaylist') }],
@@ -159,9 +160,9 @@ export default forwardRef<PlayerMoreSheetRef, Props>(({ music, hasTrack, favorit
             <View style={styles.panelHeader}><TouchableOpacity accessibilityRole="button" accessibilityLabel="返回播放菜单" style={styles.back} onPress={() => { setPanel('main') }}>
               <SheetIcon name="chevron-left" size={20} color="#EEEEF2" /></TouchableOpacity><Text size={17} style={styles.panelTitle}>{titles[panel]}</Text>
               <TouchableOpacity accessibilityRole="button" accessibilityLabel="关闭播放菜单" onPress={() => { close() }} style={styles.back}><SheetIcon name="x" size={15} color="#99999F" /></TouchableOpacity></View>
-            <ScrollView contentContainerStyle={styles.settingsBody} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+            <ScrollView key={panel} contentContainerStyle={styles.settingsBody} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
               {panel == 'appearance' ? <ImmersiveVisuals /> : null}
-              {panel == 'typography' ? <><SettingLrcFontSize direction="vertical" native /><SettingLrcAlign native /><IsShowLyricTranslation /><IsShowLyricRoma /><IsS2T /></> : null}
+              {panel == 'typography' ? <><SettingLrcFontFamily /><SettingLrcFontSize direction="vertical" native /><SettingLrcAlign native /><IsShowLyricTranslation /><IsShowLyricRoma /><IsS2T /></> : null}
               {panel == 'audio' ? <><SettingVolume /><SettingPlaybackRate /></> : null}
               {panel == 'sleep' ? <SettingSleepTimer /> : null}
               {panel == 'quality' ? <SettingQuality /> : null}

@@ -23,3 +23,10 @@ assets/licenses/react-native-vector-icons-MIT.txt in the APK.
 Spatial lyric interaction and star-field appearance reference:
 https://github.com/MorsBrenn/mineradio-mobile
 Implemented for Android Compose with a read-only Media3 PCM analyser.
+
+Bundled lyric fonts: LXGW WenKai Lite Regular, ZCOOL XiaoWei Regular,
+and ZCOOL QingKe HuangYou Regular, each under SIL Open Font License 1.1.
+The original unmodified font binaries, full copyright and license texts,
+source revisions and SHA-256 manifest are provided under
+android/app/src/main/assets/font-licenses/ and in the APK's
+assets/font-licenses/. See doc/PLAYER_LAYOUTS.md for source links.

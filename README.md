@@ -20,12 +20,15 @@ MUSIC++ 使用独立应用标识 `io.github.musicplus.player`，可以与原版 
 
 ## 功能与预览
 
+> v1.1.2 新增双布局、星流、四种字体和无框透明控制栏。当前正在构建发布，完成前上方 Releases 下载仍为 v1.1.1。
+
 - 音乐搜索、歌手歌曲与专辑浏览、榜单和歌单。
 - 我的音乐、收藏、播放队列、歌单导入。
 - 原生黑胶唱片播放页、歌词、播放进度和后台播放。
-- 根据实际音频律动的空间歌词、双轴自由旋转与惯性、封面取色背景和星河粒子。
-- 单句／多排歌词、颜色、字号与对齐设置，支持系统减少动画和省电适配。
-- 下载按钮右侧的三点菜单：歌曲操作、音质、倍速、歌词特效与睡眠定时。
+- 根据实际音频律动的空间歌词、双轴自由旋转与惯性、密集三维星流；无尾线或拖影叠加。
+- 黑胶＋歌词和全屏歌词两种布局，适配横竖屏；透明控制栏、空白处隐藏与轻点舞台恢复。详见[布局与验证说明](doc/PLAYER_LAYOUTS.md)。
+- 单句／多排歌词、四种离线字体、颜色、字号与对齐设置，支持系统减少动画和省电适配。
+- 播放器更多菜单：歌曲操作、音质、倍速、歌词字体与特效、睡眠定时。
 - 内置音源及自定义音源管理；第三方服务的可用性取决于各自端点。
 
 <img src="doc/ui/vinyl-player-android.png" alt="MUSIC++ Android 黑胶播放页" width="300">
@@ -51,6 +54,8 @@ npm run pack:android:debug
 本项目基于 **lyswhut / LX Music Mobile v1.9.1** 修改，保留原作者署名、[Apache-2.0 许可证](LICENSE)、[NOTICE](NOTICE) 及[原项目说明与附加条款](doc/UPSTREAM_README.md)。MUSIC++ 的界面、原生黑胶播放器和发布配置等修改记录可查阅 Git 历史与 `doc/`。
 
 空间歌词的自由旋转、切句及星河视觉参考 [MineRadio Mobile](https://github.com/MorsBrenn/mineradio-mobile)，以 Android Compose 和实际解码音频分析实现。
+
+本次星流与双布局视觉参考 [Mineradio-paused](https://github.com/XxHuberrr/Mineradio-paused)，Android 实现独立编写。三款附带中文字体采用 SIL OFL 1.1，完整版权与授权随源码及 APK 提供，见[字体来源与布局说明](doc/PLAYER_LAYOUTS.md)。
 
 内置墨澜音源 v2.3.4 来自 [baiji6/molanyinyueyuan](https://github.com/baiji6/molanyinyueyuan)，其 [MIT 许可证](android/app/src/main/assets/licenses/molanyinyueyuan-MIT.txt) 随源码与 APK 分发。音乐、封面、歌词等内容的权利属于各自权利人，请尊重版权，支持正版。项目不附带歌曲文件。
 

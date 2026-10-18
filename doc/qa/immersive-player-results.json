@@ -1,0 +1,148 @@
+{
+  "version": "1.1.1",
+  "version_code": 3,
+  "publication": "local candidate only",
+  "checks": {
+    "typecheck": "passed",
+    "eslint": "passed",
+    "js_tests": 63,
+    "debug_android_tests": 38,
+    "release_android_tests": 38
+  },
+  "ui_fixture": {
+    "kind": "native Debug fixture",
+    "audio_playback_tested": false,
+    "portrait_size": [
+      1080,
+      2400
+    ],
+    "explicit_return_roundtrip": true,
+    "record_tap_entry": true,
+    "seek_boundaries": true,
+    "landscape_size": [
+      2400,
+      1080
+    ],
+    "symmetric_dock_and_hide_reveal_without_lyric_shift": true,
+    "landscape_roundtrip": true,
+    "rapid_changes_and_reduced_motion": true,
+    "result": "passed"
+  },
+  "font_ui": {
+    "kind": "real RN font settings and native rendering",
+    "choices": [
+      {
+        "id": "system",
+        "selected": true,
+        "native_screenshot": "font-system.png"
+      },
+      {
+        "id": "wenkai",
+        "selected": true,
+        "native_screenshot": "font-wenkai.png"
+      },
+      {
+        "id": "xiaowei",
+        "selected": true,
+        "native_screenshot": "font-xiaowei.png"
+      },
+      {
+        "id": "huangyou",
+        "selected": true,
+        "native_screenshot": "font-huangyou.png"
+      }
+    ],
+    "restart_persisted_wenkai": true,
+    "landscape_title_top_px": 96,
+    "cold_start_without_shared_event_parse_error": true,
+    "result": "passed"
+  },
+  "real_playback": {
+    "kind": "actual RN player with decoded local PCM WAV and sibling LRC",
+    "local_lrc_matches_decoded_seek_seconds": 108,
+    "paused_seek": {
+      "state": "PLAYING",
+      "position_ms": 108522,
+      "local": true
+    },
+    "drag_seek": {
+      "state": "PLAYING",
+      "position_ms": 134110,
+      "local": true
+    },
+    "rotation_preserved_position": true,
+    "resume_after_layout_switch": {
+      "state": "PAUSED",
+      "position_ms": 136630,
+      "local": true
+    },
+    "production_hide_reveal_and_progress_isolation": true,
+    "both_layouts_both_orientations": true,
+    "result": "passed"
+  },
+  "font_package": {
+    "apk_bytes": 45283609,
+    "font_resources": [
+      {
+        "id": "wenkai",
+        "path": "res/iK.ttf",
+        "bytes": 13949472,
+        "compressed": 8240283
+      },
+      {
+        "id": "xiaowei",
+        "path": "res/o-.ttf",
+        "bytes": 6313808,
+        "compressed": 3415520
+      },
+      {
+        "id": "huangyou",
+        "path": "res/uh.ttf",
+        "bytes": 8328684,
+        "compressed": 3510341
+      }
+    ],
+    "font_compressed_bytes": 15166144,
+    "font_files_and_licenses_verified": true
+  },
+  "artifact": {
+    "sha256": "a1b631a8caeea8b96848cf0ae84b54c1608f0b6c08ffa7943486a89d3bde31fe",
+    "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+    "same_certificate_as_published": true,
+    "zip_aligned": true,
+    "bytes": 45283609
+  },
+  "limitations": [
+    "Headless Android emulator interaction tests use standalone Debug",
+    "Release build, resource hashes, licences, signing certificate and ZIP alignment verified",
+    "No physical phone audio quality, power or stable frame-rate acceptance"
+  ],
+  "previous_artifact_before_controls_revision": {
+    "sha256": "f48ad2befdd091c5e3c6e2d7213f813450cc64105fd52767fd6ba8cf01d14717",
+    "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+    "same_certificate_as_published": true,
+    "zip_aligned": true,
+    "bytes": 45283853
+  },
+  "transparent_controls_revision": {
+    "ui": {
+      "portrait": {
+        "play_centered": true,
+        "button_does_not_hide": true,
+        "hide_reveal": true,
+        "lyric_center_preserved": true,
+        "both_layouts": true
+      },
+      "landscape": {
+        "play_centered": true,
+        "button_does_not_hide": true,
+        "hide_reveal": true,
+        "lyric_center_preserved": true,
+        "both_layouts": true
+      },
+      "result": "passed"
+    },
+    "debug_release_build": "passed",
+    "screenshots": "doc/ui/immersive-*.png"
+  }
+}

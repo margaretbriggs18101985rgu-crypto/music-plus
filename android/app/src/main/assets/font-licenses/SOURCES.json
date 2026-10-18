@@ -1,0 +1,38 @@
+[
+  {
+    "id": "wenkai",
+    "original_name": "LXGWWenKaiLite-Regular.ttf",
+    "repository": "https://github.com/lxgw/LxgwWenKai-Lite",
+    "commit": "b712c83d98acf977bacfb7fb010207802808bda9",
+    "source_path": "fonts/TTF/LXGWWenKaiLite-Regular.ttf",
+    "resource": "res/font/lyric_wenkai.ttf",
+    "license": "LXGWWenKaiLite-OFL.txt",
+    "sha256": "f799a538a3355877e597a0ae04050e897932c9ae7689eb9227c2953c5dd549ea",
+    "bytes": 13949472,
+    "modified": false
+  },
+  {
+    "id": "xiaowei",
+    "original_name": "ZCOOLXiaoWei-Regular.ttf",
+    "repository": "https://github.com/google/fonts",
+    "commit": "47d54ca1ebb14fd864695f1d39dc734f39017c33",
+    "source_path": "ofl/zcoolxiaowei/ZCOOLXiaoWei-Regular.ttf",
+    "resource": "res/font/lyric_xiaowei.ttf",
+    "license": "ZCOOLXiaoWei-OFL.txt",
+    "sha256": "a42b620140f493db42f741351dfbf343c0936d58588ee8004b8b2a218d997ff1",
+    "bytes": 6313808,
+    "modified": false
+  },
+  {
+    "id": "huangyou",
+    "original_name": "ZCOOLQingKeHuangYou-Regular.ttf",
+    "repository": "https://github.com/google/fonts",
+    "commit": "47d54ca1ebb14fd864695f1d39dc734f39017c33",
+    "source_path": "ofl/zcoolqingkehuangyou/ZCOOLQingKeHuangYou-Regular.ttf",
+    "resource": "res/font/lyric_huangyou.ttf",
+    "license": "ZCOOLQingKeHuangYou-OFL.txt",
+    "sha256": "54f0c0df4308cd74cd0f2fd3494ae054dbc4a1fd6fa7d71f4807eb4cdd8b4136",
+    "bytes": 8328684,
+    "modified": false
+  }
+]
