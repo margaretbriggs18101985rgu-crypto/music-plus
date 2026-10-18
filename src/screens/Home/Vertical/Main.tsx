@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ComponentRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, type ComponentRef } from 'react'
 import { View } from 'react-native'
 import Search from '../Views/Search'
 import SongList from '../Views/SongList'
@@ -10,172 +10,31 @@ import { createStyle } from '@/utils/tools'
 import PagerView, { type PageScrollStateChangedNativeEvent, type PagerViewOnPageSelectedEvent } from 'react-native-pager-view'
 import { setNavActiveId } from '@/core/common'
 import settingState from '@/store/setting/state'
-
-const hideKeys = [
-  'list.isShowAlbumName',
-  'list.isShowInterval',
-  'theme.fontShadow',
-] as Readonly<Array<keyof LX.AppSetting>>
+import { useLazyPage } from './useLazyPage'
 
 const SearchPage = () => {
-  const [visible, setVisible] = useState(commonState.navActiveId == 'nav_search')
-  const component = useMemo(() => <Search />, [])
-  useEffect(() => {
-    let currentId: CommonState['navActiveId'] = commonState.navActiveId
-    const handleNavIdUpdate = (id: CommonState['navActiveId']) => {
-      currentId = id
-      if (id == 'nav_search') {
-        requestAnimationFrame(() => {
-          setVisible(true)
-        })
-      }
-    }
-    const handleHide = () => {
-      if (currentId != 'nav_setting') return
-      setVisible(false)
-    }
-    const handleConfigUpdated = (keys: Array<keyof LX.AppSetting>) => {
-      if (keys.some(k => hideKeys.includes(k))) handleHide()
-    }
-    global.state_event.on('navActiveIdUpdated', handleNavIdUpdate)
-    global.state_event.on('themeUpdated', handleHide)
-    global.state_event.on('languageChanged', handleHide)
-    global.state_event.on('configUpdated', handleConfigUpdated)
-
-    return () => {
-      global.state_event.off('navActiveIdUpdated', handleNavIdUpdate)
-      global.state_event.off('themeUpdated', handleHide)
-      global.state_event.off('languageChanged', handleHide)
-      global.state_event.off('configUpdated', handleConfigUpdated)
-    }
-  }, [])
-
-  return visible ? component : null
+  const visible = useLazyPage('nav_search')
+  return visible ? <Search /> : null
 }
+
 const SongListPage = () => {
-  const [visible, setVisible] = useState(commonState.navActiveId == 'nav_songlist')
-  const component = useMemo(() => <SongList />, [])
-  useEffect(() => {
-    let currentId: CommonState['navActiveId'] = commonState.navActiveId
-    const handleNavIdUpdate = (id: CommonState['navActiveId']) => {
-      currentId = id
-      if (id == 'nav_songlist') {
-        requestAnimationFrame(() => {
-          setVisible(true)
-        })
-      }
-    }
-    const handleHide = () => {
-      if (currentId != 'nav_setting') return
-      setVisible(false)
-    }
-    const handleConfigUpdated = (keys: Array<keyof LX.AppSetting>) => {
-      if (keys.some(k => hideKeys.includes(k))) handleHide()
-    }
-    global.state_event.on('navActiveIdUpdated', handleNavIdUpdate)
-    global.state_event.on('themeUpdated', handleHide)
-    global.state_event.on('languageChanged', handleHide)
-    global.state_event.on('configUpdated', handleConfigUpdated)
-
-    return () => {
-      global.state_event.off('navActiveIdUpdated', handleNavIdUpdate)
-      global.state_event.off('themeUpdated', handleHide)
-      global.state_event.off('languageChanged', handleHide)
-      global.state_event.on('configUpdated', handleConfigUpdated)
-    }
-  }, [])
-
-  return visible ? component : null
-  // return activeId == 1 || activeId == 0  ? SongList : null
+  const visible = useLazyPage('nav_songlist')
+  return visible ? <SongList /> : null
 }
+
 const LeaderboardPage = () => {
-  const [visible, setVisible] = useState(commonState.navActiveId == 'nav_top')
-  const component = useMemo(() => <Leaderboard />, [])
-  useEffect(() => {
-    let currentId: CommonState['navActiveId'] = commonState.navActiveId
-    const handleNavIdUpdate = (id: CommonState['navActiveId']) => {
-      currentId = id
-      if (id == 'nav_top') {
-        requestAnimationFrame(() => {
-          setVisible(true)
-        })
-      }
-    }
-    const handleHide = () => {
-      if (currentId != 'nav_setting') return
-      setVisible(false)
-    }
-    const handleConfigUpdated = (keys: Array<keyof LX.AppSetting>) => {
-      if (keys.some(k => hideKeys.includes(k))) handleHide()
-    }
-    global.state_event.on('navActiveIdUpdated', handleNavIdUpdate)
-    global.state_event.on('themeUpdated', handleHide)
-    global.state_event.on('languageChanged', handleHide)
-    global.state_event.on('configUpdated', handleConfigUpdated)
-
-    return () => {
-      global.state_event.off('navActiveIdUpdated', handleNavIdUpdate)
-      global.state_event.off('themeUpdated', handleHide)
-      global.state_event.off('languageChanged', handleHide)
-      global.state_event.on('configUpdated', handleConfigUpdated)
-    }
-  }, [])
-
-  return visible ? component : null
+  const visible = useLazyPage('nav_top')
+  return visible ? <Leaderboard /> : null
 }
+
 const MylistPage = () => {
-  const [visible, setVisible] = useState(commonState.navActiveId == 'nav_love')
-  const component = useMemo(() => <Mylist />, [])
-  useEffect(() => {
-    let currentId: CommonState['navActiveId'] = commonState.navActiveId
-    const handleNavIdUpdate = (id: CommonState['navActiveId']) => {
-      currentId = id
-      if (id == 'nav_love') {
-        requestAnimationFrame(() => {
-          setVisible(true)
-        })
-      }
-    }
-    const handleHide = () => {
-      if (currentId != 'nav_setting') return
-      setVisible(false)
-    }
-    const handleConfigUpdated = (keys: Array<keyof LX.AppSetting>) => {
-      if (keys.some(k => hideKeys.includes(k))) handleHide()
-    }
-    global.state_event.on('navActiveIdUpdated', handleNavIdUpdate)
-    global.state_event.on('themeUpdated', handleHide)
-    global.state_event.on('languageChanged', handleHide)
-    global.state_event.on('configUpdated', handleConfigUpdated)
-
-    return () => {
-      global.state_event.off('navActiveIdUpdated', handleNavIdUpdate)
-      global.state_event.off('themeUpdated', handleHide)
-      global.state_event.off('languageChanged', handleHide)
-      global.state_event.on('configUpdated', handleConfigUpdated)
-    }
-  }, [])
-
-  return visible ? component : null
+  const visible = useLazyPage('nav_love')
+  return visible ? <Mylist /> : null
 }
-const SettingPage = () => {
-  const [visible, setVisible] = useState(commonState.navActiveId == 'nav_setting')
-  const component = useMemo(() => <Setting />, [])
-  useEffect(() => {
-    const handleNavIdUpdate = (id: CommonState['navActiveId']) => {
-      if (id == 'nav_setting') {
-        requestAnimationFrame(() => {
-          setVisible(true)
-        })
-      }
-    }
-    global.state_event.on('navActiveIdUpdated', handleNavIdUpdate)
 
-    return () => {
-      global.state_event.off('navActiveIdUpdated', handleNavIdUpdate)
-    }
-  }, [])
-  return visible ? component : null
+const SettingPage = () => {
+  const visible = useLazyPage('nav_setting')
+  return visible ? <Setting /> : null
 }
 
 const viewMap = {

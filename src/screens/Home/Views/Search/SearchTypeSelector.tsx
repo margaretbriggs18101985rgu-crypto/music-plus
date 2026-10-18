@@ -35,10 +35,10 @@ export default () => {
   }
 
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps={'always'} horizontal={true}>
+    <ScrollView accessibilityRole="tablist" style={styles.container} keyboardShouldPersistTaps={'always'} horizontal={true}>
       {
         list.map(t => (
-          <TouchableOpacity style={styles.button} onPress={() => { handleTypeChange(t.id) }} key={t.id}>
+          <TouchableOpacity accessibilityRole="tab" accessibilityState={{ selected: type == t.id }} style={styles.button} onPress={() => { handleTypeChange(t.id) }} key={t.id}>
             <Text style={{ ...styles.buttonText, borderBottomColor: type == t.id ? theme['c-font'] : 'transparent', fontWeight: type == t.id ? '600' : '400' }} color={type == t.id ? theme['c-font'] : theme['c-font-label']}>{t.label}</Text>
           </TouchableOpacity>
         ))
@@ -49,7 +49,7 @@ export default () => {
 
 const styles = createStyle({
   container: {
-    height: '100%',
+    height: 48,
     flexGrow: 0,
     flexShrink: 1,
     // paddingLeft: 5,

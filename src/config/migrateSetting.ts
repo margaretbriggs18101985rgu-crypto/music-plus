@@ -31,8 +31,6 @@ export default (setting: any): Partial<LX.AppSetting> => {
     setting['desktopLyric.style.fontSize'] = setting.desktopLyric?.style?.fontSize
     setting['desktopLyric.style.opacity'] = setting.desktopLyric?.style?.opacity
     setting['list.isClickPlayList'] = setting.list?.isClickPlayList
-    setting['list.isShowSource'] = setting.list?.isShowSource
-    setting['list.isSaveScrollLocation'] = setting.list?.isSaveScrollLocation
     setting['list.addMusicLocationType'] = setting.list?.addMusicLocationType
     setting['common.themeId'] = setting.themeId
     setting['common.isAutoTheme'] = setting.isAutoTheme
@@ -40,7 +38,6 @@ export default (setting: any): Partial<LX.AppSetting> => {
     setting['common.apiSource'] = setting.apiSource
     setting['common.sourceNameType'] = setting.sourceNameType
     setting['common.shareType'] = setting.shareType
-    setting['common.isAgreePact'] = setting.isAgreePact
     setting['sync.enable'] = setting.sync?.enable
     setting['theme.id'] = setting.themeId
   }

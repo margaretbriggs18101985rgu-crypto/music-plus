@@ -140,8 +140,17 @@ public class CryptoModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void sha1(String input, Promise promise) {
+    digest(input, "SHA-1", promise);
+  }
+
+  @ReactMethod
+  public void sha256(String input, Promise promise) {
+    digest(input, "SHA-256", promise);
+  }
+
+  private void digest(String input, String algorithm, Promise promise) {
     try {
-      MessageDigest md = MessageDigest.getInstance("SHA-1");
+      MessageDigest md = MessageDigest.getInstance(algorithm);
       byte[] messageDigest = md.digest(input.getBytes("UTF-8"));
 
       StringBuilder hexString = new StringBuilder();
@@ -155,7 +164,7 @@ public class CryptoModule extends ReactContextBaseJavaModule {
 
       promise.resolve(hexString.toString());
     } catch (Exception e) {
-      promise.reject("SHA1_ERROR", "哈希计算失败", e);
+      promise.reject("HASH_ERROR", "哈希计算失败", e);
     }
   }
 

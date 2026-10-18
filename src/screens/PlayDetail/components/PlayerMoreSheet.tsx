@@ -20,12 +20,13 @@ import SettingLrcFontSize from './SettingPopup/settings/SettingLrcFontSize'
 import SettingLrcFontFamily from './SettingPopup/settings/SettingLrcFontFamily'
 import SettingLrcAlign from './SettingPopup/settings/SettingLrcAlign'
 import SettingQuality from './SettingPopup/settings/SettingQuality'
+import LyricEditor from './LyricEditor'
 
-type Panel = 'main' | 'appearance' | 'typography' | 'sleep' | 'audio' | 'quality'
+type Panel = 'main' | 'appearance' | 'typography' | 'sleep' | 'audio' | 'quality' | 'lyricEditor'
 type IconName = ComponentProps<typeof SheetIcon>['name']
 export interface PlayerMoreSheetRef { show: () => void }
 interface Props { music: LX.Player.MusicInfo, hasTrack: boolean, favorite: boolean, onAction: (action: string) => void }
-const titles: Record<Panel, string> = { main: '播放设置', appearance: '歌词与粒子特效', typography: '歌词排版与翻译', sleep: '睡眠定时', audio: '音量与倍速播放', quality: '切换音质' }
+const titles: Record<Panel, string> = { main: '播放设置', appearance: '歌词与粒子特效', typography: '歌词排版与翻译', sleep: '睡眠定时', audio: '音量与倍速播放', quality: '切换音质', lyricEditor: '编辑歌词' }
 
 export default forwardRef<PlayerMoreSheetRef, Props>(({ music, hasTrack, favorite, onAction }, ref) => {
   const { height } = useWindowDimensions()
@@ -154,6 +155,7 @@ export default forwardRef<PlayerMoreSheetRef, Props>(({ music, hasTrack, favorit
               {row('align-center', '歌词显示', () => { updateSetting({ 'player.lyricDisplayMode': displayMode == 'single' ? 'multiple' : 'single' }) }, displayMode == 'single' ? '单句歌词' : '多排歌词')}
               {row('sliders', '歌词颜色与粒子特效', () => { setPanel('appearance') }, lyricColor)}
               {row('type', '歌词排版与翻译', () => { setPanel('typography') })}
+              {row('edit-3', '编辑歌词', () => { setPanel('lyricEditor') }, undefined, !hasTrack)}
               {row('clock', '睡眠定时', () => { setPanel('sleep') }, timerLabel)}
             </ScrollView>
           </> : <>
@@ -166,6 +168,7 @@ export default forwardRef<PlayerMoreSheetRef, Props>(({ music, hasTrack, favorit
               {panel == 'audio' ? <><SettingVolume /><SettingPlaybackRate /></> : null}
               {panel == 'sleep' ? <SettingSleepTimer /> : null}
               {panel == 'quality' ? <SettingQuality /> : null}
+              {panel == 'lyricEditor' ? <LyricEditor /> : null}
             </ScrollView>
           </>}
         </Animated.View>

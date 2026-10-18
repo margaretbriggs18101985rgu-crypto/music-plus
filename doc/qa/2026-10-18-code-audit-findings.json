@@ -1,0 +1,706 @@
+{
+  "date": "2026-10-18",
+  "tool": "Knip 5.30.6, TypeScript 5.9.3",
+  "scope": "Application import graph plus manual UI-entry and Android bridge review; candidates are not automatically safe deletions.",
+  "config": "tools/knip.audit.json",
+  "nativeSourceFiles": 79,
+  "unusedFileCandidates": [
+    "src/components/TimeoutExitEditModal.tsx",
+    "src/utils/scroll.ts",
+    "src/components/common/DrawerLayoutFixed.tsx",
+    "src/components/common/ScaledImage.tsx",
+    "src/components/player/ProgressBar.tsx",
+    "src/navigation/components/Toast.js",
+    "src/screens/Comment/CommentHot.tsx",
+    "src/screens/Comment/CommentNew.tsx",
+    "src/screens/Comment/LegacyComments.tsx",
+    "src/store/Provider/Provider.tsx",
+    "src/utils/hooks/usePlayTime.js",
+    "src/utils/nativeModules/cryptoTest.ts",
+    "src/components/common/DorpDownPanel/index.tsx",
+    "src/components/common/DorpDownPanel/Panel.tsx",
+    "src/screens/Comment/components/Header.tsx",
+    "src/screens/Comment/components/List.tsx",
+    "src/screens/Home/Vertical/DrawerNav.tsx",
+    "src/screens/PlayDetail/components/PlayLine.tsx",
+    "src/screens/PlayDetail/Horizontal/constant.ts",
+    "src/screens/PlayDetail/Horizontal/index.tsx",
+    "src/screens/PlayDetail/Horizontal/Lyric.tsx",
+    "src/screens/PlayDetail/Horizontal/Pic.tsx",
+    "src/screens/PlayDetail/Vertical/Lyric.tsx",
+    "src/screens/PlayDetail/Vertical/Pic.tsx",
+    "src/utils/musicSdk/bd/hotSearch.js",
+    "src/utils/musicSdk/bd/index.js",
+    "src/utils/musicSdk/bd/leaderboard.js",
+    "src/utils/musicSdk/bd/musicInfo.js",
+    "src/utils/musicSdk/bd/musicSearch.js",
+    "src/utils/musicSdk/bd/songList.js",
+    "src/utils/musicSdk/mg/album.js",
+    "src/utils/musicSdk/mg/tipSearch.js",
+    "src/utils/musicSdk/tx/tipSearch.js",
+    "src/utils/musicSdk/wy/tipSearch.js",
+    "src/utils/musicSdk/kg/album.js",
+    "src/utils/musicSdk/kg/musicInfo.js",
+    "src/utils/musicSdk/kg/singer.js",
+    "src/utils/musicSdk/kg/tipSearch.js",
+    "src/screens/PlayDetail/Horizontal/components/Btn.tsx",
+    "src/screens/PlayDetail/Horizontal/components/CommentBtn.tsx",
+    "src/screens/PlayDetail/Horizontal/components/DesktopLyricBtn.tsx",
+    "src/screens/PlayDetail/Horizontal/components/Header.tsx",
+    "src/screens/PlayDetail/components/SettingPopup/index.tsx",
+    "src/screens/PlayDetail/Horizontal/Player/ControlBtn.tsx",
+    "src/screens/PlayDetail/Horizontal/Player/index.tsx",
+    "src/screens/PlayDetail/Horizontal/Player/PlayInfo.tsx",
+    "src/screens/PlayDetail/Horizontal/Player/Status.tsx",
+    "src/screens/PlayDetail/Horizontal/MoreBtn/Btn.tsx",
+    "src/screens/PlayDetail/Horizontal/MoreBtn/index.tsx",
+    "src/screens/PlayDetail/Horizontal/MoreBtn/MusicAddBtn.tsx",
+    "src/screens/PlayDetail/Horizontal/MoreBtn/PlayModeBtn.tsx",
+    "src/screens/PlayDetail/Horizontal/MoreBtn/TimeoutExitBtn.tsx",
+    "src/screens/PlayDetail/Vertical/components/Btn.tsx",
+    "src/screens/PlayDetail/Vertical/components/Header.tsx",
+    "src/screens/PlayDetail/Vertical/components/TimeoutExitBtn.tsx",
+    "src/screens/PlayDetail/Vertical/Player/index.tsx",
+    "src/utils/musicSdk/mg/temp/leaderboard-old.js",
+    "src/utils/musicSdk/kg/temp/musicSearch-new.js",
+    "src/utils/musicSdk/kg/temp/songList-new.js",
+    "src/screens/Home/Views/Setting/Vertical/Header.tsx",
+    "src/screens/Home/Views/Setting/Vertical/NavList.tsx",
+    "src/screens/PlayDetail/components/SettingPopup/settings/SettingLyricProgress.tsx",
+    "src/screens/PlayDetail/Vertical/Player/components/ControlBtn.tsx",
+    "src/screens/PlayDetail/Vertical/Player/components/PlayInfo.tsx",
+    "src/screens/PlayDetail/Vertical/Player/components/Status.tsx",
+    "src/screens/Home/Views/SongList/HeaderBar/OpenList/index.tsx",
+    "src/screens/Home/Views/SongList/HeaderBar/OpenList/Modal.tsx",
+    "src/screens/Home/Views/Setting/settings/Player/PlayHighQuality.tsx",
+    "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/Btn.tsx",
+    "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/CommentBtn.tsx",
+    "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/DesktopLyricBtn.tsx",
+    "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/index.tsx",
+    "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/MusicAddBtn.tsx",
+    "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/PlayModeBtn.tsx",
+    "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/TimeoutExitBtn.tsx"
+  ],
+  "issueCounts": {
+    "dependencies": 2,
+    "devDependencies": 10,
+    "optionalPeerDependencies": 0,
+    "unlisted": 2,
+    "binaries": 2,
+    "unresolved": 0,
+    "exports": 136,
+    "types": 72,
+    "duplicates": 0
+  },
+  "exportCandidates": [
+    {
+      "file": "src/event/appEvent.ts",
+      "exports": [
+        "AppEvent"
+      ]
+    },
+    {
+      "file": "src/event/listEvent.ts",
+      "exports": [
+        "checkUpdateList",
+        "ListEvent"
+      ]
+    },
+    {
+      "file": "src/event/dislikeEvent.ts",
+      "exports": [
+        "DislikeEvent"
+      ]
+    },
+    {
+      "file": "src/event/stateEvent.ts",
+      "exports": [
+        "StateEvent"
+      ]
+    },
+    {
+      "file": "src/utils/data.ts",
+      "exports": [
+        "getListPrevSelectId",
+        "getListUpdateInfo",
+        "saveListUpdateInfo",
+        "setListAutoUpdate",
+        "saveIgnoreVersionFailTipTime",
+        "getIgnoreVersionFailTipTime",
+        "qualitys",
+        "getLyric",
+        "saveEditedLyric",
+        "clearEditedLyric",
+        "getOtherSource",
+        "saveOtherSource"
+      ]
+    },
+    {
+      "file": "src/utils/nativeModules/utils.ts",
+      "exports": [
+        "getSupportedAbis",
+        "screenkeepAwake",
+        "screenUnkeepAwake",
+        "onWindowSizeChange"
+      ]
+    },
+    {
+      "file": "src/utils/tools.ts",
+      "exports": [
+        "isAndroid",
+        "osVer",
+        "clipboardWriteText",
+        "formatMusicName",
+        "onDimensionChange",
+        "trasformeStyle"
+      ]
+    },
+    {
+      "file": "src/navigation/index.ts",
+      "exports": [
+        "screenNames"
+      ]
+    },
+    {
+      "file": "src/core/desktopLyric.ts",
+      "exports": [
+        "setDesktopLyricPosition"
+      ]
+    },
+    {
+      "file": "src/core/common.ts",
+      "exports": [
+        "checkStoragePermissions",
+        "requestStoragePermission"
+      ]
+    },
+    {
+      "file": "src/utils/pixelRatio.ts",
+      "exports": [
+        "scaleSizeWR",
+        "scaleSizeHR"
+      ]
+    },
+    {
+      "file": "src/components/common/Image.tsx",
+      "exports": [
+        "clearMemoryCache"
+      ]
+    },
+    {
+      "file": "src/store/common/hook.ts",
+      "exports": [
+        "useComponentIds",
+        "useSourceNames"
+      ]
+    },
+    {
+      "file": "src/store/setting/hook.ts",
+      "exports": [
+        "useSetting"
+      ]
+    },
+    {
+      "file": "src/config/constant.ts",
+      "exports": [
+        "MUSIC_TOGGLE_MODE"
+      ]
+    },
+    {
+      "file": "src/config/index.js",
+      "exports": [
+        "notificationIcon"
+      ]
+    },
+    {
+      "file": "src/plugins/storage.ts",
+      "exports": [
+        "clearAll"
+      ]
+    },
+    {
+      "file": "src/utils/listManage.ts",
+      "exports": [
+        "setUserLists",
+        "setMusicList",
+        "removeMusicList"
+      ]
+    },
+    {
+      "file": "src/config/migrate.ts",
+      "exports": [
+        "getAllListData"
+      ]
+    },
+    {
+      "file": "src/plugins/player/utils.ts",
+      "exports": [
+        "setLoop",
+        "resetPlay",
+        "onStateChange"
+      ]
+    },
+    {
+      "file": "src/utils/common.ts",
+      "exports": [
+        "toDateObj",
+        "parseUrlParams",
+        "b64DecodeUnicode"
+      ]
+    },
+    {
+      "file": "src/utils/fs.ts",
+      "exports": [
+        "rename",
+        "stopDownload"
+      ]
+    },
+    {
+      "file": "src/core/dislikeList.ts",
+      "exports": [
+        "clearDislikeInfo"
+      ]
+    },
+    {
+      "file": "src/core/leaderboard.ts",
+      "exports": [
+        "clearListDetail"
+      ]
+    },
+    {
+      "file": "src/core/list.ts",
+      "exports": [
+        "updateUserListPosition",
+        "clearListMusics"
+      ]
+    },
+    {
+      "file": "src/core/lyric.ts",
+      "exports": [
+        "handlePlay"
+      ]
+    },
+    {
+      "file": "src/core/songlist.ts",
+      "exports": [
+        "getSortList"
+      ]
+    },
+    {
+      "file": "src/theme/themes/index.ts",
+      "exports": [
+        "saveTheme",
+        "removeTheme"
+      ]
+    },
+    {
+      "file": "src/core/version.ts",
+      "exports": [
+        "showModal"
+      ]
+    },
+    {
+      "file": "src/navigation/hooks.ts",
+      "exports": [
+        "useNavigationCommandComplete",
+        "onNavigationComponentDidDisappearEvent"
+      ]
+    },
+    {
+      "file": "src/navigation/navigation.ts",
+      "exports": [
+        "pushHomeScreen"
+      ]
+    },
+    {
+      "file": "src/navigation/utils.ts",
+      "exports": [
+        "popToRoot",
+        "popTo"
+      ]
+    },
+    {
+      "file": "src/theme/index.js",
+      "exports": [
+        "AppColors",
+        "MaterialColors",
+        "FontWeights",
+        "FontSizes"
+      ]
+    },
+    {
+      "file": "src/utils/musicSdk/options.js",
+      "exports": [
+        "headers",
+        "timeout"
+      ]
+    },
+    {
+      "file": "src/components/common/Text.tsx",
+      "exports": [
+        "AnimatedColorText"
+      ]
+    },
+    {
+      "file": "src/core/music/local.ts",
+      "exports": [
+        "parseLyric"
+      ]
+    },
+    {
+      "file": "src/store/list/hook.ts",
+      "exports": [
+        "useMusicList"
+      ]
+    },
+    {
+      "file": "src/core/player/player.ts",
+      "exports": [
+        "stop"
+      ]
+    },
+    {
+      "file": "src/core/music/utils.ts",
+      "exports": [
+        "existTimeExp",
+        "TRY_QUALITYS_LIST"
+      ]
+    },
+    {
+      "file": "src/core/music/recommendation.ts",
+      "exports": [
+        "getTrackLanguage",
+        "getTrackStyles",
+        "scoreRecommendedTrack",
+        "getRecommendationReasons"
+      ]
+    },
+    {
+      "file": "src/core/search/music.ts",
+      "exports": [
+        "setSource",
+        "setSearchText",
+        "setListInfo",
+        "clearListInfo"
+      ]
+    },
+    {
+      "file": "src/core/search/search.ts",
+      "exports": [
+        "setSearchType"
+      ]
+    },
+    {
+      "file": "src/store/search/songlist/state.ts",
+      "exports": [
+        "maxPages"
+      ]
+    },
+    {
+      "file": "src/core/search/songlist.ts",
+      "exports": [
+        "setSource",
+        "setSearchText",
+        "clearListInfo"
+      ]
+    },
+    {
+      "file": "src/core/player/playInfo.ts",
+      "exports": [
+        "getPlayIndex",
+        "resetPlayerMusicInfo"
+      ]
+    },
+    {
+      "file": "src/core/player/utils.ts",
+      "exports": [
+        "filterMusicList"
+      ]
+    },
+    {
+      "file": "src/plugins/player/playList.ts",
+      "exports": [
+        "state",
+        "isTempTrack",
+        "getCurrentTrack"
+      ]
+    },
+    {
+      "file": "src/core/player/timeoutExit.ts",
+      "exports": [
+        "getTimeoutExitTime",
+        "onTimeUpdate"
+      ]
+    },
+    {
+      "file": "src/store/version/hook.ts",
+      "exports": [
+        "useVersionInfoIgnoreVersionUpdated"
+      ]
+    },
+    {
+      "file": "src/plugins/player/hook.ts",
+      "exports": [
+        "useProgress"
+      ]
+    },
+    {
+      "file": "src/plugins/sync/constants.ts",
+      "exports": [
+        "ENV_PARAMS",
+        "LIST_IDS",
+        "TRANS_MODE",
+        "File",
+        "FeaturesList"
+      ]
+    },
+    {
+      "file": "src/plugins/sync/listEvent.ts",
+      "exports": [
+        "buildUserListInfoFull"
+      ]
+    },
+    {
+      "file": "src/utils/nativeModules/crypto.ts",
+      "exports": [
+        "rsaEncrypt",
+        "rsaDecrypt",
+        "aesEncrypt",
+        "aesDecrypt"
+      ]
+    },
+    {
+      "file": "src/plugins/sync/utils.ts",
+      "exports": [
+        "rsaEncrypt"
+      ]
+    },
+    {
+      "file": "src/screens/Comment/utils.ts",
+      "exports": [
+        "getNewComment",
+        "getHotComment"
+      ]
+    },
+    {
+      "file": "src/screens/Artist/components.tsx",
+      "exports": [
+        "playSongs"
+      ]
+    },
+    {
+      "file": "src/theme/themes/colorUtils.js",
+      "exports": [
+        "RGB_Linear_Blend",
+        "RGB_Log_Blend",
+        "RGB_Log_Shade"
+      ]
+    },
+    {
+      "file": "src/utils/hooks/useDeviceOrientation.js",
+      "exports": [
+        "default"
+      ]
+    },
+    {
+      "file": "src/utils/hooks/useAssertApiSupport.js",
+      "exports": [
+        "default"
+      ]
+    },
+    {
+      "file": "src/utils/musicSdk/utils.js",
+      "exports": [
+        "QUALITYS",
+        "getMusicType"
+      ]
+    },
+    {
+      "file": "src/core/init/deeplink/utils.js",
+      "exports": [
+        "sources",
+        "qualitys"
+      ]
+    },
+    {
+      "file": "src/plugins/sync/client/utils.ts",
+      "exports": [
+        "sendStatus"
+      ]
+    },
+    {
+      "file": "src/plugins/sync/client/client.ts",
+      "exports": [
+        "getStatus"
+      ]
+    },
+    {
+      "file": "src/utils/musicSdk/mg/musicInfo.js",
+      "exports": [
+        "getMusicInfos"
+      ]
+    },
+    {
+      "file": "src/utils/musicSdk/kw/util.js",
+      "exports": [
+        "matchToken"
+      ]
+    },
+    {
+      "file": "src/utils/musicSdk/tx/lyric.js",
+      "exports": [
+        "decodeLyric"
+      ]
+    },
+    {
+      "file": "src/utils/musicSdk/wy/utils/crypto.js",
+      "exports": [
+        "eapiDecrypt"
+      ]
+    },
+    {
+      "file": "src/utils/musicSdk/kg/util.js",
+      "exports": [
+        "createHttpFetch"
+      ]
+    },
+    {
+      "file": "src/plugins/sync/client/modules/index.ts",
+      "exports": [
+        "modules"
+      ]
+    },
+    {
+      "file": "src/screens/Home/Views/Search/TipList.tsx",
+      "exports": [
+        "ITEM_HEIGHT",
+        "debounceTipSearch"
+      ]
+    },
+    {
+      "file": "src/screens/Home/Views/Mylist/MusicList/ListMusicSearch.tsx",
+      "exports": [
+        "ITEM_HEIGHT",
+        "debounceSearchList"
+      ]
+    }
+  ],
+  "dependencyCandidates": [
+    {
+      "file": "package.json",
+      "dependencies": [
+        {
+          "name": "@craftzdog/react-native-buffer"
+        },
+        {
+          "name": "iconv-lite"
+        }
+      ],
+      "devDependencies": [
+        {
+          "name": "@babel/eslint-parser"
+        },
+        {
+          "name": "@babel/preset-env"
+        },
+        {
+          "name": "@babel/runtime"
+        },
+        {
+          "name": "@react-native/metro-config"
+        },
+        {
+          "name": "@tsconfig/react-native"
+        },
+        {
+          "name": "changelog-parser"
+        },
+        {
+          "name": "eslint-config-standard"
+        },
+        {
+          "name": "eslint-config-standard-with-typescript"
+        },
+        {
+          "name": "eslint-plugin-react"
+        },
+        {
+          "name": "eslint-plugin-react-hooks"
+        }
+      ],
+      "unlisted": []
+    },
+    {
+      "file": "tsconfig.json",
+      "dependencies": [],
+      "devDependencies": [],
+      "unlisted": [
+        {
+          "name": "node"
+        }
+      ]
+    },
+    {
+      "file": "publish/index.js",
+      "dependencies": [],
+      "devDependencies": [],
+      "unlisted": [
+        {
+          "name": "chalk"
+        }
+      ]
+    }
+  ],
+  "normalizedDuplicateFiles": [
+    [
+      {
+        "file": "src/screens/PlayDetail/Horizontal/components/CommentBtn.tsx",
+        "lines": 13
+      },
+      {
+        "file": "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/CommentBtn.tsx",
+        "lines": 13
+      }
+    ],
+    [
+      {
+        "file": "src/screens/PlayDetail/Horizontal/components/DesktopLyricBtn.tsx",
+        "lines": 30
+      },
+      {
+        "file": "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/DesktopLyricBtn.tsx",
+        "lines": 30
+      }
+    ],
+    [
+      {
+        "file": "src/screens/PlayDetail/Horizontal/MoreBtn/MusicAddBtn.tsx",
+        "lines": 27
+      },
+      {
+        "file": "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/MusicAddBtn.tsx",
+        "lines": 27
+      }
+    ],
+    [
+      {
+        "file": "src/screens/PlayDetail/Horizontal/MoreBtn/PlayModeBtn.tsx",
+        "lines": 64
+      },
+      {
+        "file": "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/PlayModeBtn.tsx",
+        "lines": 64
+      }
+    ],
+    [
+      {
+        "file": "src/screens/PlayDetail/Horizontal/MoreBtn/TimeoutExitBtn.tsx",
+        "lines": 24
+      },
+      {
+        "file": "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/TimeoutExitBtn.tsx",
+        "lines": 24
+      }
+    ]
+  ]
+}

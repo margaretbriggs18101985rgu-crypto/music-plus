@@ -117,12 +117,6 @@ export const buildActiveThemeColors = (theme: LX.Theme): LX.ActiveTheme => {
 export const getTheme = async() => {
   // fs.promises.readdir()
   const shouldUseDarkColors = themeState.shouldUseDarkColors
-  // let themeId = settingState.setting['theme.id'] == 'auto'
-  //   ? shouldUseDarkColors
-  //     ? settingState.setting['theme.darkId']
-  //     : settingState.setting['theme.lightId']
-  //   // : 'china_ink'
-  //   : settingState.setting['theme.id']
   let themeId = settingState.setting['common.isAutoTheme'] && shouldUseDarkColors
     ? 'black'
     : settingState.setting['theme.id']

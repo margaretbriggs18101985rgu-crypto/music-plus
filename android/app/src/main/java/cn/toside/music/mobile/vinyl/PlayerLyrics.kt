@@ -25,22 +25,24 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.abs
 import kotlin.math.roundToInt
-import kotlin.math.sin
 
 private val LyricEase = CubicBezierEasing(.22f, 1f, .36f, 1f)
 private fun lyricAlignment(value: String) = when (value) { "left" -> TextAlign.Left; "right" -> TextAlign.Right; else -> TextAlign.Center }
 
 @Composable
 internal fun PlayerLyrics(state: VinylPlayerState, modifier: Modifier,
-    motionEnabled: Boolean, audio: State<AudioMotion>, phase: State<Double>, overlayTop: Dp = 0.dp, overlayBottom: Dp = 0.dp) = key(state.trackId) {
+    motionEnabled: Boolean, audio: State<AudioMotion>, phase: State<Double>, overlayTop: Dp = 0.dp, overlayBottom: Dp = 0.dp,
+    pulseEnabled: Boolean = motionEnabled && state.lyricPulseEnabled) = key(state.trackId) {
+    // Center within the actual lyric viewport instead of fading future rows behind the dock.
+    val viewport = modifier.padding(top = overlayTop, bottom = overlayBottom)
     if (state.lyricDisplayMode == "multiple" && state.lyrics.isNotEmpty()) {
-        MultiplePlayerLyrics(state, modifier, motionEnabled, audio, overlayTop, overlayBottom)
-    } else SinglePlayerLyrics(state, modifier, motionEnabled, audio, phase)
+        MultiplePlayerLyrics(state, viewport, motionEnabled, pulseEnabled, audio, phase)
+    } else SinglePlayerLyrics(state, viewport, motionEnabled, pulseEnabled, audio, phase)
 }
 
 @Composable
 private fun SinglePlayerLyrics(state: VinylPlayerState, modifier: Modifier,
-    motionEnabled: Boolean, audio: State<AudioMotion>, phase: State<Double>) {
+    motionEnabled: Boolean, pulseEnabled: Boolean, audio: State<AudioMotion>, phase: State<Double>) {
     val color = Color(lyricColorArgb(state.lyricColor))
     val family = lyricFontFamily(state.lyricFontFamily)
     val synthesis = if (state.lyricFontFamily == "system") FontSynthesis.All else FontSynthesis.None
@@ -72,7 +74,7 @@ private fun SinglePlayerLyrics(state: VinylPlayerState, modifier: Modifier,
             val font = remember(text, line?.translation, state.lyricFontSize, family, maxWidth, maxHeight, density.fontScale) {
                 var fitted = minOf(state.lyricFontSize, when { text.length > 64 -> 27f; text.length > 32 || maxWidth < 360.dp -> 32f; else -> 44f })
                 val width = with(density) { (maxWidth - 56.dp).roundToPx() }.coerceAtLeast(1)
-                val available = with(density) { (maxHeight * .60f - if (line?.translation.isNullOrBlank()) 0.dp else 62.dp).toPx() }.coerceAtLeast(32f)
+                val available = with(density) { (maxHeight * .85f - if (line?.translation.isNullOrBlank()) 0.dp else 62.dp).toPx() }.coerceAtLeast(32f)
                 while (fitted > 16f) {
                     val measured = measurer.measure(text, TextStyle(fontFamily = family, fontSynthesis = synthesis, fontSize = fitted.sp, lineHeight = (fitted * 1.4f).sp,
                         fontWeight = FontWeight.SemiBold), constraints = Constraints(maxWidth = width))
@@ -82,15 +84,13 @@ private fun SinglePlayerLyrics(state: VinylPlayerState, modifier: Modifier,
                 fitted
             }
             Column(Modifier.fillMaxWidth().graphicsLayer {
-                val sound = if (current && state.isPlaying && motionEnabled) audio.value else AudioMotion()
-                val t = phase.value
-                // Share the ambient phase, rather than jumping to another oscillation per line.
-                val breathe = if (motionEnabled && state.isPlaying) (sin(t * .65) * .006).toFloat() else 0f
-                scaleX = 1f + breathe + sound.bass * .012f
-                scaleY = scaleX
-                translationY = if (motionEnabled) (-sin(t * .42).toFloat() * 2f - sound.bass).dp.toPx() else 0f
+                val enabled = current && state.isPlaying && pulseEnabled
+                val sound = if (enabled) audio.value else AudioMotion()
+                val amount = lyricTextPulse(phase.value, sound.bass, sound.energy, enabled)
+                scaleX = 1f + amount
+                scaleY = 1f + amount * .8f
+                translationY = if (enabled) (-sound.bass * 1.5f).dp.toPx() else 0f
                 rotationX = pitch.value
-                rotationZ = if (motionEnabled) (sin(t * .28) * .25).toFloat() else 0f
                 cameraDistance = 1000.dp.toPx()
             }.semantics {
                 if (current) { liveRegion = LiveRegionMode.Polite; contentDescription = text }
@@ -109,7 +109,8 @@ private fun SinglePlayerLyrics(state: VinylPlayerState, modifier: Modifier,
 }
 
 @Composable
-private fun MultiplePlayerLyrics(state: VinylPlayerState, modifier: Modifier, motionEnabled: Boolean, audio: State<AudioMotion>, overlayTop: Dp, overlayBottom: Dp) {
+private fun MultiplePlayerLyrics(state: VinylPlayerState, modifier: Modifier, motionEnabled: Boolean,
+    pulseEnabled: Boolean, audio: State<AudioMotion>, phase: State<Double>) {
     val active = state.activeLyric.coerceIn(-1, state.lyrics.lastIndex)
     val camera = remember { Animatable(active.toFloat()) }
     LaunchedEffect(active, motionEnabled, state.seekRevision) {
@@ -121,11 +122,13 @@ private fun MultiplePlayerLyrics(state: VinylPlayerState, modifier: Modifier, mo
     val color = Color(lyricColorArgb(state.lyricColor))
     val family = lyricFontFamily(state.lyricFontFamily)
     val synthesis = if (state.lyricFontFamily == "system") FontSynthesis.All else FontSynthesis.None
-    val topGuard = animateDpAsState(overlayTop, tween(if (motionEnabled) 240 else 0), label = "lyric top chrome clearance")
-    val bottomGuard = animateDpAsState(overlayBottom, tween(if (motionEnabled) 240 else 0), label = "lyric bottom chrome clearance")
-    BoxWithConstraints(modifier.clipToBounds(), contentAlignment = Alignment.Center) {
-        val font = minOf(state.lyricFontSize, when { maxHeight < 300.dp -> 20f; maxHeight < 420.dp || maxWidth < 360.dp -> 28f; else -> 34f })
-        val gap = when { maxHeight < 300.dp -> 6.dp; maxHeight < 420.dp -> 18.dp; else -> 24.dp }
+    val density = LocalDensity.current
+    BoxWithConstraints(modifier.clipToBounds().semantics { contentDescription = "多排歌词区域" }, contentAlignment = Alignment.Center) {
+        val font = minOf(state.lyricFontSize, when {
+            maxHeight < 180.dp -> 16f; maxHeight < 300.dp -> 20f
+            maxHeight < 420.dp || maxWidth < 360.dp -> 26f; else -> 32f
+        } / density.fontScale.coerceAtLeast(1f))
+        val gap = when { maxHeight < 300.dp -> 6.dp; maxHeight < 420.dp -> 10.dp; else -> 16.dp }
         Layout(modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp), content = {
             for (index in window) key(index) {
                 val line = state.lyrics[index]
@@ -133,7 +136,6 @@ private fun MultiplePlayerLyrics(state: VinylPlayerState, modifier: Modifier, mo
                     tween(if (motionEnabled) 420 else 0), label = "lyric focus color")
                 Column(Modifier.fillMaxWidth().semantics {
                     if (index == active) { liveRegion = LiveRegionMode.Polite; contentDescription = line.text }
-                    else invisibleToUser()
                 }, horizontalAlignment = Alignment.CenterHorizontally) {
                     // Emphasis changes layers, never typography/layout, so rows do not reflow.
                     BasicText(line.text.ifBlank { "♪" }, modifier = Modifier.fillMaxWidth(), maxLines = 4,
@@ -157,17 +159,15 @@ private fun MultiplePlayerLyrics(state: VinylPlayerState, modifier: Modifier, mo
                     val distance = abs(window.first + slot - cursor)
                     val focus = (1f - distance).coerceIn(0f, 1f)
                     val y = constraints.maxHeight * .5f + centers[slot] - cameraY
-                    val edge = ((constraints.maxHeight * .5f - abs(y - constraints.maxHeight * .5f)) /
-                        (constraints.maxHeight * .16f).coerceAtLeast(1f)).coerceIn(0f, 1f)
-                    val chromeClearance = if (distance < .05f) 1f else (minOf(
-                        y - row.height / 2f - topGuard.value.toPx(),
-                        constraints.maxHeight - bottomGuard.value.toPx() - y - row.height / 2f) /
-                        (constraints.maxHeight * .06f).coerceAtLeast(1f)).coerceIn(0f, 1f)
+                    val edge = (minOf(y + row.height / 2f, constraints.maxHeight - y + row.height / 2f) /
+                        row.height.coerceAtLeast(1)).coerceIn(0f, 1f)
                     row.placeRelativeWithLayer(0, (y - row.height / 2f).roundToInt()) {
-                        val sound = if (state.isPlaying && motionEnabled) audio.value else AudioMotion()
-                        alpha = (.48f + focus * .52f) * edge * chromeClearance
-                        scaleX = .80f + focus * .20f + sound.bass * focus * .01f
-                        scaleY = scaleX
+                        val enabled = state.isPlaying && pulseEnabled
+                        val sound = if (enabled) audio.value else AudioMotion()
+                        val amount = lyricTextPulse(phase.value, sound.bass, sound.energy, enabled) * focus
+                        alpha = (.62f + focus * .38f) * edge
+                        scaleX = .90f + focus * .10f + amount
+                        scaleY = .90f + focus * .10f + amount * .8f
                         rotationX = if (motionEnabled) ((window.first + slot - cursor) * -3f).coerceIn(-9f, 9f) else 0f
                         cameraDistance = 1000.dp.toPx()
                     }

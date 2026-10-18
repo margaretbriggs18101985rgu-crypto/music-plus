@@ -7,7 +7,6 @@ const defaultSetting: LX.AppSetting = {
   'common.apiSource': BUILTIN_USER_API_ID,
   'common.sourceNameType': 'alias',
   'common.shareType': 'system',
-  'common.isAgreePact': false,
   'common.autoHidePlayBar': true,
   'common.drawerLayoutPosition': 'left',
   'common.homePageScroll': true,
@@ -33,6 +32,7 @@ const defaultSetting: LX.AppSetting = {
   'player.immersiveVisualsEnabled': true,
   'player.particleQuality': 'auto',
   'player.lyricMotionEnabled': true,
+  'player.lyricPulseEnabled': true,
   'player.lyricDisplayMode': 'single',
   'player.lyricColor': '#A8F6FF',
   'player.lyricFontSize': 40,
@@ -74,10 +74,8 @@ const defaultSetting: LX.AppSetting = {
   'search.isShowHistorySearch': false,
 
   'list.isClickPlayList': false,
-  'list.isShowSource': true,
   'list.isShowAlbumName': false,
   'list.isShowInterval': true,
-  'list.isSaveScrollLocation': true,
   'list.addMusicLocationType': 'top',
 
   'download.fileName': '歌名 - 歌手',
@@ -86,8 +84,6 @@ const defaultSetting: LX.AppSetting = {
 
   // 'theme.id': 'blue_plus',
   'theme.id': 'mineradio',
-  'theme.lightId': 'green',
-  'theme.darkId': 'mineradio',
   'theme.hideBgDark': false,
   'theme.dynamicBg': false,
   'theme.fontShadow': false,

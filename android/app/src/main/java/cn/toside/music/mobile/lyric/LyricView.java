@@ -56,7 +56,6 @@ public class LyricView extends Activity implements View.OnTouchListener {
   private String unplayColor = "rgba(255, 255, 255, 1)";
   private String playedColor = "rgba(7, 197, 86, 1)";
   private String shadowColor = "rgba(0, 0, 0, 0.15)";
-  // private String lastText = "LX Music ^-^";
   private String textX = "LEFT";
   private String textY = "TOP";
   private float alpha = 1f;
@@ -66,7 +65,7 @@ public class LyricView extends Activity implements View.OnTouchListener {
 
   private int maxLineNum = 5;
   // private float lineHeight = 1;
-  private String currentLyric = "LX Music ^-^";
+  private String currentLyric = "MUSIC++";
   private ArrayList<String> currentExtendedLyrics = new ArrayList<>();
 
   private int mLastRotation;

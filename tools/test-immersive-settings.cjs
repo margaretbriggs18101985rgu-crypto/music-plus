@@ -21,7 +21,7 @@ function settingsFixture(saved) {
     '@/config/defaultSetting': { default: defaults, __esModule: true },
     '@/plugins/storage': {
       getData: async key => values.get(key) ?? null,
-      saveData: async (key, value) => { values.set(key, JSON.parse(JSON.stringify(value))) },
+      saveData: async(key, value) => { values.set(key, JSON.parse(JSON.stringify(value))) },
       removeData: async key => values.delete(key),
     },
     './migrateSetting': { default: () => { throw Error('Unneeded legacy migration') }, __esModule: true },
@@ -32,12 +32,24 @@ function settingsFixture(saved) {
   return { settings, defaults, values, state }
 }
 
-test('old saved settings gain immersive defaults without changing existing preferences or schema version', async () => {
+test('retired agreement and unused preferences are dropped while valid saved preferences survive', async() => {
+  for (const extra of [{}, Object.fromEntries(Array.from({ length: 100 }, (_, i) => [`obsolete_${i}`, true]))]) {
+    const f = settingsFixture({ version: '2.0', 'common.isAgreePact': false, 'list.isShowSource': false, 'list.isSaveScrollLocation': false, 'theme.lightId': 'old-light', 'theme.darkId': 'old-dark', 'player.volume': 0.3, ...extra })
+    const { setting } = await f.settings.initSetting()
+    assert.equal(setting['player.volume'], 0.3)
+    for (const key of ['common.isAgreePact', 'list.isShowSource', 'list.isSaveScrollLocation', 'theme.lightId', 'theme.darkId', ...Object.keys(extra)]) {
+      assert.equal(Object.hasOwn(setting, key), false)
+    }
+  }
+})
+
+test('old saved settings gain immersive defaults without changing existing preferences or schema version', async() => {
   const f = settingsFixture({ version: '2.0', 'player.volume': 0.3, 'player.isShowLyricTranslation': true, 'common.apiSource': 'user-choice' })
   const { setting } = await f.settings.initSetting()
   assert.equal(setting['player.immersiveVisualsEnabled'], true)
   assert.equal(setting['player.particleQuality'], 'auto')
   assert.equal(setting['player.lyricMotionEnabled'], true)
+  assert.equal(setting['player.lyricPulseEnabled'], true)
   assert.equal(setting['player.lyricDisplayMode'], 'single')
   assert.equal(setting['player.lyricColor'], '#A8F6FF')
   assert.equal(setting['player.lyricFontFamily'], 'system')
@@ -50,19 +62,25 @@ test('old saved settings gain immersive defaults without changing existing prefe
   assert.deepEqual(f.values.get('@setting_v1'), setting)
 })
 
-test('disabled effects and an explicit particle selection survive the real settings merge and reload', async () => {
+test('disabled effects and an explicit particle selection survive the real settings merge and reload', async() => {
   const first = settingsFixture(null)
   first.state.setting = (await first.settings.initSetting()).setting
   const { setting, updatedSettingKeys } = first.settings.updateSetting({
-    'player.immersiveVisualsEnabled': false, 'player.particleQuality': 'low',
-    'player.lyricMotionEnabled': false, 'player.backgroundMotion': false, 'player.respectReducedMotion': false,
-    'player.lyricDisplayMode': 'multiple', 'player.lyricColor': '#FF9FCF',
+    'player.immersiveVisualsEnabled': false,
+    'player.particleQuality': 'low',
+    'player.lyricMotionEnabled': false,
+    'player.lyricPulseEnabled': false,
+    'player.backgroundMotion': false,
+    'player.respectReducedMotion': false,
+    'player.lyricDisplayMode': 'multiple',
+    'player.lyricColor': '#FF9FCF',
     'player.lyricFontFamily': 'wenkai',
   })
   assert.ok(updatedSettingKeys.includes('player.immersiveVisualsEnabled'))
   const second = settingsFixture(JSON.parse(JSON.stringify(setting)))
   assert.deepEqual((await second.settings.initSetting()).setting, setting)
   assert.equal(setting['player.particleQuality'], 'low')
+  assert.equal(setting['player.lyricPulseEnabled'], false)
   assert.equal(setting['player.immersiveVisualsEnabled'], false)
   assert.equal(setting['player.lyricDisplayMode'], 'multiple')
   assert.equal(setting['player.lyricColor'], '#FF9FCF')
@@ -70,7 +88,7 @@ test('disabled effects and an explicit particle selection survive the real setti
 })
 
 for (const font of ['system', 'wenkai', 'xiaowei', 'huangyou']) {
-  test(`lyric font ${font} survives a settings reload without changing typography or playback preferences`, async () => {
+  test(`lyric font ${font} survives a settings reload without changing typography or playback preferences`, async() => {
     const first = settingsFixture({ version: '2.0', 'player.lyricFontSize': 36, 'player.lyricAlign': 'right', 'player.volume': 0.4 })
     first.state.setting = (await first.settings.initSetting()).setting
     const { setting } = first.settings.updateSetting({ 'player.lyricFontFamily': font })

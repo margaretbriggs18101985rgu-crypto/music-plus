@@ -19,12 +19,13 @@ class ImmersiveVisualConfigTest {
             assertEquals(expected, visualConfigForState(VinylPlayerState(particleQuality = wire)).particleQuality)
         }
     }
-    @Test fun qualityUsesBoundedCountsAndLowRamCapsHigh() {
+    @Test fun explicitQualityIsRespectedAndOnlyAutoAdaptsToLowRam() {
         for ((quality, count) in listOf(ParticleQuality.Auto to 3600, ParticleQuality.Low to 1200,
             ParticleQuality.High to 6400, ParticleQuality.Off to 0)) {
             assertEquals(count, resolveAmbientPolicy(config.copy(particleQuality = quality), foreground, true).particleCount)
         }
-        assertEquals(1200, resolveAmbientPolicy(config.copy(particleQuality = ParticleQuality.High), foreground.copy(lowRam = true), true).particleCount)
+        assertEquals(6400, resolveAmbientPolicy(config.copy(particleQuality = ParticleQuality.High), foreground.copy(lowRam = true), true).particleCount)
+        assertEquals(1200, resolveAmbientPolicy(config, foreground.copy(lowRam = true), true).particleCount)
     }
     @Test fun invisiblePowerSaveOrReducedMotionStopsAllEffects() {
         for (environment in listOf(foreground.copy(foreground = false), foreground.copy(powerSave = true), foreground.copy(systemMotion = false))) {

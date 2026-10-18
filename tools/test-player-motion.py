@@ -25,26 +25,41 @@ def main() -> None:
     args.output.mkdir(parents=True, exist_ok=True)
     prefix = [args.adb, '-s', args.serial]
     target = args.package + '/cn.toside.music.mobile.vinyl.VinylPreviewActivity'
+    cached_nodes: list[dict[str, str]] | None = None
 
     def adb(*command: str) -> str:
+        nonlocal cached_nodes
+        if len(command) > 1 and command[1] in ('input', 'am', 'settings'):
+            cached_nodes = None
         return subprocess.check_output(prefix + list(command), encoding='utf-8', errors='replace', timeout=35).strip()
 
     def action(name: str) -> None:
         adb('shell', 'am', 'start', '-W', '-n', target, '--es', 'vinyl_action', name)
 
-    def nodes() -> list[dict[str, str]]:
+    def nodes(refresh: bool = False) -> list[dict[str, str]]:
+        nonlocal cached_nodes
+        if cached_nodes is not None and not refresh:
+            return cached_nodes
         for _ in range(3):
             dumped = adb('shell', 'uiautomator', 'dump', '/sdcard/musicplus-motion.xml')
             if 'dumped to' not in dumped:
                 continue
             xml = adb('shell', 'cat', '/sdcard/musicplus-motion.xml')
             (args.output / 'last-window.xml').write_text(xml, encoding='utf-8')
-            return [node.attrib for node in ET.fromstring(xml).iter('node')]
+            cached_nodes = [node.attrib for node in ET.fromstring(xml).iter('node')]
+            return cached_nodes
         raise RuntimeError('Android did not provide a fresh UI hierarchy')
 
     def wait_label(label: str) -> dict[str, str]:
-        for _ in range(4):
-            for node in nodes():
+        for attempt in range(4):
+            snapshot = nodes(refresh=attempt > 0)
+            # Android shows this one-time system tutorial on entering immersive mode.
+            tutorial = next((node for node in snapshot if node.get('text') == 'Got it'), None)
+            if tutorial is not None:
+                left, top, right, bottom = map(int, re.findall(r'\d+', tutorial['bounds']))
+                adb('shell', 'input', 'tap', str((left + right) // 2), str((top + bottom) // 2))
+                continue
+            for node in snapshot:
                 if node.get('content-desc') == label or node.get('text') == label:
                     return node
         raise AssertionError('Missing UI target: ' + label)
@@ -56,9 +71,11 @@ def main() -> None:
         adb('shell', 'input', 'tap', str((left + right) // 2), str((top + bottom) // 2))
 
     def capture(name: str) -> tuple[int, int]:
+        nonlocal cached_nodes
         # ADB cannot drive Compose's test clock. Allow the bounded 640ms visual
         # transition to settle before recording a final-state layout screenshot.
         time.sleep(.75)
+        cached_nodes = None
         data = subprocess.check_output(prefix + ['exec-out', 'screencap', '-p'], timeout=30)
         (args.output / (name + '.png')).write_bytes(data)
         return struct.unpack('>II', data[16:24])
@@ -70,25 +87,35 @@ def main() -> None:
         adb('shell', 'settings', 'put', 'system', 'accelerometer_rotation', '0')
         adb('shell', 'settings', 'put', 'system', 'user_rotation', '0')
         adb('shell', 'am', 'start', '-W', '-n', target)
+        wait_label('收起播放器')
         action('fixture-multiple')
         action('buffer')
-        wait_label('返回黑胶唱片')
         wait_label('而我们在音乐里相遇')
         results['portrait_size'] = capture('portrait-multiple')
-        # These are real UI clicks, not intent commands substituting for callbacks.
-        tap('返回黑胶唱片')
-        wait_label('打开歌词页面')
+        def assert_context() -> None:
+            viewport = wait_label('多排歌词区域')
+            focused = wait_label('而我们在音乐里相遇')
+            vp = list(map(int, re.findall(r'\d+', viewport['bounds'])))
+            fp = list(map(int, re.findall(r'\d+', focused['bounds'])))
+            assert abs((fp[1] + fp[3]) / 2 - (vp[1] + vp[3]) / 2) <= 5, (viewport, focused)
+            for text in ('每一颗星都留在自己的轨道', '把这一刻轻轻收藏'):
+                line = wait_label(text)
+                bounds = list(map(int, re.findall(r'\d+', line['bounds'])))
+                assert vp[1] <= bounds[1] < bounds[3] <= vp[3], (viewport, line)
+
+        def switch_from_lyrics() -> None:
+            # A real tap on the lyric stage must trigger exactly one page switch.
+            tap('而我们在音乐里相遇')
+            wait_label('专辑封面')
+
+        assert_context()
+        results['portrait_centered_with_context'] = True
+        assert not any(n.get('content-desc') in ('返回黑胶唱片', '打开歌词页面') for n in nodes())
+        switch_from_lyrics()
         capture('portrait-vinyl')
-        tap('打开歌词页面')
-        wait_label('返回黑胶唱片')
-        results['explicit_return_roundtrip'] = True
-        # The actual record is also an entry target.
-        tap('返回黑胶唱片')
-        record = wait_label('专辑封面')
-        left, top, right, bottom = map(int, re.findall(r'\d+', record['bounds']))
-        adb('shell', 'input', 'tap', str((left + right) // 2), str((top + bottom) // 2))
-        wait_label('返回黑胶唱片')
-        results['record_tap_entry'] = True
+        tap('专辑封面')
+        assert_context()
+        results['tap_roundtrip_without_mode_buttons'] = True
 
         action('fixture-end')
         wait_label('晚安，明天见')
@@ -100,44 +127,53 @@ def main() -> None:
 
         action('fixture-multiple')
         adb('shell', 'settings', 'put', 'system', 'user_rotation', '1')
-        wait_label('返回黑胶唱片')
         width, height = capture('landscape-multiple')
         assert width > height, (width, height)
         wait_label('而我们在音乐里相遇')
-        for label in ('播放模式', '上一首', '下一首', '更多播放设置'):
+        assert_context()
+        for label in ('上一首', '下一首', '取消喜欢', '更多播放设置'):
             node = wait_label(label)
             left, top, right, bottom = map(int, re.findall(r'\d+', node['bounds']))
             assert 0 <= left < right <= width and 0 <= top < bottom <= height, node
         results['landscape_size'] = [width, height]
-        # The play button is centered, with equally wide information/action wings.
-        play = wait_label('继续演示动画')
-        dock = next(node for node in nodes() if node.get('content-desc', '').startswith('播放控制栏'))
-        px = list(map(int, re.findall(r'\d+', play['bounds'])))
-        dx = list(map(int, re.findall(r'\d+', dock['bounds'])))
-        assert abs((px[0] + px[2]) / 2 - (dx[0] + dx[2]) / 2) < 5, (play, dock)
-        # A button press must not bubble into the dock's empty-area hide action.
+        def assert_four_controls() -> None:
+            centers = []
+            for label in ('上一首', '继续演示动画', '下一首', '取消喜欢'):
+                bounds = list(map(int, re.findall(r'\d+', wait_label(label)['bounds'])))
+                centers.append(((bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2))
+            gaps = [centers[i + 1][0] - centers[i][0] for i in range(3)]
+            assert min(gaps) > 0 and max(gaps) - min(gaps) <= 4, centers
+            assert max(p[1] for p in centers) - min(p[1] for p in centers) <= 3, centers
+            assert not any(n.get('content-desc') in ('播放模式', '播放队列', '歌曲评论') for n in nodes())
+
+        assert_four_controls()
+        # Buttons must not bubble into the surrounding page-switch gesture.
         tap('取消喜欢')
-        wait_label('返回黑胶唱片')
+        wait_label('多排歌词区域')
         tap('喜欢')
-        dock = next(node for node in nodes() if node.get('content-desc', '').startswith('播放控制栏'))
-        left, top, right, bottom = map(int, re.findall(r'\d+', dock['bounds']))
-        before = wait_label('而我们在音乐里相遇')['bounds']
-        adb('shell', 'input', 'tap', str((left + right) // 2), str(bottom - 3))
-        for _ in range(4):
-            if not any(node.get('content-desc') == '返回黑胶唱片' for node in nodes()):
-                break
-        else:
-            raise AssertionError('Empty dock space did not hide the chrome')
-        after = wait_label('而我们在音乐里相遇')['bounds']
-        assert before == after, (before, after)
-        capture('landscape-hidden')
-        adb('shell', 'input', 'tap', str(width // 2), str(height // 2))
-        wait_label('返回黑胶唱片')
-        results['symmetric_dock_and_hide_reveal_without_lyric_shift'] = True
-        tap('返回黑胶唱片')
-        wait_label('打开歌词页面')
+        switch_from_lyrics()
         capture('landscape-vinyl')
-        tap('打开歌词页面')
+        assert_four_controls()
+        assert_context()
+        title = wait_label('星光之间')
+        record = wait_label('专辑封面')
+        title_bounds = list(map(int, re.findall(r'\d+', title['bounds'])))
+        record_bounds = list(map(int, re.findall(r'\d+', record['bounds'])))
+        assert title_bounds[3] <= record_bounds[1], (title, record)
+        assert title_bounds[0] < width / 2, title
+        grooves = wait_label('黑胶唱片沟槽')
+        groove_bounds = list(map(int, re.findall(r'\d+', grooves['bounds'])))
+        # Include title, artist and the full record, rather than just its center label.
+        # The stage has 14dp of space below the record; visible ink may differ slightly.
+        group_center_y = (title_bounds[1] + groove_bounds[3]) / 2
+        assert abs(group_center_y - height / 2) <= height * .025, (title, grooves, height)
+        play_bounds = list(map(int, re.findall(r'\d+', wait_label('继续演示动画')['bounds'])))
+        previous_bounds = list(map(int, re.findall(r'\d+', wait_label('上一首')['bounds'])))
+        assert abs((play_bounds[3] - play_bounds[1]) - (previous_bounds[3] - previous_bounds[1])) <= 2
+        results['landscape_record_group_center_y'] = group_center_y
+        results['landscape_record_group_centered_and_compact_play_button'] = True
+        tap('专辑封面')
+        results['landscape_four_controls_and_metadata_above_record'] = True
         action('fixture-single')
         capture('landscape-single')
         results['landscape_roundtrip'] = True
@@ -155,7 +191,7 @@ def main() -> None:
         action('fixture-next')
         action('fixture-next')
         action('fixture-previous')
-        wait_label('返回黑胶唱片')
+        wait_label('把这一刻轻轻收藏')
         recorder.communicate(timeout=20)
         adb('pull', '/sdcard/musicplus-motion.mp4', str(args.output / 'lyric-transitions.mp4'))
         (args.output / 'gfxinfo.txt').write_text(adb('shell', 'dumpsys', 'gfxinfo', args.package, 'framestats'), encoding='utf-8')

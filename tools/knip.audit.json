@@ -1,0 +1,6 @@
+{
+  "entry": ["index.js", "shim.js", "src/theme/themes/createThemes.js"],
+  "project": ["src/**/*.{js,jsx,ts,tsx}", "index.js", "shim.js"],
+  "ignore": ["src/utils/simplify-chinese-main/**"],
+  "ignoreBinaries": ["adb", "gradlew.bat", "sdkmanager", "java"]
+}

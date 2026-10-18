@@ -4,6 +4,26 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class AmbientParticlesTest {
+    @Test fun starsHaveIndependentMotionAndSelectedCountsProduceDifferentVisibleDensities() {
+        val stars = createAmbientStars(17, MAX_AMBIENT_STARS)
+        assertTrue(stars.any { it.velocityX > 0f } && stars.any { it.velocityX < 0f })
+        assertTrue(stars.any { it.velocityY > 0f } && stars.any { it.velocityY < 0f })
+        fun points(count: Int, time: Double): FloatArray {
+            val population = stars.take(count)
+            val buffers = ambientStarBuffers(population)
+            val used = IntArray(STAR_BUCKETS)
+            projectAmbientStars(population, 2400f, 1080f, 0f, 0f, buffers, used, time)
+            return buffers.indices.flatMap { buffers[it].take(used[it]) }.toFloatArray()
+        }
+        val initial = points(6400, 0.0)
+        val moved = points(6400, 1.0)
+        assertFalse(initial.contentEquals(moved))
+        assertTrue(initial.size > points(1200, 0.0).size * 4)
+        assertTrue(points(0, 0.0).isEmpty())
+        assertArrayEquals(initial, points(6400, 0.0), 0f)
+        assertTrue(points(6400, 86400.0).all { it.isFinite() })
+    }
+
     @Test fun seedIsStableAndQualityOnlyTruncatesThePopulation() {
         val high = createAmbientStars(17, MAX_AMBIENT_STARS)
         assertEquals(high, createAmbientStars(17, MAX_AMBIENT_STARS))

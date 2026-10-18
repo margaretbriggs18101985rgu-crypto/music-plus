@@ -5,6 +5,9 @@ import { LIST_IDS } from '@/config/constant'
 import musicSdk from '@/utils/musicSdk'
 import { scaleSizeW } from '@/utils/pixelRatio'
 import listState from '@/store/list/state'
+import { getListUpdateInfo } from '@/utils/data'
+import { toggleAutoListSync } from '@/core/autoListSync'
+import { toast } from '@/utils/tools'
 
 export interface SelectInfo {
   listInfo: LX.List.MyListInfo
@@ -59,7 +62,8 @@ export default forwardRef<ListMenuType, ListMenuProps>(({
   useImperativeHandle(ref, () => ({
     show(selectInfo, position) {
       selectInfoRef.current = selectInfo
-      handleSetMenu(selectInfo.listInfo)
+      setMenus([])
+      void handleSetMenu(selectInfo.listInfo)
       if (visible) menuRef.current?.show(position)
       else {
         setVisible(true)
@@ -70,7 +74,9 @@ export default forwardRef<ListMenuType, ListMenuProps>(({
     },
   }))
 
-  const handleSetMenu = (listInfo: LX.List.MyListInfo) => {
+  const handleSetMenu = async(listInfo: LX.List.MyListInfo) => {
+    const updateInfo = await getListUpdateInfo().catch(() => { const empty: LX.List.ListUpdateInfo = {}; return empty })
+    if (selectInfoRef.current.listInfo.id != listInfo.id) return
     let rename = false
     let sync = false
     let remove = false
@@ -84,7 +90,7 @@ export default forwardRef<ListMenuType, ListMenuProps>(({
         userList = listInfo as LX.List.UserListInfo
         rename = true
         remove = true
-        sync = !!(userList.source && musicSdk[userList.source]?.songList)
+        sync = !!(userList.source && userList.sourceListId && (userList.sourceListId.startsWith('board__') || musicSdk[userList.source]?.songList))
         break
     }
 
@@ -96,6 +102,7 @@ export default forwardRef<ListMenuType, ListMenuProps>(({
       { action: 'duplicateMusic', label: t('lists__duplicate') },
       { action: 'local_file', disabled: !local_file, label: t('list_select_local_file') },
       { action: 'sync', disabled: !sync || !local_file, label: t('list_sync') },
+      { action: 'autoSync', disabled: !sync, label: updateInfo[listInfo.id]?.isAutoUpdate ? '关闭自动同步' : '开启自动同步' },
       { action: 'import', label: '导入备份文件' },
       { action: 'export', label: t('list_export') },
       // { action: 'changePosition', label: t('change_position') },
@@ -129,6 +136,9 @@ export default forwardRef<ListMenuType, ListMenuProps>(({
         break
       case 'sync':
         onSync(selectInfo.listInfo as LX.List.UserListInfo)
+        break
+      case 'autoSync':
+        void toggleAutoListSync(selectInfo.listInfo as LX.List.UserListInfo).catch(() => { toast('自动同步设置失败，请重试') })
         break
         // case 'changePosition':
 

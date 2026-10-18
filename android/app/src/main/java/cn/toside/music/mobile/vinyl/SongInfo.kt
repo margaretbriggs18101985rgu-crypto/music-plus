@@ -19,6 +19,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
+internal fun LandscapeTrackInfo(state: VinylPlayerState, onAction: PlayerAction) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        BasicText(state.title.ifBlank { "还没有播放的歌曲" }, maxLines = 1, overflow = TextOverflow.Ellipsis,
+            style = TextStyle(color = VinylPalette.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center))
+        ArtistLink(state, onAction)
+    }
+}
+
+@Composable
 internal fun SongInfo(state: VinylPlayerState, onAction: PlayerAction) {
     val favoriteScale by animateFloatAsState(if (state.favorite) 1.1f else 1f, tween(180), label = "favorite")
     Row(Modifier.fillMaxWidth().padding(start = 24.dp, end = 12.dp), verticalAlignment = Alignment.CenterVertically) {

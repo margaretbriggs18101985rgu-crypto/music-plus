@@ -34,7 +34,6 @@ declare global {
       /**
        * 是否同意软件协议
        */
-      'common.isAgreePact': boolean
 
       /**
        * 是否在键盘弹出时隐藏播放栏
@@ -80,16 +79,6 @@ declare global {
        * 主题id
        */
       'theme.id': string
-
-      /**
-       * 亮色主题id
-       */
-      'theme.lightId': string
-
-      /**
-       * 暗色主题id
-       */
-      'theme.darkId': string
 
       /**
        * 隐藏黑色主题背景
@@ -180,6 +169,7 @@ declare global {
       'player.immersiveVisualsEnabled': boolean
       'player.particleQuality': 'auto' | 'low' | 'high' | 'off'
       'player.lyricMotionEnabled': boolean
+      'player.lyricPulseEnabled': boolean
       'player.lyricDisplayMode': 'single' | 'multiple'
       'player.lyricColor': string
       'player.lyricFontSize': number
@@ -334,11 +324,6 @@ declare global {
       'list.isClickPlayList': boolean
 
       /**
-       * 是否显示歌曲来源（仅对我的列表有效）
-       */
-      'list.isShowSource': boolean
-
-      /**
        * 是否显示歌曲专辑名
        */
       'list.isShowAlbumName': boolean
@@ -347,11 +332,6 @@ declare global {
        * 是否显示歌曲时长
        */
       'list.isShowInterval': boolean
-
-      /**
-       * 是否自动恢复列表滚动位置（仅对我的列表有效）
-       */
-      'list.isSaveScrollLocation': boolean
 
       /**
        * 添加歌曲到我的列表时的方式

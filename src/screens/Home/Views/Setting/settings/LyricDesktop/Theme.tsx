@@ -5,6 +5,10 @@ import { memo } from 'react'
 import { StyleSheet, View, TouchableOpacity } from 'react-native'
 
 import SubTitle from '../../components/SubTitle'
+import InputItem from '../../components/InputItem'
+import { useSettingValue } from '@/store/setting/hook'
+import { toast } from '@/utils/tools'
+import { normalizeLyricColor } from '@/utils/lyricAppearance'
 
 const themes = [
   ['#08e664', 'rgba(0,0,0,0.6)'],
@@ -34,6 +38,7 @@ const ThemeItem = ({ color, change }: {
 
 export default memo(() => {
   const t = useI18n()
+  const unplayColor = useSettingValue('desktopLyric.style.lyricUnplayColor')
 
   const setThemeDesktopLyric = (color: Theme) => {
     // const shadowColor = 'rgba(0,0,0,0.6)'
@@ -43,13 +48,22 @@ export default memo(() => {
   }
 
   return (
-    <SubTitle title={t('setting_lyric_desktop_theme')}>
+    <><SubTitle title={t('setting_lyric_desktop_theme')}>
       <View style={styles.list}>
         {
           themes.map((c, i) => <ThemeItem key={i.toString()} color={c} change={setThemeDesktopLyric} />)
         }
       </View>
     </SubTitle>
+    <InputItem label="未播放歌词颜色" accessibilityLabel="未播放歌词颜色" value={unplayColor} placeholder="#FFFFFF" maxLength={30}
+      onChanged={(input, reset) => {
+        const color = normalizeLyricColor(input)
+        if (!color) { toast('请输入有效颜色，例如 #FFFFFF'); reset(unplayColor); return }
+        void setDesktopLyricColor(color, null, null).then(() => {
+          updateSetting({ 'desktopLyric.style.lyricUnplayColor': color })
+          reset(color)
+        }).catch(() => { toast('颜色应用失败，请重试'); reset(unplayColor) })
+      }} /></>
   )
 })
 

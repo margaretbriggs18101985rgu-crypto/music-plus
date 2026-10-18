@@ -50,3 +50,5 @@ npm run pack:android
 面向普通用户分享 `https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/latest`。用户无需 GitHub 账号即可下载公开 Release 的安装包。
 
 正式应用标识为 `io.github.musicplus.player`，独立于原版 LX Music。不要改变已发布应用的标识或签名；否则原用户无法直接覆盖更新。
+
+应用内更新优先读取 GitHub 最新正式 Release，并在安装包与校验文件全部上传后提示用户；`publish/version.json` 保留为备用来源，仍须在云端资产验证完成后同步。用户可取消更新或仅忽略本次版本，手动检查入口位于「设置 → 基本设置 → 软件更新」。具体行为见 [应用内可选更新](APP_UPDATES.md)。

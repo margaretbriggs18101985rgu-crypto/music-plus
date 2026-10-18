@@ -6,6 +6,25 @@ export const exitApp = UtilsModule.exitApp
 
 export const getSupportedAbis = UtilsModule.getSupportedAbis
 
+export const getInstalledApkAbi = UtilsModule.getInstalledApkAbi as () => Promise<string>
+export const canInstallPackages = UtilsModule.canInstallPackages as () => Promise<boolean>
+
+export const requestPackageInstallPermission = async() => new Promise<boolean>((resolve) => {
+  const subscription = AppState.addEventListener('change', state => {
+    if (state != 'active') return
+    subscription.remove()
+    void canInstallPackages().then(resolve).catch(() => { resolve(false) })
+  })
+  UtilsModule.openPackageInstallPermission().then((opened: boolean) => {
+    if (opened) return
+    subscription.remove()
+    resolve(false)
+  }).catch(() => {
+    subscription.remove()
+    resolve(false)
+  })
+})
+
 export const installApk = (filePath: string, fileProviderAuthority: string) => UtilsModule.installApk(filePath, fileProviderAuthority)
 
 

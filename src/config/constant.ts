@@ -72,7 +72,6 @@ export const storageDataPrefix = {
 
   theme: '@theme',
 
-  cheatTip: '@cheat_tip',
   remoteLyricTip: '@remote_lyric_tip',
 
   dislikeList: '@dislike_list',

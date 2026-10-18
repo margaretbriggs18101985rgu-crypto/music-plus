@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { requireNativeComponent, type NativeSyntheticEvent, type ViewProps } from 'react-native'
+import { requireNativeComponent, useWindowDimensions, type NativeSyntheticEvent, type ViewProps } from 'react-native'
 import { Navigation } from 'react-native-navigation'
 import { State } from 'react-native-track-player'
 import { usePlaybackState } from '@/plugins/player/hook'
@@ -49,6 +49,7 @@ interface NativePlayerProps extends ViewProps {
     immersiveVisualsEnabled: boolean
     particleQuality: LX.AppSetting['player.particleQuality']
     lyricMotionEnabled: boolean
+    lyricPulseEnabled: boolean
     lyricDisplayMode: LX.AppSetting['player.lyricDisplayMode']
     lyricColor: string
     lyricFontSize: number
@@ -70,6 +71,7 @@ export default ({ componentId }: { componentId: string }) => {
   const immersiveVisualsEnabled = useSettingValue('player.immersiveVisualsEnabled')
   const particleQuality = useSettingValue('player.particleQuality')
   const lyricMotionEnabled = useSettingValue('player.lyricMotionEnabled')
+  const lyricPulseEnabled = useSettingValue('player.lyricPulseEnabled')
   const lyricDisplayMode = useSettingValue('player.lyricDisplayMode')
   const lyricColor = useSettingValue('player.lyricColor')
   const lyricFontSize = useSettingValue('player.lyricFontSize')
@@ -78,6 +80,8 @@ export default ({ componentId }: { componentId: string }) => {
   const backgroundMotion = useSettingValue('player.backgroundMotion')
   const respectReducedMotion = useSettingValue('player.respectReducedMotion')
   const [lyricsVisible, setLyricsVisible] = useState(false)
+  const { width, height } = useWindowDimensions()
+  const landscape = width > height
   const [seekRevision, setSeekRevision] = useState(0)
   const music = usePlayerMusicInfo()
   const current = usePlayMusicInfo()
@@ -103,9 +107,9 @@ export default ({ componentId }: { componentId: string }) => {
     Navigation.mergeOptions(componentId, {
       layout: { orientation: ['portrait', 'landscape'] },
       statusBar: { style: 'light', backgroundColor: 'transparent' },
-      navigationBar: { backgroundColor: '#2A292D' },
+      navigationBar: { visible: !landscape, backgroundColor: '#000000' },
     })
-  }, [componentId])
+  }, [componentId, landscape])
 
   useEffect(() => {
     // The original event also handles MediaSession/notification seeks, not just this screen.
@@ -204,6 +208,7 @@ export default ({ componentId }: { componentId: string }) => {
     immersiveVisualsEnabled,
     particleQuality,
     lyricMotionEnabled,
+    lyricPulseEnabled,
     lyricDisplayMode,
     lyricColor,
     lyricFontSize,
@@ -214,7 +219,7 @@ export default ({ componentId }: { componentId: string }) => {
     playMode,
     topInset,
     bottomInset: 0,
-  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode, immersiveVisualsEnabled, particleQuality, lyricMotionEnabled, lyricDisplayMode, lyricColor, lyricFontSize, lyricFontFamily, lyricAlign, backgroundMotion, respectReducedMotion])
+  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode, immersiveVisualsEnabled, particleQuality, lyricMotionEnabled, lyricPulseEnabled, lyricDisplayMode, lyricColor, lyricFontSize, lyricFontFamily, lyricAlign, backgroundMotion, respectReducedMotion])
 
   return <>
     <NativeVinylPlayer style={{ flex: 1 }} playerState={playerState} onPlayerAction={({ nativeEvent }) => { handlePlayerAction(nativeEvent.action, nativeEvent.value) }} />

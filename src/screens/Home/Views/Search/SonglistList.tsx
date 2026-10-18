@@ -20,6 +20,7 @@ export default forwardRef<MusicListType, {}>((props, ref) => {
   const isUnmountedRef = useRef(false)
   useImperativeHandle(ref, () => ({
     async loadList(text, source) {
+      searchInfoRef.current = { text, source }
       // const listDetailInfo = searchSonglistState.listDetailInfo
       listRef.current?.setList([], source == 'all')
       if (searchSonglistState.searchText == text && searchSonglistState.source == source && searchSonglistState.listInfos[searchSonglistState.source]!.list.length) {

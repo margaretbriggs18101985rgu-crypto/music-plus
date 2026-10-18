@@ -37,6 +37,8 @@ const selectedManagedFolderPrefix = storageDataPrefix.selectedManagedFolder
 let listPosition: LX.List.ListPositionInfo
 let listPrevSelectId: string
 let listUpdateInfo: LX.List.ListUpdateInfo
+let listUpdateInfoLoading: Promise<void> | null = null
+let listUpdateWrites = Promise.resolve()
 
 let searchSetting: typeof DEFAULT_SETTING['search']
 let songListSetting: typeof DEFAULT_SETTING['songList']
@@ -120,8 +122,9 @@ const saveListUpdateInfoThrottle = throttle(() => {
 }, 1000)
 
 const initListUpdateInfo = async() => {
-  // eslint-disable-next-line require-atomic-updates
-  listUpdateInfo ??= await getData(listUpdateInfoKey) ?? {}
+  if (listUpdateInfo) return
+  listUpdateInfoLoading ??= getData<LX.List.ListUpdateInfo>(listUpdateInfoKey).then(info => { listUpdateInfo = info ?? {} }).finally(() => { listUpdateInfoLoading = null })
+  await listUpdateInfoLoading
 }
 export const getListUpdateInfo = async() => {
   await initListUpdateInfo()
@@ -132,24 +135,18 @@ export const saveListUpdateInfo = async(info: LX.List.ListUpdateInfo) => {
   listUpdateInfo = info
   saveListUpdateInfoThrottle()
 }
-export const setListAutoUpdate = async(id: string, enable: boolean) => {
-  await initListUpdateInfo()
-  const targetInfo = listUpdateInfo[id] ?? { updateTime: 0, isAutoUpdate: false }
-  targetInfo.isAutoUpdate = enable
-  listUpdateInfo[id] = targetInfo
-  saveListUpdateInfoThrottle()
+const updateListInfo = async(id: string, patch: Partial<LX.List.ListUpdateInfo[string]>) => {
+  const task = listUpdateWrites.then(async() => {
+    await initListUpdateInfo()
+    const next = { ...listUpdateInfo, [id]: { ...(listUpdateInfo[id] ?? { updateTime: 0, isAutoUpdate: false }), ...patch } }
+    await saveData(listUpdateInfoKey, next)
+    listUpdateInfo[id] = next[id]
+  })
+  listUpdateWrites = task.catch(() => {})
+  return task
 }
-export const setListUpdateTime = async(id: string, time: number) => {
-  await initListUpdateInfo()
-  const targetInfo = listUpdateInfo[id] ?? { updateTime: 0, isAutoUpdate: false }
-  targetInfo.updateTime = time
-  listUpdateInfo[id] = targetInfo
-  saveListUpdateInfoThrottle()
-}
-// export const setListUpdateInfo = (id, { updateTime, isAutoUpdate }) => {
-//   listUpdateInfo[id] = { updateTime, isAutoUpdate }
-//   saveListUpdateInfo()
-// }
+export const setListAutoUpdate = async(id: string, enable: boolean) => updateListInfo(id, { isAutoUpdate: enable })
+export const setListUpdateTime = async(id: string, time: number) => updateListInfo(id, { updateTime: time })
 export const removeListUpdateInfo = async(id: string) => {
   await initListUpdateInfo()
   delete listUpdateInfo[id]
@@ -364,7 +361,8 @@ export const clearLyric = async(keys?: string[]) => {
   await removeDataMultiple(keys)
 }
 export const saveEditedLyric = async(musicInfo: LX.Music.MusicInfo, lyricInfo: LX.Music.LyricInfo) => saveData(`${storageDataPrefix.lyric}${musicInfo.id}_edited`, lyricInfo)
-export const clearEditedLyric = async() => {
+export const clearEditedLyric = async(musicInfo?: LX.Music.MusicInfo) => {
+  if (musicInfo) return removeData(`${storageDataPrefix.lyric}${musicInfo.id}_edited`)
   let keys = (await getAllKeys()).filter(key => key.startsWith(storageDataPrefix.lyric) && key.endsWith('_edited'))
   await removeDataMultiple(keys)
 }

@@ -2,6 +2,8 @@ import { NativeModules } from 'react-native'
 
 const { CryptoModule } = NativeModules
 
+export const hashSHA256 = async(text: string): Promise<string> => CryptoModule.sha256(text)
+
 // export const testRsa = (text: string, key: string) => {
 //   // console.log(sourceFilePath, targetFilePath)
 //   return CryptoModule.testRsa()

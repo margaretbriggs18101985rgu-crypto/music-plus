@@ -4,15 +4,14 @@ import { View, ScrollView } from 'react-native'
 import { compareVer, sizeFormate } from '@/utils'
 
 import Button from '@/components/common/Button'
-import { updateApp } from '@/utils/version'
 import { createStyle } from '@/utils/tools'
 import { useTheme } from '@/store/theme/hook'
 import { type VersionInfo } from '@/store/version/state'
 import Text from '@/components/common/Text'
 import { useI18n } from '@/lang'
-import { useVersionDownloadProgressUpdated, useVersionInfo, useVersionInfoIgnoreVersionUpdated } from '@/store/version/hook'
+import { useVersionDownloadProgressUpdated, useVersionInfo } from '@/store/version/hook'
 import ModalContent from './ModalContent'
-import { checkUpdate, downloadUpdate, hideModal, setIgnoreVersion } from '@/core/version'
+import { checkUpdate, downloadUpdate, hideModal, setIgnoreVersion, installDownloadedUpdate } from '@/core/version'
 
 const VersionItem = ({ version, desc }: VersionInfo) => {
   return (
@@ -79,7 +78,6 @@ const VersionModal = ({ componentId }: { componentId: string }) => {
   const t = useI18n()
   const versionInfo = useVersionInfo()
   const progress = useVersionDownloadProgressUpdated()
-  const ignoreVersion = useVersionInfoIgnoreVersionUpdated()
   const [ignoreBtn, setIgnoreBtn] = useState({ text: t('version_btn_ignore'), show: true, disabled: false })
   const [closeBtnText, setCloseBtnText] = useState(t('version_btn_close'))
   const [confirmBtn, setConfirmBtn] = useState({ text: '', show: true, disabled: false })
@@ -116,7 +114,7 @@ const VersionModal = ({ componentId }: { componentId: string }) => {
           break
         case 'downloaded':
           setTitle(t('version_title_update'))
-          setTip('')
+          setTip(t('version_tip_downloaded'))
           if (ignoreBtnConfig.show) ignoreBtnConfig.show = false
           setConfirmBtn({ text: t('version_btn_update'), show: true, disabled: false })
           setCloseBtnText(t('version_btn_close'))
@@ -140,36 +138,36 @@ const VersionModal = ({ componentId }: { componentId: string }) => {
         //   break
         default:
           setTitle(t('version_title_new'))
-          setTip('')
+          setTip(t('version_tip_optional'))
           ignoreBtnConfig.show = true
           ignoreBtnConfig.disabled = false
           setConfirmBtn({ text: t('version_btn_new'), show: true, disabled: false })
           // setTip(t('version_btn_new'))
-          setCloseBtnText(t('version_btn_close'))
+          setCloseBtnText(t('version_btn_cancel'))
           break
       }
     }
-    ignoreBtnConfig.text = t(ignoreVersion == versionInfo.newVersion?.version ? 'version_btn_ignore_cancel' : 'version_btn_ignore')
+    ignoreBtnConfig.text = t('version_btn_ignore')
     setIgnoreBtn(ignoreBtnConfig)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t, versionInfo, ignoreVersion, progress])
+  }, [t, versionInfo, progress])
 
   const handleCancel = () => {
     hideModal(componentId)
   }
   const handleIgnore = () => {
-    setIgnoreVersion(ignoreVersion != versionInfo.newVersion!.version ? versionInfo.newVersion!.version : null)
-    // handleCancel()
+    setIgnoreVersion(versionInfo.newVersion!.version)
+    handleCancel()
   }
 
   const handleConfirm = () => {
     if (versionInfo.isLatest || versionInfo.isUnknown) {
-      void checkUpdate()
+      void checkUpdate({ manual: true })
     } else if (versionInfo.status == 'downloaded') {
-      void updateApp()
+      void installDownloadedUpdate()
     } else if (versionInfo.status == 'idle' || versionInfo.status == 'error') {
-      downloadUpdate()
+      void downloadUpdate()
     }
   }
 
@@ -178,15 +176,6 @@ const VersionModal = ({ componentId }: { componentId: string }) => {
       <Content title={title} newVersionInfo={versionInfo.newVersion} />
       { tip.length ? <Text style={styles.tip} color={theme['c-primary-font']}>{tip}</Text> : null }
       <View style={styles.btns}>
-        {
-          ignoreBtn.show
-            ? (
-                <Button disabled={ignoreBtn.disabled} style={{ ...styles.btn, backgroundColor: theme['c-button-background'] }} onPress={handleIgnore}>
-                  <Text color={theme['c-button-font']}>{ignoreBtn.text}</Text>
-                </Button>
-              )
-            : null
-        }
         <Button style={{ ...styles.btn, backgroundColor: theme['c-button-background'] }} onPress={handleCancel}>
           <Text color={theme['c-button-font']}>{closeBtnText}</Text>
         </Button>
@@ -195,6 +184,15 @@ const VersionModal = ({ componentId }: { componentId: string }) => {
             ? (
                 <Button disabled={confirmBtn.disabled} style={{ ...styles.btn, backgroundColor: theme['c-button-background'] }} onPress={handleConfirm}>
                   <Text color={theme['c-button-font']}>{confirmBtn.text}</Text>
+                </Button>
+              )
+            : null
+        }
+        {
+          ignoreBtn.show
+            ? (
+                <Button disabled={ignoreBtn.disabled} style={{ ...styles.btn, backgroundColor: theme['c-button-background'] }} onPress={handleIgnore}>
+                  <Text color={theme['c-button-font']}>{ignoreBtn.text}</Text>
                 </Button>
               )
             : null

@@ -4,9 +4,6 @@ import android.util.Log
 import cn.toside.music.mobile.BuildConfig
 
 import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,7 +29,7 @@ internal class LyricStageDrag {
 @Composable
 internal fun ImmersiveLyricStage(state: VinylPlayerState, drag: LyricStageDrag, motionEnabled: Boolean,
     modifier: Modifier, audio: State<AudioMotion>, phase: State<Double>, onTap: (() -> Unit)? = null,
-    overlayInsets: PaddingValues = PaddingValues()) {
+    overlayInsets: PaddingValues = PaddingValues(), pulseEnabled: Boolean = motionEnabled && state.lyricPulseEnabled) {
     val density = LocalDensity.current.density
     val scope = rememberCoroutineScope()
     var inertia by remember { mutableStateOf<Job?>(null) }
@@ -41,7 +38,6 @@ internal fun ImmersiveLyricStage(state: VinylPlayerState, drag: LyricStageDrag, 
         onDispose { inertia?.cancel(); drag.rotation = LyricRotation(); drag.dragging = false }
     }
     Box(modifier.fillMaxWidth().clipToBounds().pointerInput(state.trackId, motionEnabled) {
-        var lastTapAt = 0L
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
             inertia?.cancel()
@@ -56,7 +52,7 @@ internal fun ImmersiveLyricStage(state: VinylPlayerState, drag: LyricStageDrag, 
                     val change = event.changes.firstOrNull { it.id == down.id } ?: break
                     if (event.changes.count { it.pressed } > 1 || change.isConsumed) break
                     if (!change.pressed) {
-                        if (drag.dragging) change.consume()
+                        if (drag.dragging || currentTap != null) change.consume()
                         released = true
                         upAt = change.uptimeMillis
                         break
@@ -77,7 +73,6 @@ internal fun ImmersiveLyricStage(state: VinylPlayerState, drag: LyricStageDrag, 
                 val wasDragging = drag.dragging
                 drag.dragging = false
                 if (released && wasDragging && motionEnabled) {
-                    lastTapAt = 0L
                     val speed = velocity.calculateVelocity()
                     inertia = scope.launch {
                         var spin = lyricReleaseSpin(drag.rotation, speed.x / density, speed.y / density)
@@ -89,18 +84,8 @@ internal fun ImmersiveLyricStage(state: VinylPlayerState, drag: LyricStageDrag, 
                         }
                         if (BuildConfig.DEBUG) Log.d("LyricRotation", "settled pitch=${drag.rotation.pitch} yaw=${drag.rotation.yaw}")
                     }
-                } else if (released) {
-                    // mineradio's blank-stage double tap recenters the camera.
-                    if (motionEnabled && upAt - lastTapAt in 1..350) {
-                        val from = drag.rotation
-                        inertia = scope.launch {
-                            animate(0f, 1f, animationSpec = tween(480, easing = CubicBezierEasing(.22f, 1f, .36f, 1f))) { fraction, _ ->
-                                drag.rotation = LyricRotation(from.pitch * (1f - fraction), from.yaw * (1f - fraction))
-                            }
-                        }
-                        lastTapAt = 0L
-                    }
-                    else { lastTapAt = upAt; if (!wasDragging) currentTap?.invoke() }
+                } else if (released && !wasDragging && upAt - down.uptimeMillis < viewConfiguration.longPressTimeoutMillis) {
+                    currentTap?.invoke()
                 }
             }
         }
@@ -109,6 +94,6 @@ internal fun ImmersiveLyricStage(state: VinylPlayerState, drag: LyricStageDrag, 
             rotationY = drag.rotation.yaw
             rotationX = drag.rotation.pitch
             cameraDistance = maxOf(500f * density, size.width * 1.2f)
-        }, motionEnabled, audio, phase, overlayInsets.calculateTopPadding(), overlayInsets.calculateBottomPadding())
+        }, motionEnabled, audio, phase, overlayInsets.calculateTopPadding(), overlayInsets.calculateBottomPadding(), pulseEnabled)
     }
 }

@@ -1,11 +1,23 @@
+import { AppState } from 'react-native'
 import { compareVer } from '@/utils'
-import { downloadNewVersion, getVersionInfo } from '@/utils/version'
+import { downloadNewVersion, getVersionInfo, updateApp } from '@/utils/version'
 import versionActions from '@/store/version/action'
 import versionState, { type InitState } from '@/store/version/state'
-import { getIgnoreVersion, getIgnoreVersionFailTipTime, saveIgnoreVersion, saveIgnoreVersionFailTipTime } from '@/utils/data'
+import { getIgnoreVersion, saveIgnoreVersion } from '@/utils/data'
 import { showVersionModal } from '@/navigation'
 import { Navigation } from 'react-native-navigation'
 import { toast } from '@/utils/tools'
+
+const CHECK_INTERVAL = 15 * 60 * 1000
+const RETRY_INTERVAL = 60 * 1000
+const runtime = {
+  lastCheckTime: 0,
+  checking: null as Promise<void> | null,
+  autoCheckStarted: false,
+  promptedVersion: null as string | null,
+  installing: false,
+  downloadedPrompted: false,
+}
 
 export const showModal = () => {
   if (versionState.showModal) return
@@ -19,68 +31,105 @@ export const hideModal = (componentId: string) => {
   void Navigation.dismissOverlay(componentId)
 }
 
-export const checkUpdate = async() => {
-  versionActions.setVersionInfo({ status: 'checking' })
-  let versionInfo: InitState['versionInfo'] = { ...versionState.versionInfo }
-  try {
-    const { version, desc, history } = await getVersionInfo()
-    versionInfo.newVersion = {
-      version,
-      desc,
-      history,
-    }
-  } catch (err) {
-    versionInfo.newVersion = {
-      version: '0.0.0',
-      desc: '',
-      history: [],
-    }
-  }
-  // const versionInfo = {
-  //   version: '1.9.0',
-  //   desc: '- 更新xxx\n- 修复xxx123的萨达修复xxx123的萨达修复xxx123的萨达修复xxx123的萨达修复xxx123的萨达',
-  //   history: [{ version: '1.8.0', desc: '- 更新xxx22\n- 修复xxx22' }, { version: '1.7.0', desc: '- 更新xxx22\n- 修复xxx22' }],
-  // }
-  if (versionInfo.newVersion.version == '0.0.0') {
-    versionInfo.isUnknown = true
-    versionInfo.status = 'error'
-  } else {
-    versionInfo.status = 'idle'
-    versionInfo.isUnknown = false
-    if (compareVer(versionInfo.version, versionInfo.newVersion.version) != -1) {
-      versionInfo.isLatest = true
-    }
-  }
-
-  versionActions.setVersionInfo(versionInfo)
-
-  if (!versionInfo.isLatest) {
-    if (versionInfo.isUnknown) {
-      const time = await getIgnoreVersionFailTipTime()
-      if (Date.now() - time < 7 * 86400000) return
-      saveIgnoreVersionFailTipTime(Date.now())
-      toast(global.i18n.t('version_tip_unknown'))
-    } else if (versionInfo.newVersion.version != await getIgnoreVersion()) {
-      showModal()
-    }
-  }
-  // console.log(compareVer(process.versions.app, versionInfo.version))
-  // console.log(process.versions.app, versionInfo.version)
+const promptUpdate = async() => {
+  const { newVersion, isLatest, isUnknown } = versionState.versionInfo
+  if (!newVersion || isLatest || isUnknown || AppState.currentState != 'active') return
+  const ignoredVersion = await getIgnoreVersion()
+  if (AppState.currentState != 'active' || runtime.promptedVersion == newVersion.version || newVersion.version == ignoredVersion) return
+  runtime.promptedVersion = newVersion.version
+  showModal()
 }
 
-export const downloadUpdate = () => {
-  versionActions.setVersionInfo({ status: 'downloading' })
-  versionActions.setProgress({ total: 0, current: 0 })
+// Manual checks bypass the cooldown and ignored version, and always show a result.
+export const checkUpdate = async({ manual = false }: { manual?: boolean } = {}) => {
+  if (manual) showModal()
+  const { status } = versionState.versionInfo
+  if (status == 'downloading' || status == 'downloaded') {
+    if (status == 'downloaded' && AppState.currentState == 'active' && !runtime.downloadedPrompted) {
+      runtime.downloadedPrompted = true
+      showModal()
+    }
+    return
+  }
+  if (runtime.checking) return runtime.checking
+  if (!manual) {
+    if (AppState.currentState != 'active' || versionState.showModal) return
+    const interval = versionState.versionInfo.isUnknown ? RETRY_INTERVAL : CHECK_INTERVAL
+    if (runtime.lastCheckTime && Date.now() - runtime.lastCheckTime < interval) return promptUpdate()
+  }
 
-  downloadNewVersion(versionState.versionInfo.newVersion!.version, (total: number, current: number) => {
-    // console.log(total, current)
-    versionActions.setProgress({ total, current })
-  }).then(() => {
-    versionActions.setVersionInfo({ status: 'downloaded' })
-  }).catch(() => {
-    versionActions.setVersionInfo({ status: 'error' })
-    // console.log(err)
+  versionActions.setVersionInfo({ status: 'checking', isLatest: false, isUnknown: false })
+  runtime.checking = (async() => {
+    try {
+      const { version, desc, history } = await getVersionInfo()
+      const ignoreVersion = await getIgnoreVersion()
+      versionActions.setIgnoreVersion(ignoreVersion)
+      if (manual) runtime.promptedVersion = version
+      versionActions.setVersionInfo({
+        newVersion: { version, desc, history },
+        isLatest: compareVer(versionState.versionInfo.version, version) >= 0,
+        isUnknown: false,
+        status: 'idle',
+      })
+      if (!manual) await promptUpdate()
+    } catch {
+      versionActions.setVersionInfo({ newVersion: null, isLatest: false, isUnknown: true, status: 'error' })
+      // Automatic network failures stay quiet; manual checks display the retry action.
+    } finally {
+      runtime.lastCheckTime = Date.now()
+    }
+  })()
+  try {
+    await runtime.checking
+  } finally {
+    runtime.checking = null
+  }
+}
+
+export const startAutoUpdateCheck = () => {
+  if (runtime.autoCheckStarted) return
+  runtime.autoCheckStarted = true
+  void checkUpdate()
+  AppState.addEventListener('change', state => {
+    if (state == 'active') void checkUpdate()
   })
+  setInterval(() => {
+    if (AppState.currentState == 'active') void checkUpdate()
+  }, CHECK_INTERVAL)
+}
+
+export const installDownloadedUpdate = async() => {
+  if (runtime.installing) return
+  runtime.installing = true
+  try {
+    await updateApp()
+  } catch {
+    toast(global.i18n.t('version_tip_install_failed'))
+  } finally {
+    runtime.installing = false
+  }
+}
+
+export const downloadUpdate = async() => {
+  if (versionState.versionInfo.status == 'downloading') return
+  const version = versionState.versionInfo.newVersion?.version
+  if (!version || versionState.versionInfo.isLatest || versionState.versionInfo.isUnknown) return
+  versionActions.setVersionInfo({ status: 'downloading' })
+  runtime.downloadedPrompted = false
+  versionActions.setProgress({ total: 0, current: 0 })
+  try {
+    await downloadNewVersion(version, (total: number, current: number) => {
+      versionActions.setProgress({ total, current })
+    })
+    versionActions.setVersionInfo({ status: 'downloaded' })
+    if (AppState.currentState == 'active') {
+      runtime.downloadedPrompted = true
+      showModal()
+      await installDownloadedUpdate()
+    }
+  } catch {
+    versionActions.setVersionInfo({ status: 'error' })
+  }
 }
 
 

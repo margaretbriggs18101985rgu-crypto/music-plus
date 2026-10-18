@@ -2,6 +2,7 @@ package cn.toside.music.mobile.vinyl
 
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.res.Configuration
 import android.util.Log
 import android.os.Bundle
 import android.view.View
@@ -35,6 +36,7 @@ class VinylPreviewActivity : AppCompatActivity() {
             isAppearanceLightStatusBars = false
             isAppearanceLightNavigationBars = false
         }
+        configureNavigationBar()
         val content = ComposeView(this).apply {
             setContent { PlayerScreen(state.value, clock, visualConfig.value, ::handleAction) }
         }
@@ -55,11 +57,28 @@ class VinylPreviewActivity : AppCompatActivity() {
         val action = intent.getStringExtra("vinyl_action") ?: return
         if (action in setOf("snapshot", "toggle", "refresh", "buffer", "stop", "resume", "empty", "lyrics", "ambient-red", "ambient-blue", "ambient-white", "ambient-missing", "ambient-invalid", "ambient-off", "ambient-low", "ambient-high", "ambient-auto",
                 "fixture-single", "fixture-multiple", "fixture-next", "fixture-previous", "fixture-end", "fixture-start", "fixture-reduced",
-                "fixture-font-system", "fixture-font-wenkai", "fixture-font-xiaowei", "fixture-font-huangyou")) handleAction(action, 0.0)
+                "fixture-font-system", "fixture-font-wenkai", "fixture-font-xiaowei", "fixture-font-huangyou",
+                "fixture-pulse-on", "fixture-pulse-off", "fixture-background-off", "fixture-background-on")) handleAction(action, 0.0)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        configureNavigationBar()
+    }
+
+    private fun configureNavigationBar() {
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            systemBarsBehavior = androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE)
+                hide(WindowInsetsCompat.Type.navigationBars())
+            else show(WindowInsetsCompat.Type.navigationBars())
+        }
     }
 
     private fun handleAction(action: String, value: Double) {
         when (action) {
+            "fixture-pulse-on", "fixture-pulse-off" -> state.value = state.value.copy(lyricPulseEnabled = action == "fixture-pulse-on")
+            "fixture-background-off", "fixture-background-on" -> visualConfig.value = visualConfig.value.copy(backgroundMotion = action == "fixture-background-on")
             "fixture-font-system", "fixture-font-wenkai", "fixture-font-xiaowei", "fixture-font-huangyou" ->
                 state.value = state.value.copy(lyricFontFamily = normalizeLyricFont(action.removePrefix("fixture-font-")))
             // Explicitly labelled, debug-only text fixtures; they do not drive an audio engine.

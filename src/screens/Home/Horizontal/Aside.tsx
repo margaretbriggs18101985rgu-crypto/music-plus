@@ -69,8 +69,7 @@ const Header = () => {
   return (
     <View style={{ paddingTop: statusBarHeight }}>
       <View style={styles.header}>
-        <Icon name="logo" color={theme['c-primary-dark-100-alpha-300']} size={22} />
-        {/* <Text style={styles.headerText} size={16} color={theme['c-primary-dark-100-alpha-300']}>LX Music</Text> */}
+        <Icon name="album" color={theme['c-primary-dark-100-alpha-300']} size={22} />
       </View>
     </View>
   )

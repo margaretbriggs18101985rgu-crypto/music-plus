@@ -23,37 +23,14 @@ const mergeSetting = (originSetting: LX.AppSetting, targetSetting?: Partial<LX.A
   const updatedSetting: Partial<LX.AppSetting> = {}
 
   if (targetSetting) {
-    const originSettingKeys = Object.keys(originSettingCopy)
-    const targetSettingKeys = Object.keys(targetSetting)
-
-    if (originSettingKeys.length > targetSettingKeys.length) {
-      for (const key of targetSettingKeys as Array<keyof LX.AppSetting>) {
-        const targetValue: any = targetSetting[key]
-        const isPrimitive = checkPrimitiveType(targetValue)
-        // if (checkPrimitiveType(value)) {
-        if (!isPrimitive || targetValue == originSettingCopy[key] || originSettingCopy[key] === undefined) continue
-        updatedSettingKeys.push(key)
-        updatedSetting[key] = targetValue
-        // @ts-expect-error
-        originSettingCopy[key] = targetValue
-        // } else {
-        //   if (!isPrimitive && currentValue != undefined) handleMergeSetting(value, currentValue)
-        // }
-      }
-    } else {
-      for (const key of originSettingKeys as Array<keyof LX.AppSetting>) {
-        const targetValue: any = targetSetting[key]
-        const isPrimitive = checkPrimitiveType(targetValue)
-        // if (checkPrimitiveType(value)) {
-        if (!isPrimitive || targetValue == originSettingCopy[key]) continue
-        updatedSettingKeys.push(key)
-        updatedSetting[key] = targetValue
-        // @ts-expect-error
-        originSettingCopy[key] = targetValue
-        // } else {
-        //   if (!isPrimitive && currentValue != undefined) handleMergeSetting(value, currentValue)
-        // }
-      }
+    for (const key of Object.keys(originSettingCopy) as Array<keyof LX.AppSetting>) {
+      const targetValue: any = targetSetting[key]
+      if (!checkPrimitiveType(targetValue) || targetValue == originSettingCopy[key]) continue
+      updatedSettingKeys.push(key)
+      updatedSetting[key] = targetValue
+      // Keys come from the defaults, so obsolete saved keys cannot be reintroduced.
+      // @ts-expect-error
+      originSettingCopy[key] = targetValue
     }
   }
 

@@ -1,0 +1,457 @@
+{
+  "date": "2026-10-18",
+  "originalCandidates": 75,
+  "deleted": [
+    {
+      "file": "src/components/TimeoutExitEditModal.tsx",
+      "sha256": "034d27994ba38764b4c16091da5a0341186bca0453b08f46189a728902c7ff1a",
+      "lines": 259,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/utils/scroll.ts",
+      "sha256": "d06d638869f159b474ed0f1b563785e6a781ef5cc53108aac8a05375ad7bd27b",
+      "lines": 153,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/components/common/DrawerLayoutFixed.tsx",
+      "sha256": "b153f51a8c5413c333e35065c2d1e372e4b52e3d0cf4d9658a550bee998a1b89",
+      "lines": 99,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/components/common/ScaledImage.tsx",
+      "sha256": "930752ac93300c4aafb64b520d837287765c645c3752abe4159c4b9f7394bf7f",
+      "lines": 50,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/components/player/ProgressBar.tsx",
+      "sha256": "8401d4a76f8a6300a05390b53e0331fd7aded8433753f567e3edcb3e43656377",
+      "lines": 155,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/navigation/components/Toast.js",
+      "sha256": "ad761be0492c6eceeab45a38e65cbfa44770fc3f4d08031d9e6c755312b28144",
+      "lines": 64,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/screens/Comment/CommentHot.tsx",
+      "sha256": "ed718e8ff2b10e08abb403e2a65559f7cab929a4733385757d139d0177292b5c",
+      "lines": 105,
+      "reason": "Replaced by OfficialComments"
+    },
+    {
+      "file": "src/screens/Comment/CommentNew.tsx",
+      "sha256": "ab6579a1030dc8f21767c78db24101fc3d440d9aef84de80e9c6e87f6d380988",
+      "lines": 106,
+      "reason": "Replaced by OfficialComments"
+    },
+    {
+      "file": "src/screens/Comment/LegacyComments.tsx",
+      "sha256": "59f70534bb1f334dad50998fb1f0a1157e1dc5b39a87efb976e722901f5007a8",
+      "lines": 220,
+      "reason": "Replaced by OfficialComments"
+    },
+    {
+      "file": "src/store/Provider/Provider.tsx",
+      "sha256": "9ad0b8243e9107c47be368a7a570d3548bd75c4ea1b7a705bd60f99ee7be65e8",
+      "lines": 28,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/utils/hooks/usePlayTime.js",
+      "sha256": "57842a92eb59e2a613b0108e4d97a8d480c1f98ff66662fc40c3dcaa7c8f9ad3",
+      "lines": 20,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/utils/nativeModules/cryptoTest.ts",
+      "sha256": "9f39a2ef3c338305b7a5d4664cf242f75cb54df335b4b5217ab0926e66f9b796",
+      "lines": 76,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/components/common/DorpDownPanel/index.tsx",
+      "sha256": "e7a1dcd586b61a0c53ec6a263ae0755a1abc69ff8c9459e31623a4f1053792d1",
+      "lines": 41,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/components/common/DorpDownPanel/Panel.tsx",
+      "sha256": "2d35a2371b94ccafeecbfaec7ccfe66523db29ec6048df855a0b6673b5b86a49",
+      "lines": 126,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/screens/Comment/components/Header.tsx",
+      "sha256": "c63d698e849816cfe61aea293d037c6141081e5f439180786618db4580e32df8",
+      "lines": 69,
+      "reason": "Replaced by OfficialComments"
+    },
+    {
+      "file": "src/screens/Comment/components/List.tsx",
+      "sha256": "e04490aa20b27183b9fa6a5cd61d2852cc4637ff4d1489426b9122e3c4dc7073",
+      "lines": 146,
+      "reason": "Replaced by OfficialComments"
+    },
+    {
+      "file": "src/screens/Home/Vertical/DrawerNav.tsx",
+      "sha256": "9678226392b99a3499b1e343da9a587198db8f428c3cb731503b924e2bb84b7e",
+      "lines": 150,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/screens/PlayDetail/components/PlayLine.tsx",
+      "sha256": "61d74a517d1b71c016280b085731b61ba889b2f0032f7dfb4bb5e1d5754856a2",
+      "lines": 137,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/constant.ts",
+      "sha256": "06842cb31d21aa9bf9e6a6d9f9913459b6ee91b4f8c939d4c97cd7760570d012",
+      "lines": 5,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/index.tsx",
+      "sha256": "5b4b9ed1362092583ae0cc91b0784666f57e6d5bca4e86a1b8d30953f14ae81a",
+      "lines": 110,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/Lyric.tsx",
+      "sha256": "e69b6860bdcd4b4526fe011e272d138d7259d95f483349cfd5911bb73a9d6be9",
+      "lines": 325,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/Pic.tsx",
+      "sha256": "15dc9b9865f936972950abe3db087a954a70c9369c0e55508be951422dc1a29f",
+      "lines": 65,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Vertical/Lyric.tsx",
+      "sha256": "6ad91357fd616b4c946a4672f0ec69ae1bc2db35887ea2d3d3bec8b5b80efe8e",
+      "lines": 365,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Vertical/Pic.tsx",
+      "sha256": "130f02a87b7d408d0982cf38a1a61d46fc538d87a725fc62b123a272e8a29938",
+      "lines": 68,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/utils/musicSdk/bd/hotSearch.js",
+      "sha256": "a6e275d8c1ac7994862bd778fd11e4f889732d0e9c5ba17374e50dc319d956b2",
+      "lines": 24,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/utils/musicSdk/bd/index.js",
+      "sha256": "0a255a59ef1eaad711dc30f737b7608f21265f6be2b7c3558601f56e529a842b",
+      "lines": 41,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/utils/musicSdk/bd/leaderboard.js",
+      "sha256": "94659e3d23019e05f93f0a0eb21be5b051a25b5ef4550dd90a4f32cc471d8ab3",
+      "lines": 154,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/utils/musicSdk/bd/musicInfo.js",
+      "sha256": "b9bcb19d26f70cb356912daeae673374d1c87e15d2c21cdfc9a5085345221edb",
+      "lines": 21,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/utils/musicSdk/bd/musicSearch.js",
+      "sha256": "268376baf32315babb7eac5fa13c264021094196beab4c10ea2489889f27d111",
+      "lines": 89,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/utils/musicSdk/bd/songList.js",
+      "sha256": "e8f550e100a1796fed99d74dfaf5b5182190870ba1920312695a749809eec6a1",
+      "lines": 265,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/utils/musicSdk/mg/album.js",
+      "sha256": "00fbbc843bf9999b369d40adc64ffc38b0fbad4ae26ce1c7105c0397ce06b15f",
+      "lines": 52,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/utils/musicSdk/mg/tipSearch.js",
+      "sha256": "90bd3186fd8182575d30e5bf60b164ed228293d388860747b27df48a965995bd",
+      "lines": 26,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/utils/musicSdk/tx/tipSearch.js",
+      "sha256": "92d1831a516b400f6e708f6f7db1d7614e9b899f0daea3097092eac4d578c73e",
+      "lines": 30,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/utils/musicSdk/wy/tipSearch.js",
+      "sha256": "e930c97aa01620ff4e59004b9505bf0e64c721186d62d47ceb778f9fab4eadf6",
+      "lines": 34,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/utils/musicSdk/kg/album.js",
+      "sha256": "fb594256cafd3776c0d870f65894af909a32e43148ea76cbbf1d912ee64789ce",
+      "lines": 64,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/utils/musicSdk/kg/musicInfo.js",
+      "sha256": "5d8fcccfd6df81eb6cbe1d3bc43d22728ccdbe6e77e231dedeb6a5c2ccb9f297",
+      "lines": 117,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/utils/musicSdk/kg/singer.js",
+      "sha256": "cff7592e9b7aad5c1367f44ae31bdd456032bcb486b4ae5b0662d83ad49b8dd2",
+      "lines": 60,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/utils/musicSdk/kg/tipSearch.js",
+      "sha256": "7335551d03a3b1032df1721cc27cee469bdd7441ff77aaeee04b58a610b2c8a8",
+      "lines": 26,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/components/Btn.tsx",
+      "sha256": "8e3351dd0103190e66690df0961d8b49bd92d795e1f20f098202ce4a3fa11865",
+      "lines": 37,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/components/CommentBtn.tsx",
+      "sha256": "5263101650bb7393593682b60a14db16f7d8583673ff3d49a0c39e1713244acd",
+      "lines": 13,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/components/DesktopLyricBtn.tsx",
+      "sha256": "fa10ff3f8e7318a1ea0095f2e46b0742c0a8e1d9620703e5bcdd57f32645c283",
+      "lines": 30,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/components/Header.tsx",
+      "sha256": "107824a85dfbb928c0ee1c09e718a882446fcba7697f747c76de9210c104bc44",
+      "lines": 88,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/components/SettingPopup/index.tsx",
+      "sha256": "4751f25f508128c0f2b4908eb2c97c66c74d5657cf7db09a08feb36db42ed172",
+      "lines": 57,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/Player/ControlBtn.tsx",
+      "sha256": "ae7c46db714939bf289fc76e39c2e626e0a3b17a142adec5dcab3c3131120838",
+      "lines": 82,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/Player/index.tsx",
+      "sha256": "554da4fe80c9c6a3e363b2484c82488af0b09aa9357b5503e1e356d9dd05a865",
+      "lines": 30,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/Player/PlayInfo.tsx",
+      "sha256": "092075c0eeaaa5c8287885d35dc469a4ef24d6d3f185ebec8e60b8192f4b9841",
+      "lines": 109,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/Player/Status.tsx",
+      "sha256": "2f495446a1206b5d9f5b879e30beaae463202b066d4ef194f5c9e3f503a4dd0c",
+      "lines": 22,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/MoreBtn/Btn.tsx",
+      "sha256": "35fe7aa72fd17747fd99fe24bfa4c07875ca475647cdc8774aa9b5e0329906af",
+      "lines": 34,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/MoreBtn/index.tsx",
+      "sha256": "437cacc10ee0059f298335b46902c64d015296b04e679706515a5e2258e5497f",
+      "lines": 33,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/MoreBtn/MusicAddBtn.tsx",
+      "sha256": "ecf5833e4f388407cea79d73a580a9393dbaaf6bd46ee47bac26ebd66e3af0ba",
+      "lines": 27,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/MoreBtn/PlayModeBtn.tsx",
+      "sha256": "e6f5919b31d44943f76d3a3b3b363bd7aaedd2c3628dcd716b7fa29a0199e841",
+      "lines": 64,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Horizontal/MoreBtn/TimeoutExitBtn.tsx",
+      "sha256": "64ac8ba31d8cb113be58ff8440b181e0d7a80a79fb139a75531699bbd56d3e3f",
+      "lines": 24,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Vertical/components/Btn.tsx",
+      "sha256": "3d607cb31910281a85c70731f6d918097671b72e31c437f768ee77f7d3c3e75f",
+      "lines": 29,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Vertical/components/Header.tsx",
+      "sha256": "d7573a1e83797bafae23134551402dcc93fcc53a3c41861c1dc60411f7565a3f",
+      "lines": 80,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Vertical/components/TimeoutExitBtn.tsx",
+      "sha256": "593531acbb1504b50e469aef5500eaaf0af15dc2e7a5f45fdaaccef891ae0905",
+      "lines": 24,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Vertical/Player/index.tsx",
+      "sha256": "1272cb3724bb6590c952d9aa3f5cbbb9d6cb334868df0b8858de0930477ce920",
+      "lines": 54,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/utils/musicSdk/mg/temp/leaderboard-old.js",
+      "sha256": "131cf67f92080ebbcefc61a1b23b7c1cab57575d4eebe15d243213f765901337",
+      "lines": 196,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/utils/musicSdk/kg/temp/musicSearch-new.js",
+      "sha256": "8cfd02389e24bba4ccad69b72847e84babdfad4ef0901ce1d0efa052180bee13",
+      "lines": 113,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/utils/musicSdk/kg/temp/songList-new.js",
+      "sha256": "420e764f4a060e644af2ce21ca2ed554a6bfd87539e86ced173c3581296f1412",
+      "lines": 795,
+      "reason": "Not registered or imported by active providers"
+    },
+    {
+      "file": "src/screens/Home/Views/Setting/Vertical/Header.tsx",
+      "sha256": "a4f3abef4eed4cd27a0cf001eb99d2b37e9a638dfb574e879cebf572190bd830",
+      "lines": 63,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/screens/Home/Views/Setting/Vertical/NavList.tsx",
+      "sha256": "43f257831a60d55ce5dc594a88ef69db802a50d4f1e0023f1d660ce2d059f98b",
+      "lines": 104,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/screens/PlayDetail/components/SettingPopup/settings/SettingLyricProgress.tsx",
+      "sha256": "99918e2dc4c58f8f4d1ef98181834fb353c4661c1f28c6a5bfe5e2a4aedcef64",
+      "lines": 29,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Vertical/Player/components/ControlBtn.tsx",
+      "sha256": "bad39d50b5110e9a5ffa2e7aecea5a1f6428ec35d3c288e0745e2efb22251095",
+      "lines": 89,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Vertical/Player/components/PlayInfo.tsx",
+      "sha256": "aa4f589d32a13374145ee46c5c833f059a8c91155914c7b7d8eceb0a527aafff",
+      "lines": 66,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Vertical/Player/components/Status.tsx",
+      "sha256": "bb5a8267a4db68fc2ad4d270f4680976f843ffa0d1ef574d6268b68d0448405b",
+      "lines": 22,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/Home/Views/SongList/HeaderBar/OpenList/index.tsx",
+      "sha256": "40b1212ccff7ee3331b7a4f8b93ea5e0bba3ec670e26f0c2cff1a68273354a84",
+      "lines": 69,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/screens/Home/Views/SongList/HeaderBar/OpenList/Modal.tsx",
+      "sha256": "17f58470afda7aae91cfddf94a730993f9797545d25f2a7bf5e3bbb7c15390fb",
+      "lines": 144,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/screens/Home/Views/Setting/settings/Player/PlayHighQuality.tsx",
+      "sha256": "b8725acea07f2ca9724aa1d1134e4e49451cdc219fdbb98e96c2b8a5476b25e2",
+      "lines": 73,
+      "reason": "No active entry, native, test or build references"
+    },
+    {
+      "file": "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/Btn.tsx",
+      "sha256": "d0c88c587bb9a831949e7ea2dce848f1609a108badca1cfa2acf9c887c8c568c",
+      "lines": 35,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/CommentBtn.tsx",
+      "sha256": "5263101650bb7393593682b60a14db16f7d8583673ff3d49a0c39e1713244acd",
+      "lines": 13,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/DesktopLyricBtn.tsx",
+      "sha256": "fa10ff3f8e7318a1ea0095f2e46b0742c0a8e1d9620703e5bcdd57f32645c283",
+      "lines": 30,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/index.tsx",
+      "sha256": "7ab1b98ac67061617f8beee4c259964268a0c491f29600e7bc321160396f96c7",
+      "lines": 31,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/MusicAddBtn.tsx",
+      "sha256": "ecf5833e4f388407cea79d73a580a9393dbaaf6bd46ee47bac26ebd66e3af0ba",
+      "lines": 27,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/PlayModeBtn.tsx",
+      "sha256": "e6f5919b31d44943f76d3a3b3b363bd7aaedd2c3628dcd716b7fa29a0199e841",
+      "lines": 64,
+      "reason": "Replaced by native vinyl player"
+    },
+    {
+      "file": "src/screens/PlayDetail/Vertical/Player/components/MoreBtn/TimeoutExitBtn.tsx",
+      "sha256": "64ac8ba31d8cb113be58ff8440b181e0d7a80a79fb139a75531699bbd56d3e3f",
+      "lines": 24,
+      "reason": "Replaced by native vinyl player"
+    }
+  ],
+  "removedLines": 6769
+}

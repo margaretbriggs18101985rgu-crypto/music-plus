@@ -7,11 +7,12 @@ import { exitApp } from './utils/nativeModules/utils'
 import { windowSizeTools } from './utils/windowSizeTools'
 import { listenLaunchEvent } from './navigation/regLaunchedEvent'
 import { tipDialog } from './utils/tools'
+import { recoverPendingStorageRestore } from '@/plugins/storage'
 
 console.log('starting app...')
 listenLaunchEvent()
 
-void Promise.all([getFontSize(), windowSizeTools.init()]).then(async([fontSize]) => {
+void recoverPendingStorageRestore().then(async() => Promise.all([getFontSize(), windowSizeTools.init()])).then(async([fontSize]) => {
   global.lx.fontSize = fontSize
   bootLog('Font size setting loaded.')
 

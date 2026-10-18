@@ -1,7 +1,6 @@
 import { Navigation } from 'react-native-navigation'
 import {
   VERSION_MODAL,
-  PACT_MODAL,
   SYNC_MODE_MODAL,
 } from './screenNames'
 import themeState from '@/store/theme/state'
@@ -36,160 +35,26 @@ export const pop = async(compId: string) => Navigation.pop(compId)
 export const popToRoot = async(compId: string) => Navigation.popToRoot(compId)
 export const popTo = async(compId: string) => Navigation.popTo(compId)
 
-export const showPactModal = () => {
+const showAppOverlay = (name: string) => {
   const theme = themeState.theme
-
   void Navigation.showOverlay({
     component: {
-      name: PACT_MODAL,
+      name,
       options: {
         animations: overlayAnimations,
-        layout: {
-          componentBackgroundColor: 'transparent',
-        },
-        overlay: {
-          interceptTouchOutside: true,
-        },
+        layout: { componentBackgroundColor: 'transparent' },
+        overlay: { interceptTouchOutside: true },
         statusBar: {
           drawBehind: true,
           visible: true,
           style: getStatusBarStyle(theme.isDark),
           backgroundColor: 'transparent',
         },
-        navigationBar: {
-          // visible: false,
-          backgroundColor: theme['c-content-background'],
-        },
-        // animations: {
-
-        //   showModal: {
-        //     enter: {
-        //       enabled: true,
-        //       alpha: {
-        //         from: 0,
-        //         to: 1,
-        //         duration: 300,
-        //       },
-        //     },
-        //     exit: {
-        //       enabled: true,
-        //       alpha: {
-        //         from: 1,
-        //         to: 0,
-        //         duration: 300,
-        //       },
-        //     },
-        //   },
-        // },
+        navigationBar: { backgroundColor: theme['c-content-background'] },
       },
     },
   })
 }
 
-export const showVersionModal = () => {
-  const theme = themeState.theme
-
-  void Navigation.showOverlay({
-    component: {
-      name: VERSION_MODAL,
-      options: {
-        animations: overlayAnimations,
-        layout: {
-          componentBackgroundColor: 'transparent',
-        },
-        overlay: {
-          interceptTouchOutside: true,
-        },
-        statusBar: {
-          drawBehind: true,
-          visible: true,
-          style: getStatusBarStyle(theme.isDark),
-          backgroundColor: 'transparent',
-        },
-        navigationBar: {
-          // visible: false,
-          backgroundColor: theme['c-content-background'],
-        },
-        // animations: {
-
-        //   showModal: {
-        //     enter: {
-        //       enabled: true,
-        //       alpha: {
-        //         from: 0,
-        //         to: 1,
-        //         duration: 300,
-        //       },
-        //     },
-        //     exit: {
-        //       enabled: true,
-        //       alpha: {
-        //         from: 1,
-        //         to: 0,
-        //         duration: 300,
-        //       },
-        //     },
-        //   },
-        // },
-      },
-    },
-  })
-}
-
-export const showSyncModeModal = () => {
-  const theme = themeState.theme
-
-  void Navigation.showOverlay({
-    component: {
-      name: SYNC_MODE_MODAL,
-      options: {
-        animations: overlayAnimations,
-        layout: {
-          componentBackgroundColor: 'transparent',
-        },
-        overlay: {
-          interceptTouchOutside: true,
-        },
-        statusBar: {
-          drawBehind: true,
-          visible: true,
-          style: getStatusBarStyle(theme.isDark),
-          backgroundColor: 'transparent',
-        },
-        navigationBar: {
-          // visible: false,
-          backgroundColor: theme['c-content-background'],
-        },
-        // animations: {
-
-        //   showModal: {
-        //     enter: {
-        //       enabled: true,
-        //       alpha: {
-        //         from: 0,
-        //         to: 1,
-        //         duration: 300,
-        //       },
-        //     },
-        //     exit: {
-        //       enabled: true,
-        //       alpha: {
-        //         from: 1,
-        //         to: 0,
-        //         duration: 300,
-        //       },
-        //     },
-        //   },
-        // },
-      },
-    },
-  })
-}
-
-// export const showToast = (text) => {
-//   Navigation.showOverlay({
-//     component: {
-//       name: TOAST_SCREEN,
-//     },
-//   })
-// }
+export const showVersionModal = () => { showAppOverlay(VERSION_MODAL) }
+export const showSyncModeModal = () => { showAppOverlay(SYNC_MODE_MODAL) }

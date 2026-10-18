@@ -38,8 +38,9 @@ internal fun resolveAmbientPolicy(config: ImmersiveVisualConfig, environment: Im
         (!config.respectReducedMotion || environment.systemMotion) && !environment.powerSave
     val count = if (!allowed || !stageVisible) 0 else when {
         config.particleQuality == ParticleQuality.Off -> 0
-        environment.lowRam || config.particleQuality == ParticleQuality.Low -> 1200
+        config.particleQuality == ParticleQuality.Low -> 1200
         config.particleQuality == ParticleQuality.High -> MAX_AMBIENT_STARS
+        environment.lowRam -> 1200
         else -> 3600
     }
     return AmbientPolicy(allowed && stageVisible && config.backgroundMotion,

@@ -16,7 +16,8 @@ import kotlin.random.Random
 
 internal const val STAR_BUCKETS = 24
 internal const val MAX_AMBIENT_STARS = 6400
-internal data class AmbientStar(val x: Float, val y: Float, val z: Float, val bucket: Int)
+internal data class AmbientStar(val x: Float, val y: Float, val z: Float, val bucket: Int,
+    val velocityX: Float, val velocityY: Float, val velocityZ: Float)
 
 /** Two uneven, narrow ribbons in a sparse volume. Positions are sampled once,
  * not randomized each frame. Quality changes preserve the existing population. */
@@ -39,22 +40,31 @@ internal fun createAmbientStars(seed: Int, count: Int): List<AmbientStar> {
         val size = when { magnitude < .74f -> 0; magnitude < .96f -> 1; else -> 2 }
         val tint = random.nextInt(4)
         val brightness = if (random.nextFloat() < .66f) 0 else 1
-        AmbientStar(x, y, z, size * 8 + tint * 2 + brightness)
+        val direction = random.nextFloat() * (2f * PI.toFloat())
+        val speed = .012f + random.nextFloat() * .025f
+        AmbientStar(x, y, z, size * 8 + tint * 2 + brightness,
+            cos(direction) * speed, sin(direction) * speed, (random.nextFloat() - .5f) * .018f)
     }
 }
 
 /** Shared camera and caller-owned point buffers: no per-star allocations or trig per frame. */
 internal fun projectAmbientStars(stars: List<AmbientStar>, width: Float, height: Float,
-    yaw: Float, pitch: Float, points: Array<FloatArray>, used: IntArray) {
+    yaw: Float, pitch: Float, points: Array<FloatArray>, used: IntArray, elapsedSeconds: Double = 0.0) {
     used.fill(0)
     if (width <= 0f || height <= 0f || !yaw.isFinite() || !pitch.isFinite()) return
     val cy = cos(yaw); val sy = sin(yaw); val cp = cos(pitch); val sp = sin(pitch)
     val unit = minOf(width, height)
     val focal = unit * 2.8f
+    val time = if (elapsedSeconds.isFinite()) elapsedSeconds else 0.0
+    val sway = sin(time * .45).toFloat() * .65f
+    fun drift(position: Float, velocity: Float, extent: Float): Float {
+        val span = extent * 2.0
+        return (((position + velocity * time + extent) % span + span) % span - extent).toFloat()
+    }
     for (star in stars) {
-        val x = star.x * width * .38f
-        val y = star.y * height * .68f
-        val z = star.z * unit * .8f
+        val x = (drift(star.x, star.velocityX, 1.8f) + star.velocityY * sway) * width * .38f
+        val y = (drift(star.y, star.velocityY, 1.3f) + star.velocityX * sway) * height * .68f
+        val z = drift(star.z, star.velocityZ, 1f) * unit * .8f
         val rx = x * cy + z * sy
         val rz = z * cy - x * sy
         val ry = y * cp - rz * sp
@@ -93,10 +103,10 @@ internal fun AmbientParticles(trackId: String, count: Int, phase: State<Double>,
         } }
         onDrawBehind {
             val time = phase.value
-            // A slow orbit reveals real depth; no wrapping lanes, streaks, blur or old-frame feedback.
+            // Independent seeded velocities drift through the shared camera without per-frame randomness.
             val yaw = (drag.rotation.yaw * PI / 180.0 + sin(time * .025) * .045).toFloat()
             val pitch = (drag.rotation.pitch * PI / 180.0 + sin(time * .019) * .025).toFloat()
-            projectAmbientStars(stars, size.width, size.height, yaw, pitch, points, used)
+            projectAmbientStars(stars, size.width, size.height, yaw, pitch, points, used, time)
             drawIntoCanvas { canvas ->
                 for (bucket in 0 until STAR_BUCKETS) {
                     val twinkle = .96f + sin(time * .19 + bucket * 1.7).toFloat() * .035f

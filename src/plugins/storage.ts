@@ -7,6 +7,17 @@ const partKeyPrefixRxp = /^@___PART___/
 const partKeyArrPrefixRxp = /^@___PART_A___/
 const keySplit = ','
 const limit = 500000
+const restoreJournalKey = '@musicplus_restore_journal'
+const writes = { pending: Promise.resolve() as Promise<unknown>, frozen: false }
+const queueWrite = async <T>(action: () => Promise<T>): Promise<T> => {
+  const result = writes.pending.then(async() => {
+    // A successful restore must restart before old in-memory state can write again.
+    if (writes.frozen) return new Promise<T>(() => {})
+    return action()
+  })
+  writes.pending = result.catch(() => {})
+  return result
+}
 
 const buildData = (key: string, value: any, datas: Array<[string, string]>) => {
   let valueStr = JSON.stringify(value)
@@ -43,12 +54,12 @@ const handleGetData = async<T>(partKeys: string): Promise<T> => {
   })
 }
 
-export const saveData = async(key: string, value: any) => {
+const writeData = async(key: string, value: any) => {
   const datas: Array<[string, string]> = []
   buildData(key, value, datas)
 
   try {
-    await removeData(key)
+    await removeDataNow(key)
     await AsyncStorage.multiSet(datas)
   } catch (e: any) {
     // saving error
@@ -72,7 +83,7 @@ export const getData = async<T = unknown>(key: string): Promise<T | null> => {
   return JSON.parse(value)
 }
 
-export const removeData = async(key: string) => {
+const removeDataNow = async(key: string) => {
   let value: string | null
   try {
     value = await AsyncStorage.getItem(key)
@@ -154,13 +165,13 @@ export const getDataMultiple = async<T extends readonly string[]>(keys: T) => {
   })
 }
 
-export const saveDataMultiple = async(datas: Array<[string, any]>) => {
+const writeDataMultiple = async(datas: Array<[string, any]>) => {
   const allData: Array<[string, string]> = []
   for (const [key, value] of datas) {
     buildData(key, value, allData)
   }
   try {
-    await removeDataMultiple(datas.map(k => k[0]))
+    await removeDataMultipleNow(datas.map(k => k[0]))
     await AsyncStorage.multiSet(allData)
   } catch (e: any) {
     // save error
@@ -170,7 +181,7 @@ export const saveDataMultiple = async(datas: Array<[string, any]>) => {
 }
 
 
-export const removeDataMultiple = async(keys: string[]) => {
+const removeDataMultipleNow = async(keys: string[]) => {
   if (!keys.length) return
   const datas = await AsyncStorage.multiGet(keys)
   let allKeys = []
@@ -193,7 +204,7 @@ export const removeDataMultiple = async(keys: string[]) => {
   }
 }
 
-export const clearAll = async() => {
+const clearAllNow = async() => {
   try {
     await AsyncStorage.clear()
   } catch (e: any) {
@@ -203,4 +214,62 @@ export const clearAll = async() => {
   }
 }
 
-export { useAsyncStorage } from '@react-native-async-storage/async-storage'
+export const saveData = async(key: string, value: any) => queueWrite(async() => writeData(key, value))
+export const removeData = async(key: string) => queueWrite(async() => removeDataNow(key))
+export const saveDataMultiple = async(datas: Array<[string, any]>) => queueWrite(async() => writeDataMultiple(datas))
+export const removeDataMultiple = async(keys: string[]) => queueWrite(async() => removeDataMultipleNow(keys))
+export const clearAll = async() => queueWrite(clearAllNow)
+
+export const getLogicalStorageSnapshot = async(include: (key: string) => boolean) => queueWrite(async() => {
+  const keys = (await getAllKeys()).filter(key => !key.startsWith(partKeyPrefix) && !key.startsWith(partKeyArrPrefix) && include(key)).sort()
+  return getDataMultiple(keys)
+})
+
+interface RestoreJournal { before: Array<[string, string]>, replacementKeys: string[] }
+const rollbackRestore = async(journal: RestoreJournal) => {
+  if (!Array.isArray(journal.before) || !Array.isArray(journal.replacementKeys)) throw new Error('恢复日志损坏')
+  if (journal.replacementKeys.length) await AsyncStorage.multiRemove(journal.replacementKeys)
+  if (journal.before.length) await AsyncStorage.multiSet(journal.before)
+  await removeDataNow(restoreJournalKey)
+}
+
+// Run before any startup reads. An interrupted restore returns to the previous snapshot.
+export const recoverPendingStorageRestore = async() => queueWrite(async() => {
+  const journal = await getData<RestoreJournal>(restoreJournalKey)
+  if (journal) await rollbackRestore(journal)
+})
+
+export const replaceStorageSnapshot = async(records: Array<[string, unknown]>, include: (key: string) => boolean) => queueWrite(async() => {
+  const currentKeys = (await getAllKeys()).filter(key => !key.startsWith(partKeyPrefix) && !key.startsWith(partKeyArrPrefix) && include(key))
+  if (new Set(records.map(([key]) => key)).size != records.length || records.some(([key]) => !include(key))) throw new Error('备份包含无效或重复的数据键')
+  const encoded: Array<[string, string]> = []
+  for (const [key, value] of records) buildData(key, value, encoded)
+  const oldRaw = await AsyncStorage.multiGet(await getAllKeys())
+  const affected = new Set(currentKeys)
+  for (const [key, value] of oldRaw) {
+    if (!affected.has(key) || !value) continue
+    if (value.startsWith(partKeyArrPrefix)) for (const part of JSON.parse(value.slice(partKeyArrPrefix.length)) as string[]) affected.add(part)
+    else if (value.startsWith(partKeyPrefix)) for (const part of value.slice(partKeyPrefix.length).split(keySplit)) affected.add(part)
+  }
+  const journal: RestoreJournal = {
+    before: oldRaw.filter((pair): pair is [string, string] => affected.has(pair[0]) && pair[1] != null),
+    replacementKeys: encoded.map(([key]) => key),
+  }
+  await writeData(restoreJournalKey, journal)
+  try {
+    if (affected.size) await AsyncStorage.multiRemove([...affected])
+    if (encoded.length) await AsyncStorage.multiSet(encoded)
+    const verified = await AsyncStorage.multiGet(encoded.map(([key]) => key))
+    if (verified.some(([key, value], index) => key != encoded[index][0] || value != encoded[index][1])) throw new Error('恢复数据校验失败')
+    await removeDataNow(restoreJournalKey)
+    writes.frozen = true
+  } catch (error) {
+    try { await rollbackRestore(journal) } catch {
+      writes.frozen = true
+      const recoveryError = new Error('恢复失败，旧数据恢复尚未完成；重新打开软件会再次尝试恢复旧数据')
+      recoveryError.name = 'StorageRestoreRecoveryError'
+      throw recoveryError
+    }
+    throw error
+  }
+})
