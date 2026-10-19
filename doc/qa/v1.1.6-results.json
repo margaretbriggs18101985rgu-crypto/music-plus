@@ -66,5 +66,94 @@
   "limits": [
     "Layout fixture checks do not establish real-song playback or beat alignment.",
     "Physical-device audio, Bluetooth latency, long-duration power and OEM behavior were not measured during this release."
-  ]
+  ],
+  "existing_task_removal_evidence": {
+    "audio": "generated local QA tone through actual RN TrackPlayer service",
+    "home_continues": true,
+    "lock_continues": true,
+    "recents_continues": true,
+    "task_removed": true,
+    "no_restart": true,
+    "samples": [
+      {
+        "ms_from_swipe_start": 437,
+        "players": [
+          "AudioPlaybackConfiguration piid:159 deviceIds:[2] type:android.media.AudioTrack u/pid:10236/16858 state:started attr:AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_MUSIC flags=0xA00(FLAG_DEEP_BUFFER+FLAG_MUTE_HAPTIC)  tags= bundle=null sessionId:145 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}"
+        ]
+      },
+      {
+        "ms_from_swipe_start": 623,
+        "players": [
+          "AudioPlaybackConfiguration piid:159 deviceIds:[2] type:android.media.AudioTrack u/pid:10236/16858 state:started attr:AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_MUSIC flags=0xA00(FLAG_DEEP_BUFFER+FLAG_MUTE_HAPTIC)  tags= bundle=null sessionId:145 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}"
+        ]
+      },
+      {
+        "ms_from_swipe_start": 807,
+        "players": []
+      }
+    ],
+    "physical_output_latency_tested": false,
+    "scope": "Prior Debug emulator QA tone; Android AudioTrack state only, not a new Release runtime test."
+  },
+  "signing_reference": {
+    "public_release": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/tag/v1.1.5",
+    "universal_sha256": "bc5c7d5626935d4a7a352e5889ececd863072e87060e28e1653d8544441c7665",
+    "public_digest_rechecked": true
+  },
+  "public_release_verification": {
+    "status": "verified",
+    "url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/tag/v1.1.6",
+    "tag": "v1.1.6",
+    "published_at": "2026-10-19T09:51:07Z",
+    "workflow_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/actions/runs/39232215199",
+    "source_commit": "52c2f4eb678383867964de0582d11eb751b772de",
+    "assets": [
+      {
+        "name": "music-plus-v1.1.6-arm64-v8a.apk",
+        "size": 31108469,
+        "digest": "sha256:6b5f8b5d4dffabc2a16d89fe6c9d529d123a5851970e8b551cd7b182a06946f5",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.6/music-plus-v1.1.6-arm64-v8a.apk"
+      },
+      {
+        "name": "music-plus-v1.1.6-armeabi-v7a.apk",
+        "size": 30075647,
+        "digest": "sha256:3cabe979d542f4066fe184431f4fe8d5b82b262a174022e47ebaed1908d66d73",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.6/music-plus-v1.1.6-armeabi-v7a.apk"
+      },
+      {
+        "name": "music-plus-v1.1.6-universal.apk",
+        "size": 46379622,
+        "digest": "sha256:bd37fc3c10087cbbfe38bbfeb53a3a3c6b66edcc28882df4da39da0fd262e168",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.6/music-plus-v1.1.6-universal.apk"
+      },
+      {
+        "name": "music-plus-v1.1.6-x86.apk",
+        "size": 31556348,
+        "digest": "sha256:1bc939c3348ffa6268a9feeccb9aed71a870cc5920f90b4825f63da27b119932",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.6/music-plus-v1.1.6-x86.apk"
+      },
+      {
+        "name": "music-plus-v1.1.6-x86_64.apk",
+        "size": 31436656,
+        "digest": "sha256:ddb2c97531e2712ffc18595ab34fb83261c0c8afb7f50d5dd7d728d15214900e",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.6/music-plus-v1.1.6-x86_64.apk"
+      },
+      {
+        "name": "SHA256SUMS.txt",
+        "size": 483,
+        "digest": "sha256:c4bfcdb547a0d5befb6173a6c0c3e0ef38b6628fe592cd26d7c782c91989d159",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.6/SHA256SUMS.txt"
+      }
+    ],
+    "downloaded_universal": {
+      "name": "music-plus-v1.1.6-universal.apk",
+      "bytes": 46379622,
+      "sha256": "bd37fc3c10087cbbfe38bbfeb53a3a3c6b66edcc28882df4da39da0fd262e168",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 8,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "licenses_and_fonts_present": true
+    }
+  }
 }
