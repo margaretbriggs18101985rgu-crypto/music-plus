@@ -30,6 +30,7 @@ data class VinylPlayerState(
     val particleQuality: String = "auto",
     val lyricMotionEnabled: Boolean = true,
     val lyricPulseEnabled: Boolean = true,
+    val starPulseEnabled: Boolean = true,
     val lyricDisplayMode: String = "single",
     val lyricColor: String = "#A8F6FF",
     val lyricFontSize: Float = 40f,

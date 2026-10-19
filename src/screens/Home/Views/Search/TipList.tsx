@@ -70,6 +70,7 @@ export default forwardRef<TipListType, TipListProps>(({ onSearch }, ref) => {
 
   useImperativeHandle(ref, () => ({
     search(keyword, height) {
+      visibleListRef.current = true
       if (visible) handleSearch(keyword, height)
       else {
         setVisible(true)
@@ -89,10 +90,8 @@ export default forwardRef<TipListType, TipListProps>(({ onSearch }, ref) => {
       }
     },
     hide() {
-      requestAnimationFrame(() => {
-        visibleListRef.current = false
-        searchTipListRef.current?.setList([])
-      })
+      visibleListRef.current = false
+      searchTipListRef.current?.setList([])
     },
   }), [visible])
 

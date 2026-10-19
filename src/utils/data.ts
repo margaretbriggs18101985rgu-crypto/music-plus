@@ -233,8 +233,10 @@ export const saveSearchSetting = async(setting: Partial<typeof DEFAULT_SETTING['
 }
 
 export const getSearchHistory = async() => {
-  // eslint-disable-next-line require-atomic-updates
-  searchHistoryList ??= await getData(searchHistoryListKey) ?? []
+  if (!searchHistoryList) {
+    const stored = await getData<string[]>(searchHistoryListKey)
+    searchHistoryList ??= stored ?? []
+  }
   return [...searchHistoryList]
 }
 export const saveSearchHistory = async(historyList: typeof searchHistoryList) => {

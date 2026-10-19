@@ -42,4 +42,16 @@ class ImmersiveVisualConfigTest {
         assertFalse(policy.animate); assertFalse(policy.lyricMotion); assertEquals(3600, policy.particleCount)
         assertTrue(resolveAmbientPolicy(config.copy(respectReducedMotion = false), foreground.copy(systemMotion = false), true).animate)
     }
+
+    @Test fun lyricAndStarRhythmCanBeDisabledIndependentlyWithoutStoppingTransitionsOrDrift() {
+        for (lyric in listOf(true, false)) for (star in listOf(true, false)) {
+            val mapped = visualConfigForState(VinylPlayerState(lyricPulseEnabled = lyric, starPulseEnabled = star))
+            val policy = resolveAmbientPolicy(mapped, foreground, true)
+            assertEquals(lyric, policy.lyricPulse)
+            assertEquals(star, policy.starPulse)
+            assertTrue(policy.lyricMotion)
+            assertTrue(policy.animate)
+            assertEquals(3600, policy.particleCount)
+        }
+    }
 }

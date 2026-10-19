@@ -17,22 +17,38 @@ export const setTipList: typeof searchActions['setTipList'] = (list) => {
   searchActions.setTipList(list)
 }
 
+let historyLoaded = false
+let historyLoad: Promise<void> | null = null
+
 export const getSearchHistory = async() => {
-  if (!searchState.historyList.length) searchActions.setHistoryWord(await getSearchHistoryFromStore())
-  return searchState.historyList
+  if (!historyLoaded) {
+    historyLoad ??= getSearchHistoryFromStore().then(list => {
+      // A clear or removal during the disk read must take precedence.
+      if (historyLoaded) return
+      searchActions.setHistoryWord(list)
+      historyLoaded = true
+    }).finally(() => { historyLoad = null })
+    await historyLoad
+  }
+  return [...searchState.historyList]
 }
 export const addHistoryWord = async(word: string) => {
+  word = word.trim()
   if (!settingState.setting['search.isShowHistorySearch'] || !word) return
-  if (!searchState.historyList.length) searchActions.setHistoryWord(await getSearchHistoryFromStore())
+  await getSearchHistory()
+  if (!settingState.setting['search.isShowHistorySearch']) return
   const list = searchActions.addHistoryWord(word)
   if (!list) return
   void saveSearchHistory(list)
 }
 export const removeHistoryWord = (index: number) => {
+  if (index < 0 || index >= searchState.historyList.length) return
+  historyLoaded = true
   const list = searchActions.removeHistoryWord(index)
   void saveSearchHistory(list)
 }
 export const clearHistoryList = () => {
+  historyLoaded = true
   const list = searchActions.clearHistoryList()
   void saveSearchHistory(list)
 }

@@ -128,6 +128,49 @@ test('poll started before a seek cannot rewind the confirmed progress or lyric c
   } finally { global.app_event = oldGlobal; global.state_event = oldState }
 })
 
+test('overlapping position polls keep the newest native clock reading', async() => {
+  const oldPoll = deferred(); const newPoll = deferred()
+  const listeners = {}; const positions = []
+  const player = {
+    musicInfo: { id: 'song' },
+    isPlay: true,
+    progress: { nowPlayTime: 10, maxPlayTime: 180 },
+    playMusicInfo: { isTempPlay: true },
+  }
+  let reads = 0; let tick
+  const oldGlobal = global.app_event; const oldState = global.state_event
+  global.app_event = { on: (name, callback) => { listeners[name] = callback }, seekCompleted: () => {} }
+  global.state_event = { on: (name, callback) => { listeners[`state:${name}`] = callback } }
+  try {
+    load('src/core/init/player/playProgress.ts', {
+      '@/core/list': {},
+      '@/core/player/progress': { setNowPlayTime: time => positions.push(time), setMaxplayTime: () => {} },
+      '@/plugins/player': {
+        setCurrentTime: async() => {},
+        getDuration: async() => 180,
+        getPosition: () => ++reads == 1 ? oldPoll.promise : newPoll.promise,
+      },
+      '@/utils/common': {},
+      '@/utils/data': {},
+      '@/utils/tools': { throttleBackgroundTimer: fn => fn },
+      'react-native-background-timer': { setInterval: callback => { tick = callback; return 1 }, clearInterval: () => {} },
+      '@/store/player/state': { __esModule: true, default: player },
+      '@/store/setting/state': { __esModule: true, default: { setting: { 'player.playbackRate': 1 } } },
+      '@/utils/nativeModules/utils': { onScreenStateChange: () => {} },
+      'react-native': { AppState: { addEventListener: () => {} } },
+      '@/core/player/seek': { createPlaybackSeeker },
+      '@/core/lyric': { syncPosition: () => {} },
+    }).default()
+    listeners.play()
+    tick()
+    newPoll.resolve(90)
+    await flush()
+    oldPoll.resolve(10)
+    await flush()
+    assert.deepEqual(positions, [90])
+  } finally { global.app_event = oldGlobal; global.state_event = oldState }
+})
+
 test('paused lyric seeks render the confirmed line and remain paused', () => {
   const played = []; const paused = []
   const player = { isPlay: false, musicInfo: { id: 'song' } }

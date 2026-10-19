@@ -11,6 +11,7 @@ const items = [
   { id: 'nav_search', label: 'nav_search' },
   { id: 'nav_songlist', label: 'nav_songlist' },
   { id: 'nav_top', label: 'ui_nav_charts' },
+  { id: 'nav_report', label: 'nav_report' },
   { id: 'nav_love', label: 'ui_nav_library' },
   { id: 'nav_setting', label: 'nav_setting' },
 ] as const

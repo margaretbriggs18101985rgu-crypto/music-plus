@@ -26,12 +26,15 @@ internal data class ImmersiveVisualConfig(
     val respectReducedMotion: Boolean = true,
     val backgroundMotion: Boolean = true,
     val particleQuality: ParticleQuality = ParticleQuality.Auto,
+    val lyricPulseEnabled: Boolean = true,
+    val starPulseEnabled: Boolean = true,
 )
 
 internal data class ImmersiveEnvironment(val foreground: Boolean = false, val systemMotion: Boolean = true,
     val lowRam: Boolean = false, val powerSave: Boolean = false)
 
-internal data class AmbientPolicy(val animate: Boolean, val particleCount: Int, val lyricMotion: Boolean, val colorMotion: Boolean)
+internal data class AmbientPolicy(val animate: Boolean, val particleCount: Int, val lyricMotion: Boolean, val colorMotion: Boolean,
+    val lyricPulse: Boolean = false, val starPulse: Boolean = false)
 
 internal fun resolveAmbientPolicy(config: ImmersiveVisualConfig, environment: ImmersiveEnvironment, stageVisible: Boolean): AmbientPolicy {
     val allowed = config.visualEffectsEnabled && environment.foreground &&
@@ -44,7 +47,8 @@ internal fun resolveAmbientPolicy(config: ImmersiveVisualConfig, environment: Im
         else -> 3600
     }
     return AmbientPolicy(allowed && stageVisible && config.backgroundMotion,
-        count, allowed && config.lyricMotionEnabled, allowed)
+        count, allowed && config.lyricMotionEnabled, allowed,
+        allowed && config.lyricPulseEnabled, allowed && config.starPulseEnabled)
 }
 
 @Composable
@@ -89,6 +93,8 @@ internal fun visualConfigForState(state: VinylPlayerState) = ImmersiveVisualConf
     lyricMotionEnabled = state.lyricMotionEnabled,
     respectReducedMotion = state.respectReducedMotion,
     backgroundMotion = state.backgroundMotion,
+    lyricPulseEnabled = state.lyricPulseEnabled,
+    starPulseEnabled = state.starPulseEnabled,
     particleQuality = when (state.particleQuality) {
         "low" -> ParticleQuality.Low
         "high" -> ParticleQuality.High

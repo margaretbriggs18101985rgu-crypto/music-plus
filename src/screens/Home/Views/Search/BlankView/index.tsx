@@ -2,7 +2,6 @@ import { useSettingValue } from '@/store/setting/hook'
 import { createStyle } from '@/utils/tools'
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react'
 import { RefreshControl, ScrollView, View } from 'react-native'
-import HistorySearch, { type HistorySearchType } from './HistorySearch'
 import HotSearch, { type HotSearchType } from './HotSearch'
 import ListeningHome from './ListeningHome'
 
@@ -23,9 +22,7 @@ export default forwardRef<BlankViewType, BlankViewProps>(({ onSearch }, ref) => 
   const refreshKeyRef = useRef(0)
   const completedRefreshParts = useRef(new Set<string>())
   const hotSearchRef = useRef<HotSearchType>(null)
-  const historySearchRef = useRef<HistorySearchType>(null)
   const isShowHotSearch = useSettingValue('search.isShowHotSearch')
-  const isShowHistorySearch = useSettingValue('search.isShowHistorySearch')
   const onRefresh = useCallback(() => {
     const key = refreshKeyRef.current + 1
     refreshKeyRef.current = key
@@ -41,7 +38,6 @@ export default forwardRef<BlankViewType, BlankViewProps>(({ onSearch }, ref) => 
 
   const handleShow = (source: Source) => {
     hotSearchRef.current?.show(source)
-    historySearchRef.current?.show()
   }
 
   useImperativeHandle(ref, () => ({
@@ -66,7 +62,6 @@ export default forwardRef<BlankViewType, BlankViewProps>(({ onSearch }, ref) => 
               <View style={styles.content}>
                 <ListeningHome refreshKey={refreshKey} onRefreshComplete={onRefreshComplete} />
                 { isShowHotSearch ? <HotSearch ref={hotSearchRef} onSearch={onSearch} /> : null }
-                { isShowHistorySearch ? <HistorySearch ref={historySearchRef} onSearch={onSearch} /> : null }
               </View>
             </ScrollView>
         )

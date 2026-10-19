@@ -2,10 +2,11 @@ package cn.toside.music.mobile.vinyl
 
 import kotlin.math.floor
 
-internal fun lyricScrollWindow(cursor: Float, count: Int): IntRange {
+internal fun lyricScrollWindow(cursor: Float, count: Int, radius: Int = 4): IntRange {
     if (count <= 0) return IntRange.EMPTY
     val center = floor(if (cursor.isFinite()) cursor else 0f).toInt().coerceIn(0, count - 1)
-    return (center - 4).coerceAtLeast(0)..(center + 4).coerceAtMost(count - 1)
+    val boundedRadius = radius.coerceIn(4, 16)
+    return (center - boundedRadius).coerceAtLeast(0)..(center + boundedRadius).coerceAtMost(count - 1)
 }
 
 internal fun lyricRowCenters(heights: IntArray, gap: Float): FloatArray {

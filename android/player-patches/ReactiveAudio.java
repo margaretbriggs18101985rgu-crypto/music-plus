@@ -1,7 +1,6 @@
 package com.guichaguri.trackplayer.service.player;
 
 import android.content.Context;
-import android.os.Handler;
 import android.os.SystemClock;
 import androidx.media3.common.C;
 import androidx.media3.common.TrackSelectionParameters;
@@ -27,7 +26,6 @@ public final class ReactiveAudio extends DefaultRenderersFactory implements TeeA
     private static volatile int generation;
     private static volatile AnalysisConfig config = new AnalysisConfig(true, 45, 170, 1);
     private static ExoPlayer currentPlayer;
-    private static TrackSelectionParameters.AudioOffloadPreferences savedOffload;
     private static int users;
     private int channels = 2, encoding = C.ENCODING_PCM_16BIT;
     private AudioBands bands = new AudioBands(44100);
@@ -96,7 +94,9 @@ public final class ReactiveAudio extends DefaultRenderersFactory implements TeeA
 
     public static void attach(ExoPlayer player) {
         currentPlayer = player;
-        if (enabled) updateOffload(player, true);
+        // The PCM tap and audio offload are mutually exclusive. Set this once while
+        // the player has no media, then keep it stable across screen lifecycles.
+        disableOffload(player);
     }
 
     // Called only on the UI thread by the visible lyric stage.
@@ -106,24 +106,17 @@ public final class ReactiveAudio extends DefaultRenderersFactory implements TeeA
     private static void setEnabled(boolean value) {
         enabled = value;
         resetAnalysis();
-        ExoPlayer player = currentPlayer;
-        if (player != null) new Handler(player.getApplicationLooper()).post(() -> {
-            if (currentPlayer == player) updateOffload(player, enabled);
-        });
     }
 
-    private static void updateOffload(ExoPlayer player, boolean active) {
+    private static void disableOffload(ExoPlayer player) {
         TrackSelectionParameters parameters = player.getTrackSelectionParameters();
-        if (active) {
-            if (savedOffload == null) savedOffload = parameters.audioOffloadPreferences;
-            player.setTrackSelectionParameters(parameters.buildUpon().setAudioOffloadPreferences(
-                new TrackSelectionParameters.AudioOffloadPreferences.Builder()
-                    .setAudioOffloadMode(TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED)
-                    .build()).build());
-        } else if (savedOffload != null) {
-            player.setTrackSelectionParameters(parameters.buildUpon().setAudioOffloadPreferences(savedOffload).build());
-            savedOffload = null;
-        }
+        TrackSelectionParameters.AudioOffloadPreferences current = parameters.audioOffloadPreferences;
+        player.setTrackSelectionParameters(parameters.buildUpon().setAudioOffloadPreferences(
+            new TrackSelectionParameters.AudioOffloadPreferences.Builder()
+                .setAudioOffloadMode(TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED)
+                .setIsGaplessSupportRequired(current.isGaplessSupportRequired)
+                .setIsSpeedChangeSupportRequired(current.isSpeedChangeSupportRequired)
+                .build()).build());
     }
 
     /** Select PCM at the AudioTrack presentation position, not the decoder's read-ahead head. */
@@ -144,7 +137,7 @@ public final class ReactiveAudio extends DefaultRenderersFactory implements TeeA
     }
 
     public static void detach(ExoPlayer player) {
-        if (currentPlayer == player) { currentPlayer = null; savedOffload = null; resetAnalysis(); }
+        if (currentPlayer == player) { currentPlayer = null; resetAnalysis(); }
     }
 
     @Override

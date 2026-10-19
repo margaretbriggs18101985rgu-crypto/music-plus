@@ -1,0 +1,70 @@
+{
+  "version": "1.1.6",
+  "version_code": 8,
+  "checks": {
+    "typecheck": "passed",
+    "eslint": "passed",
+    "js_tests": 170,
+    "release_android_tests": 56,
+    "signed_apks": 5,
+    "sha256_verified": true,
+    "signature_matches_public_v1_1_5": true
+  },
+  "local_apks": [
+    {
+      "name": "music-plus-v1.1.6-universal.apk",
+      "bytes": 46381081,
+      "sha256": "775f1614fd1c95826a6e194667f47e55f00643ea14abe40be208ae7ecdd998b3",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 8,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "licenses_and_fonts_present": true
+    },
+    {
+      "name": "music-plus-v1.1.6-arm64-v8a.apk",
+      "bytes": 31109943,
+      "sha256": "4049fd24302576bdc3dd210466f79668e94097c7f4077d67c2b6da1c6a67bcf9",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 8003,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "licenses_and_fonts_present": true
+    },
+    {
+      "name": "music-plus-v1.1.6-armeabi-v7a.apk",
+      "bytes": 30077108,
+      "sha256": "2c2c7ca4b431b4d98df69ab016167a2079da61f0233b8fe3587115b75dad5e40",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 8001,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "licenses_and_fonts_present": true
+    },
+    {
+      "name": "music-plus-v1.1.6-x86_64.apk",
+      "bytes": 31438111,
+      "sha256": "cd5fe359f7fdcfddb83e98777ee40944ed5b29731aba5a1226620f6abc9270c7",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 8004,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "licenses_and_fonts_present": true
+    },
+    {
+      "name": "music-plus-v1.1.6-x86.apk",
+      "bytes": 31557790,
+      "sha256": "541e6e45959cdf2de0587a70c0c40099aceea2cb9c37388eb64c350e945b0a75",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 8002,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "licenses_and_fonts_present": true
+    }
+  ],
+  "existing_ui_evidence": "doc/qa/2026-10-19-player-viewport-and-rhythm.md",
+  "limits": [
+    "Layout fixture checks do not establish real-song playback or beat alignment.",
+    "Physical-device audio, Bluetooth latency, long-duration power and OEM behavior were not measured during this release."
+  ]
+}

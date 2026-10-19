@@ -41,6 +41,9 @@ internal fun ImmersiveLyricStage(state: VinylPlayerState, drag: LyricStageDrag, 
     Box(modifier.fillMaxWidth().clipToBounds().pointerInput(state.trackId, motionEnabled) {
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+            // Revealing chrome on down can recompose the stage. Keep the action
+            // chosen at the start so that the same tap cannot also switch pages.
+            val tap = currentTap
             onInteraction()
             inertia?.cancel()
             val velocity = VelocityTracker()
@@ -54,7 +57,7 @@ internal fun ImmersiveLyricStage(state: VinylPlayerState, drag: LyricStageDrag, 
                     val change = event.changes.firstOrNull { it.id == down.id } ?: break
                     if (event.changes.count { it.pressed } > 1 || change.isConsumed) break
                     if (!change.pressed) {
-                        if (drag.dragging || currentTap != null) change.consume()
+                        if (drag.dragging || tap != null) change.consume()
                         released = true
                         upAt = change.uptimeMillis
                         break
@@ -87,13 +90,14 @@ internal fun ImmersiveLyricStage(state: VinylPlayerState, drag: LyricStageDrag, 
                         if (BuildConfig.DEBUG) Log.d("LyricRotation", "settled pitch=${drag.rotation.pitch} yaw=${drag.rotation.yaw}")
                     }
                 } else if (released && !wasDragging && upAt - down.uptimeMillis < viewConfiguration.longPressTimeoutMillis) {
-                    currentTap?.invoke()
+                    tap?.invoke()
                 }
             }
         }
     }) {
         PlayerLyrics(state, Modifier.fillMaxSize().graphicsLayer {
-            val camera = stageCamera(audio.value, state.reactiveVisuals, motionEnabled && state.isPlaying)
+            val camera = stageCamera(if (pulseEnabled) audio.value else AudioMotion(), state.reactiveVisuals,
+                motionEnabled && pulseEnabled && state.isPlaying)
             rotationY = drag.rotation.yaw + camera.yaw
             rotationX = drag.rotation.pitch + camera.pitch
             scaleX = camera.scale

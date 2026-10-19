@@ -25,6 +25,7 @@ export default () => {
   // const updateMusicInfo = useCommit('list', 'updateMusicInfo')
 
   let updateTimeout: number | null = null
+  let positionRequest = 0
 
   let isScreenOn = true
 
@@ -43,9 +44,12 @@ export default () => {
   const getCurrentTime = () => {
     if (seeker.busy) return
     const revision = seeker.revision
-    let id = playerState.musicInfo.id
+    const request = ++positionRequest
+    const id = playerState.musicInfo.id
     void getPosition().then(position => {
-      if (!Number.isFinite(position) || id != playerState.musicInfo.id || revision != seeker.revision || seeker.busy) return
+      // BackgroundTimer can start another read before the native promise resolves.
+      // An older response must never move the UI clock backwards.
+      if (request != positionRequest || !Number.isFinite(position) || id != playerState.musicInfo.id || revision != seeker.revision || seeker.busy) return
       setNowPlayTime(position)
       syncLyricPosition(position)
       if (!playerState.isPlay) return

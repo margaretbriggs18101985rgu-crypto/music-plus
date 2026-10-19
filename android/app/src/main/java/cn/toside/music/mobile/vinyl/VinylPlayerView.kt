@@ -106,6 +106,7 @@ class VinylPlayerView(context: ThemedReactContext) : FrameLayout(context) {
             particleQuality = if (map.hasKey("particleQuality") && map.getType("particleQuality") == ReadableType.String) string("particleQuality", "auto") else "auto",
             lyricMotionEnabled = bool("lyricMotionEnabled", true),
             lyricPulseEnabled = bool("lyricPulseEnabled", true),
+            starPulseEnabled = bool("starPulseEnabled", true),
             lyricDisplayMode = string("lyricDisplayMode", "single").let { if (it == "multiple") it else "single" },
             lyricColor = string("lyricColor", "#A8F6FF"),
             lyricFontSize = if (map.hasKey("lyricFontSize")) number("lyricFontSize").toFloat().let { if (it.isFinite()) it.coerceIn(16f, 56f) else 40f } else 40f,

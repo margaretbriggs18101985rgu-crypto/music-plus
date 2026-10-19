@@ -30,4 +30,9 @@ class LyricScrollGeometryTest {
         assertEquals(0..0, lyricScrollWindow(Float.NaN, 1))
         assertEquals(0f, lyricCameraCenter(3f, 0, floatArrayOf()), 0f)
     }
+
+    @Test fun tallViewportsCanRenderMoreContextWithoutUnboundedWork() {
+        assertEquals(2..18, lyricScrollWindow(10f, 100, 8))
+        assertEquals(34..66, lyricScrollWindow(50f, 5000, 1000))
+    }
 }

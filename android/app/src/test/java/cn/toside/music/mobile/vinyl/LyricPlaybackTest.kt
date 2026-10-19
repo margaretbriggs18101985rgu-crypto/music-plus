@@ -33,4 +33,21 @@ class LyricPlaybackTest {
         assertEquals(12.0, lyricSeekAtIndex(lines, 2, 212.0, true)!!, 0.0)
         assertEquals("second", lines[2].text)
     }
+
+    @Test fun lyricHighlightFollowsActualLineWindow() {
+        val lines = listOf(VinylLyricLine(10_000.0, "first"), VinylLyricLine(14_000.0, "second"), VinylLyricLine(20_000.0, "last"))
+        assertEquals(0f, lyricHighlightProgress(lines, 0, 9.5, 30.0, 0), 0f)
+        assertEquals(.5f, lyricHighlightProgress(lines, 0, 12.0, 30.0, 0), .0001f)
+        assertEquals(1f, lyricHighlightProgress(lines, 0, 14.0, 30.0, 1), 0f)
+        assertEquals(0f, lyricHighlightProgress(lines, 2, 15.0, 30.0, 1), 0f)
+        assertEquals(1f / 3f, lyricHighlightProgress(lines, 2, 23.333333, 30.0, 2), .0001f)
+    }
+
+    @Test fun lyricHighlightUsesDurationForFinalLineAndRejectsBadTimes() {
+        val lines = listOf(VinylLyricLine(10_000.0, "last"))
+        assertEquals(.5f, lyricHighlightProgress(lines, 0, 20.0, 30.0, 0), .0001f)
+        assertEquals(0f, lyricHighlightProgress(lines, 0, 20.0, Double.NaN, 0), 0f)
+        assertEquals(0f, lyricHighlightProgress(lines, 0, Double.NaN, 30.0, 0), 0f)
+        assertEquals(0f, lyricHighlightProgress(lines, 0, 20.0, 30.0, -1), 0f)
+    }
 }

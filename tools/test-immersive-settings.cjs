@@ -51,6 +51,7 @@ test('old saved settings gain immersive defaults without changing existing prefe
   assert.equal(setting['player.particleQuality'], 'auto')
   assert.equal(setting['player.lyricMotionEnabled'], true)
   assert.equal(setting['player.lyricPulseEnabled'], true)
+  assert.equal(setting['player.starPulseEnabled'], true)
   assert.equal(setting['player.lyricDisplayMode'], 'single')
   assert.equal(setting['player.lyricColor'], '#A8F6FF')
   assert.equal(setting['player.lyricFontFamily'], 'system')
@@ -71,6 +72,7 @@ test('disabled effects and an explicit particle selection survive the real setti
     'player.particleQuality': 'low',
     'player.lyricMotionEnabled': false,
     'player.lyricPulseEnabled': false,
+    'player.starPulseEnabled': false,
     'player.backgroundMotion': false,
     'player.respectReducedMotion': false,
     'player.lyricDisplayMode': 'multiple',
@@ -82,10 +84,27 @@ test('disabled effects and an explicit particle selection survive the real setti
   assert.deepEqual((await second.settings.initSetting()).setting, setting)
   assert.equal(setting['player.particleQuality'], 'low')
   assert.equal(setting['player.lyricPulseEnabled'], false)
+  assert.equal(setting['player.starPulseEnabled'], false)
   assert.equal(setting['player.immersiveVisualsEnabled'], false)
   assert.equal(setting['player.lyricDisplayMode'], 'multiple')
   assert.equal(setting['player.lyricColor'], '#FF9FCF')
   assert.equal(setting['player.lyricFontFamily'], 'wenkai')
+})
+
+test('lyric and star rhythm switches persist independently of transitions and star drift', async() => {
+  for (const lyric of [true, false]) {
+    for (const star of [true, false]) {
+      const f = settingsFixture({ 'player.lyricMotionEnabled': true, 'player.backgroundMotion': true, 'player.volume': 0.35 })
+      f.state.setting = (await f.settings.initSetting()).setting
+      const { setting } = f.settings.updateSetting({ 'player.lyricPulseEnabled': lyric, 'player.starPulseEnabled': star })
+      const restored = (await settingsFixture(structuredClone(setting)).settings.initSetting()).setting
+      assert.equal(restored['player.lyricPulseEnabled'], lyric)
+      assert.equal(restored['player.starPulseEnabled'], star)
+      assert.equal(restored['player.lyricMotionEnabled'], true)
+      assert.equal(restored['player.backgroundMotion'], true)
+      assert.equal(restored['player.volume'], 0.35)
+    }
+  }
 })
 
 test('page typography persists independently of lyric typography and playback', async() => {

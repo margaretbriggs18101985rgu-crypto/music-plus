@@ -36,6 +36,7 @@ export default memo(() => {
   const enabled = useSettingValue('player.immersiveVisualsEnabled')
   const lyricMotion = useSettingValue('player.lyricMotionEnabled')
   const lyricPulse = useSettingValue('player.lyricPulseEnabled')
+  const starPulse = useSettingValue('player.starPulseEnabled')
   const backgroundMotion = useSettingValue('player.backgroundMotion')
   const respectReducedMotion = useSettingValue('player.respectReducedMotion')
   const quality = useSettingValue('player.particleQuality')
@@ -45,6 +46,7 @@ export default memo(() => {
     { key: 'player.immersiveVisualsEnabled', check: enabled, label: t('setting_play_immersive_enabled'), disabled: false },
     { key: 'player.lyricMotionEnabled', check: lyricMotion, label: t('setting_play_immersive_lyric_motion'), disabled: !enabled },
     { key: 'player.lyricPulseEnabled', check: lyricPulse, label: t('setting_play_immersive_lyric_pulse'), disabled: !enabled },
+    { key: 'player.starPulseEnabled', check: starPulse, label: t('setting_play_immersive_star_pulse'), disabled: !enabled },
     { key: 'player.backgroundMotion', check: backgroundMotion, label: t('setting_play_immersive_background_motion'), disabled: !enabled },
     { key: 'player.respectReducedMotion', check: respectReducedMotion, label: t('setting_play_immersive_reduced_motion'), disabled: !enabled },
   ] as const

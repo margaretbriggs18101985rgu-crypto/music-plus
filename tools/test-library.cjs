@@ -11,6 +11,7 @@ function library(seed = {}) {
   const intervals = new Map()
   let intervalId = 0
   const state = { isPlay: false, playRate: 1, progress: { nowPlayTime: 0, maxPlayTime: 0 }, playMusicInfo: { musicInfo: null } }
+  const settings = { 'player.isListeningStatsEnabled': true }
   const module = { exports: {} }
   const code = ts.transpileModule(fs.readFileSync('src/core/music/library.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText
   global.state_event = events
@@ -19,13 +20,76 @@ function library(seed = {}) {
   new Function('module', 'exports', 'require', code)(module, module.exports, id => {
     if (id === 'react-native') return { DeviceEventEmitter: events, NativeModules: {} }
     if (id === 'react-native-background-timer') return { default: { setInterval: callback => { const current = ++intervalId; intervals.set(current, callback); return current }, clearInterval: current => { intervals.delete(current) } } }
-    if (id === '@/plugins/storage') return { getData: async key => structuredClone(saved.get(key) ?? null), saveData: async(key, value) => { await new Promise(resolve => setTimeout(resolve, 2)); saved.set(key, structuredClone(value)) } }
+    if (id === '@/plugins/storage') {
+      return {
+        getData: async key => structuredClone(saved.get(key) ?? null),
+        saveData: async(key, value) => { await new Promise(resolve => setTimeout(resolve, 2)); saved.set(key, structuredClone(value)) },
+        getAllKeys: async() => [...saved.keys()],
+        removeDataMultiple: async keys => { for (const key of keys) saved.delete(key) },
+      }
+    }
     if (id === '@/store/player/state') return { default: state }
+    if (id === '@/store/setting/state') return { default: { setting: settings } }
+    if (id === './recommendation') return { getTrackLanguage: () => 'en', getTrackStyles: () => ['pop'] }
     if (id === '@/config/constant') return { LIST_IDS: { DEFAULT: 'default' } }
     return {}
   })
-  return { api: module.exports, saved, state, events, appEvents, intervals }
+  return { api: module.exports, saved, state, settings, events, appEvents, intervals }
 }
+
+test('listening reports respect local calendar periods and count cross-midnight sessions once', async() => {
+  const monday = new Date(2026, 9, 19, 12).getTime()
+  const track = { id: 'song', name: 'Song', singer: 'Artist A & Artist B', source: 'wy', interval: '03:00', albumName: '' }
+  const { api } = library({
+    '@musicplus_listening_day__2026-10-18': { version: 1, date: '2026-10-18', events: [{ id: 'one', startedAt: new Date(2026, 9, 18, 23, 59).getTime(), track, listenedSeconds: 30, completed: false, startedHere: true }] },
+    '@musicplus_listening_day__2026-10-19': {
+      version: 1,
+      date: '2026-10-19',
+      events: [
+        { id: 'one', startedAt: new Date(2026, 9, 19).getTime(), track, listenedSeconds: 20, completed: false, startedHere: false },
+        { id: 'two', startedAt: new Date(2026, 9, 19, 10).getTime(), track, listenedSeconds: 50, completed: true, startedHere: true },
+      ],
+    },
+  })
+  const day = await api.getListeningReport('day', monday)
+  assert.equal(day.listenedSeconds, 70)
+  assert.equal(day.playCount, 1)
+  assert.equal(day.uniqueSongCount, 1)
+  assert.equal(day.topSong.completedCount, 1)
+  assert.deepEqual(day.topArtist, { name: 'Artist A', playCount: 1 })
+  assert.equal(day.topLanguage.id, 'en')
+  assert.equal(day.topStyle.id, 'pop')
+  assert.equal(day.hourDistribution[10], 1)
+  assert.equal(day.hourDistribution.reduce((a, b) => a + b, 0), 1)
+  assert.equal((await api.getListeningReport('week', monday)).playCount, 1)
+  const month = await api.getListeningReport('month', monday)
+  assert.equal(month.playCount, 2)
+  assert.equal(month.listenedSeconds, 100)
+  assert.equal((await api.getListeningReport('year', monday)).listenedSeconds, 100)
+  assert.equal((await api.getListeningReport('day', new Date(2026, 9, 20).getTime())).hasEvents, false)
+  assert.deepEqual(await api.getTrackListeningSummary('song'), { firstPlayedAt: new Date(2026, 9, 18, 23, 59).getTime(), playCount: 2, listenedSeconds: 100 })
+})
+
+test('disabling listening statistics stops active tracking and clearing preserves unrelated storage', async() => {
+  const { api, state, settings, events, appEvents, intervals, saved } = library({ musicplus_playlist_covers: { custom: 'file:///cover.png' } })
+  const stop = api.startRecentTracking()
+  state.isPlay = true
+  state.playMusicInfo.musicInfo = { id: 'song', name: 'Song' }
+  appEvents.emit('play')
+  await api.setPlaylistCover('barrier', 'file:///barrier.png')
+  assert.equal((await api.getRecentTracks()).length, 1)
+  settings['player.isListeningStatsEnabled'] = false
+  events.emit('configUpdated', ['player.isListeningStatsEnabled'], settings)
+  assert.equal(intervals.size, 0)
+  appEvents.emit('play')
+  assert.equal(intervals.size, 0)
+  await api.clearListeningHistory()
+  assert.deepEqual(await api.getRecentTracks(), [])
+  assert.equal([...saved.keys()].some(key => key.startsWith('@musicplus_listening_day__')), false)
+  assert.equal(saved.get('musicplus_playlist_covers').custom, 'file:///cover.png')
+  assert.deepEqual(await api.getTrackListeningSummary('song'), { firstPlayedAt: null, playCount: 0, listenedSeconds: 0 })
+  stop()
+})
 test('download history migrates the previous job and retains concurrent additions', async() => {
   const old = { id: 1, title: '已有下载' }
   const { api } = library({ musicplus_latest_download: old })

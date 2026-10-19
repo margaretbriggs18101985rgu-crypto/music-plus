@@ -5,6 +5,7 @@ import SongList from '../Views/SongList'
 import Mylist from '../Views/Mylist'
 import Leaderboard from '../Views/Leaderboard'
 import Setting from '../Views/Setting'
+import Report from '../Views/Report'
 import commonState, { type InitState as CommonState } from '@/store/common/state'
 import { createStyle } from '@/utils/tools'
 import PagerView, { type PageScrollStateChangedNativeEvent, type PagerViewOnPageSelectedEvent } from 'react-native-pager-view'
@@ -37,17 +38,24 @@ const SettingPage = () => {
   return visible ? <Setting /> : null
 }
 
+const ReportPage = () => {
+  const visible = useLazyPage('nav_report')
+  return visible ? <Report /> : null
+}
+
 const viewMap = {
   nav_search: 0,
   nav_songlist: 1,
   nav_top: 2,
-  nav_love: 3,
-  nav_setting: 4,
+  nav_report: 3,
+  nav_love: 4,
+  nav_setting: 5,
 }
 const indexMap = [
   'nav_search',
   'nav_songlist',
   'nav_top',
+  'nav_report',
   'nav_love',
   'nav_setting',
 ] as const
@@ -141,6 +149,9 @@ const Main = () => {
       </View>
       <View collapsable={false} key="nav_top" style={styles.pageStyle}>
         <LeaderboardPage />
+      </View>
+      <View collapsable={false} key="nav_report" style={styles.pageStyle}>
+        <ReportPage />
       </View>
       <View collapsable={false} key="nav_love" style={styles.pageStyle}>
         <MylistPage />

@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 private val LyricEase = CubicBezierEasing(.22f, 1f, .36f, 1f)
@@ -50,6 +51,8 @@ private fun SinglePlayerLyrics(state: VinylPlayerState, modifier: Modifier,
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     BoxWithConstraints(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        val typography = lyricViewportTypography((maxWidth - 56.dp).value, maxHeight.value,
+            state.lyricFontSize, density.fontScale, multiple = false)
         val slideDistance = with(density) { 26.dp.roundToPx() }
         val lineIndex = state.activeLyric.takeIf { it in state.lyrics.indices } ?: -1
         AnimatedContent(targetState = lineIndex, contentAlignment = Alignment.Center,
@@ -72,15 +75,20 @@ private fun SinglePlayerLyrics(state: VinylPlayerState, modifier: Modifier,
             }
             val text = line?.text?.takeIf { it.isNotBlank() } ?:
                 if (state.lyrics.isEmpty()) { if (state.hasTrack) "暂无歌词" else "选择歌曲后显示歌词" } else "♪"
-            val font = remember(text, line?.translation, state.lyricFontSize, family, maxWidth, maxHeight, density.fontScale) {
-                var fitted = minOf(state.lyricFontSize, when { text.length > 64 -> 27f; text.length > 32 || maxWidth < 360.dp -> 32f; else -> 44f })
+            val translationFont = typography.translationSp
+            val font = remember(text, line?.translation, typography, family, maxWidth, maxHeight, density.fontScale) {
+                var fitted = typography.fontSp
                 val width = with(density) { (maxWidth - 56.dp).roundToPx() }.coerceAtLeast(1)
-                val available = with(density) { (maxHeight * .85f - if (line?.translation.isNullOrBlank()) 0.dp else 62.dp).toPx() }.coerceAtLeast(32f)
-                while (fitted > 16f) {
+                val translatedHeight = if (line?.translation.isNullOrBlank()) 0 else measurer.measure(line!!.translation,
+                    TextStyle(fontFamily = family, fontSynthesis = synthesis, fontSize = translationFont.sp,
+                        lineHeight = (translationFont * 1.5f).sp), maxLines = 2, constraints = Constraints(maxWidth = width)).size.height +
+                    with(density) { 16.dp.roundToPx() }
+                val available = (with(density) { (maxHeight * .9f).toPx() } - translatedHeight).coerceAtLeast(1f)
+                while (fitted > 12f) {
                     val measured = measurer.measure(text, TextStyle(fontFamily = family, fontSynthesis = synthesis, fontSize = fitted.sp, lineHeight = (fitted * 1.4f).sp,
                         fontWeight = FontWeight.SemiBold), constraints = Constraints(maxWidth = width))
                     if (measured.size.height <= available) break
-                    fitted = (fitted - 2f).coerceAtLeast(16f)
+                    fitted = (fitted - 1f).coerceAtLeast(12f)
                 }
                 fitted
             }
@@ -98,13 +106,15 @@ private fun SinglePlayerLyrics(state: VinylPlayerState, modifier: Modifier,
                 else invisibleToUser()
             }, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 ReactiveLyricText(text, modifier = Modifier.fillMaxWidth(), fx = fx, audio = audio,
-                    reactive = current && state.isPlaying && pulseEnabled, tint = color, style = TextStyle(fontFamily = family, fontSynthesis = synthesis,
+                    reactive = current && state.isPlaying && pulseEnabled, tint = color,
+                    highlightProgress = lyricHighlightProgress(state.lyrics, index, state.position, state.duration, lineIndex),
+                    style = TextStyle(fontFamily = family, fontSynthesis = synthesis,
                     brush = Brush.verticalGradient(listOf(lerp(color, Color.White, .85f), lerp(color, Color.White, .55f))),
                     fontSize = font.sp, lineHeight = (font * 1.4f).sp, fontWeight = FontWeight.SemiBold,
                     textAlign = lyricAlignment(state.lyricAlign), shadow = Shadow(color.copy(alpha = .38f), Offset.Zero, 18f)))
                 if (!line?.translation.isNullOrBlank()) BasicText(line!!.translation, maxLines = 2, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp), style = TextStyle(fontFamily = family, fontSynthesis = synthesis, color = VinylPalette.White.copy(alpha = .68f),
-                        fontSize = 15.sp, lineHeight = 23.sp, textAlign = lyricAlignment(state.lyricAlign)))
+                        fontSize = translationFont.sp, lineHeight = (translationFont * 1.5f).sp, textAlign = lyricAlignment(state.lyricAlign)))
             }
         }
     }
@@ -120,18 +130,21 @@ private fun MultiplePlayerLyrics(state: VinylPlayerState, modifier: Modifier, mo
         if (!motionEnabled || abs(active - camera.value) > 3f) camera.snapTo(active.toFloat())
         else camera.animateTo(active.toFloat(), spring(dampingRatio = 1f, stiffness = 95f, visibilityThreshold = .001f))
     }
-    val window by remember(state.lyrics.size) { derivedStateOf { lyricScrollWindow(camera.value, state.lyrics.size) } }
     val fx = lyricVisuals(state)
     val color = stageColor(Color(lyricColorArgb(state.lyricColor)), fx.colorTension)
     val family = lyricFontFamily(state.lyricFontFamily)
     val synthesis = if (state.lyricFontFamily == "system") FontSynthesis.All else FontSynthesis.None
     val density = LocalDensity.current
     BoxWithConstraints(modifier.clipToBounds().semantics { contentDescription = "多排歌词区域" }, contentAlignment = Alignment.Center) {
-        val font = minOf(state.lyricFontSize, when {
-            maxHeight < 180.dp -> 16f; maxHeight < 300.dp -> 20f
-            maxHeight < 420.dp || maxWidth < 360.dp -> 26f; else -> 32f
-        } / density.fontScale.coerceAtLeast(1f))
-        val gap = when { maxHeight < 300.dp -> 6.dp; maxHeight < 420.dp -> 10.dp; else -> 16.dp }
+        val typography = lyricViewportTypography((maxWidth - 48.dp).value, maxHeight.value,
+            state.lyricFontSize, density.fontScale, multiple = true)
+        val font = typography.fontSp
+        val gap = typography.gapDp.dp
+        val translationFont = typography.translationSp
+        val radius = ceil(maxHeight.value / (font * density.fontScale * 1.38f + typography.gapDp) / 2f).toInt() + 1
+        val window by remember(state.lyrics.size, radius) {
+            derivedStateOf { lyricScrollWindow(camera.value, state.lyrics.size, radius) }
+        }
         Layout(modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp), content = {
             for (index in window) key(index) {
                 val line = state.lyrics[index]
@@ -143,14 +156,15 @@ private fun MultiplePlayerLyrics(state: VinylPlayerState, modifier: Modifier, mo
                     // Emphasis changes layers, never typography/layout, so rows do not reflow.
                     ReactiveLyricText(line.text.ifBlank { "♪" }, modifier = Modifier.fillMaxWidth(), maxLines = 4,
                         fx = fx, audio = audio, reactive = index == active && state.isPlaying && pulseEnabled, tint = color,
+                        highlightProgress = lyricHighlightProgress(state.lyrics, index, state.position, state.duration, active),
                         overflow = TextOverflow.Ellipsis, style = TextStyle(fontFamily = family, fontSynthesis = synthesis, color = textColor,
                             fontSize = font.sp, lineHeight = (font * 1.38f).sp,
                             fontWeight = FontWeight.Bold, textAlign = lyricAlignment(state.lyricAlign),
                             shadow = Shadow(color.copy(alpha = .25f), Offset.Zero, 12f)))
                     if (line.translation.isNotBlank()) BasicText(line.translation, maxLines = 2,
                         overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                        style = TextStyle(fontFamily = family, fontSynthesis = synthesis, color = color.copy(alpha = .62f), fontSize = 14.sp,
-                            lineHeight = 21.sp, textAlign = lyricAlignment(state.lyricAlign)))
+                        style = TextStyle(fontFamily = family, fontSynthesis = synthesis, color = color.copy(alpha = .62f), fontSize = translationFont.sp,
+                            lineHeight = (translationFont * 1.5f).sp, textAlign = lyricAlignment(state.lyricAlign)))
                 }
             }
         }) { measurables, constraints ->

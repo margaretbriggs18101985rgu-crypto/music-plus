@@ -68,6 +68,9 @@ export const storageDataPrefix = {
   songListSetting: '@songist_setting',
   searchSetting: '@search_setting',
 
+  // Listening history is stored in one local bucket per calendar day.
+  listeningDay: '@musicplus_listening_day__',
+
   fontSize: '@font_size',
 
   theme: '@theme',
@@ -101,6 +104,7 @@ export const NAV_MENUS = [
   { id: 'nav_search', icon: 'search-2' },
   { id: 'nav_songlist', icon: 'album' },
   { id: 'nav_top', icon: 'leaderboard' },
+  { id: 'nav_report', icon: 'leaderboard' },
   { id: 'nav_love', icon: 'love' },
   // { id: 'download', icon: 'download-2' },
   { id: 'nav_setting', icon: 'setting' },

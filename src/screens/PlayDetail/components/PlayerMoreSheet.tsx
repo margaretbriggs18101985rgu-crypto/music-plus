@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, type ComponentProps } from 'react'
-import { AccessibilityInfo, Animated, Easing, KeyboardAvoidingView, Modal, PanResponder, Pressable, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native'
+import { AccessibilityInfo, Animated, DeviceEventEmitter, Easing, KeyboardAvoidingView, Modal, PanResponder, Pressable, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native'
 import Text from '@/components/common/Text'
 import Image from '@/components/common/Image'
 import SheetIcon from 'react-native-vector-icons/Feather'
@@ -21,12 +21,18 @@ import SettingLrcFontFamily from './SettingPopup/settings/SettingLrcFontFamily'
 import SettingLrcAlign from './SettingPopup/settings/SettingLrcAlign'
 import SettingQuality from './SettingPopup/settings/SettingQuality'
 import LyricEditor from './LyricEditor'
+import { getTrackListeningSummary, LIBRARY_EVENT, type ListeningTrackSummary } from '@/core/music/library'
 
 type Panel = 'main' | 'appearance' | 'typography' | 'sleep' | 'audio' | 'quality' | 'lyricEditor'
 type IconName = ComponentProps<typeof SheetIcon>['name']
 export interface PlayerMoreSheetRef { show: () => void }
 interface Props { music: LX.Player.MusicInfo, hasTrack: boolean, favorite: boolean, onAction: (action: string) => void }
 const titles: Record<Panel, string> = { main: '播放设置', appearance: '歌词与粒子特效', typography: '歌词排版与翻译', sleep: '睡眠定时', audio: '音量与倍速播放', quality: '切换音质', lyricEditor: '编辑歌词' }
+const formatFirstPlayed = (timestamp: number | null) => {
+  if (!timestamp) return '暂无记录'
+  const date = new Date(timestamp)
+  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`
+}
 
 export default forwardRef<PlayerMoreSheetRef, Props>(({ music, hasTrack, favorite, onAction }, ref) => {
   const { height } = useWindowDimensions()
@@ -42,6 +48,7 @@ export default forwardRef<PlayerMoreSheetRef, Props>(({ music, hasTrack, favorit
   }), [theme])
   const [visible, setVisible] = useState(false)
   const [panel, setPanel] = useState<Panel>('main')
+  const [listeningSummary, setListeningSummary] = useState<ListeningTrackSummary>({ firstPlayedAt: null, playCount: 0, listenedSeconds: 0 })
   const [systemReducedMotion, setSystemReducedMotion] = useState(false)
   const respectMotion = useSettingValue('player.respectReducedMotion')
   const displayMode = useSettingValue('player.lyricDisplayMode')
@@ -65,6 +72,19 @@ export default forwardRef<PlayerMoreSheetRef, Props>(({ music, hasTrack, favorit
     mounted.current = true
     return () => { mounted.current = false; translate.stopAnimation(); opacity.stopAnimation() }
   }, [opacity, translate])
+  useEffect(() => {
+    if (!hasTrack || !music.id) {
+      setListeningSummary({ firstPlayedAt: null, playCount: 0, listenedSeconds: 0 })
+      return
+    }
+    let active = true
+    const load = () => {
+      void getTrackListeningSummary(music.id ?? '').then(summary => { if (active) setListeningSummary(summary) })
+    }
+    load()
+    const listener = DeviceEventEmitter.addListener(LIBRARY_EVENT, load)
+    return () => { active = false; listener.remove() }
+  }, [hasTrack, music.id])
   const close = useCallback((after?: () => void) => {
     if (closing.current) return
     closing.current = true
@@ -133,6 +153,10 @@ export default forwardRef<PlayerMoreSheetRef, Props>(({ music, hasTrack, favorit
                 <SheetIcon name="heart" size={17} color="#FF4C57" /><Text size={12} color={favorite ? '#FF4C57' : '#C4C4C9'}>{favorite ? '已喜欢' : '喜欢'}</Text>
               </TouchableOpacity>
             </View>
+            {hasTrack ? <View style={styles.listeningSummary} accessibilityLabel={`首次听歌 ${formatFirstPlayed(listeningSummary.firstPlayedAt)}，已听 ${listeningSummary.playCount} 遍`}>
+              <View style={styles.listeningStat}><Text size={11} color="#85858B">首次听歌</Text><Text size={13} style={styles.listeningValue}>{formatFirstPlayed(listeningSummary.firstPlayedAt)}</Text></View>
+              <View style={styles.listeningStat}><Text size={11} color="#85858B">已听次数</Text><Text size={13} style={styles.listeningValue}>{listeningSummary.playCount} 遍</Text></View>
+            </View> : null}
             <ScrollView key="main" contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
               <View style={styles.divider} />
               <View style={styles.quickActions}>{([
@@ -187,6 +211,9 @@ const styles = StyleSheet.create({
   songText: { flex: 1 },
   songTitle: { fontWeight: '600' },
   artist: { marginTop: 6 },
+  listeningSummary: { flexDirection: 'row', gap: 26, paddingHorizontal: 24, paddingBottom: 10 },
+  listeningStat: { minWidth: 100 },
+  listeningValue: { marginTop: 3, color: '#D8D8DD' },
   like: { minHeight: 32, borderRadius: 18, borderWidth: 1, borderColor: '#5E5E64', paddingHorizontal: 11, flexDirection: 'row', gap: 5, alignItems: 'center' },
   body: { paddingHorizontal: 23, paddingBottom: 24 },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: '#303034', marginVertical: 7 },

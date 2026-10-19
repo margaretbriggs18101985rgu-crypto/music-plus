@@ -46,10 +46,24 @@ console.log('Verified Android build tools compatibility patch: react-native-navi
 // Keep playback changes reproducible after npm install, rather than editing node_modules only.
 const playerRoot = path.join(__dirname, 'node_modules/react-native-track-player/android/src/main/java/com/guichaguri/trackplayer')
 const playerPatches = [
+  ['service/MusicService.java', [
+    ['    Handler handler;', '    Handler handler;\n    private static MusicService activeService;\n\n    /** Stop audio before the Activity tears down React Native or other resources. */\n    public static void stopForAppExit() {\n        if (activeService != null) activeService.stopPlaybackForAppExit();\n    }\n\n    private void stopPlaybackForAppExit() {\n        android.util.Log.d("MusicPlusExit", "Stopping playback at " + android.os.SystemClock.elapsedRealtime());\n        if (manager != null && manager.getPlayback() != null) {\n            manager.getPlayback().setPlayerVolume(0);\n            manager.getPlayback().pause();\n            manager.getPlayback().stop();\n        }\n        destroy();\n        stopForeground(true);\n        stopSelf();\n    }'],
+    ['        manager = new MusicManager(this);\n        handler = new Handler();',
+      '        if (manager == null) manager = new MusicManager(this);\n        if (handler == null) handler = new Handler();'],
+    ['        super.onCreate();\n        String channel', '        super.onCreate();\n        activeService = this;\n        String channel'],
+    ['    public void onDestroy() {\n        super.onDestroy();\n\n        destroy();\n        stopForeground(true);\n    }',
+      '    public void onDestroy() {\n        if (activeService == this) activeService = null;\n        stopPlaybackForAppExit();\n        super.onDestroy();\n    }'],
+    ['    public void onTaskRemoved(Intent rootIntent) {\n        super.onTaskRemoved(rootIntent);\n\n        if (manager == null || manager.shouldStopWithApp()) {\n            if (manager != null && manager.getPlayback() != null) {\n                manager.getPlayback().stop();\n            }\n            destroy();\n            stopSelf();\n        }\n    }',
+      '    public void onTaskRemoved(Intent rootIntent) {\n        if (manager == null || manager.shouldStopWithApp()) stopPlaybackForAppExit();\n        super.onTaskRemoved(rootIntent);\n    }'],
+  ]],
   ['service/MusicManager.java', [
+    ['private boolean stopWithApp = false;', 'private boolean stopWithApp = true;'],
     ['new DefaultRenderersFactory(service)', 'new com.guichaguri.trackplayer.service.player.ReactiveAudio(service)'],
     ['return new LocalPlayback(service, this, player, cacheMaxSize, autoUpdateMetadata);',
       'com.guichaguri.trackplayer.service.player.ReactiveAudio.attach(player);\n        return new LocalPlayback(service, this, player, cacheMaxSize, autoUpdateMetadata);'],
+  ]],
+  ['service/MusicBinder.java', [
+    ['bundle.getBoolean("stopWithApp", false)', 'bundle.getBoolean("stopWithApp", true)'],
   ]],
   ['service/player/LocalPlayback.java', [
     ['    public void destroy() {\n        super.destroy();', '    public void destroy() {\n        ReactiveAudio.detach(player);\n        super.destroy();'],
@@ -71,4 +85,4 @@ for (const [file, replacements] of playerPatches) {
 for (const name of ['ReactiveAudio.java', 'AudioBands.java']) {
   fs.copyFileSync(path.join(__dirname, 'android/player-patches', name), path.join(playerRoot, 'service/player', name))
 }
-console.log('Verified audio analysis and MP3 seek patches: react-native-track-player')
+console.log('Verified audio analysis, app-exit shutdown and MP3 seek patches: react-native-track-player')

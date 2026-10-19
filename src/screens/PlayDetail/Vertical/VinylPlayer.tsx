@@ -53,6 +53,7 @@ interface NativePlayerProps extends ViewProps {
     particleQuality: LX.AppSetting['player.particleQuality']
     lyricMotionEnabled: boolean
     lyricPulseEnabled: boolean
+    starPulseEnabled: boolean
     lyricDisplayMode: LX.AppSetting['player.lyricDisplayMode']
     lyricColor: string
     lyricFontSize: number
@@ -82,6 +83,7 @@ export default ({ componentId }: { componentId: string }) => {
   const particleQuality = useSettingValue('player.particleQuality')
   const lyricMotionEnabled = useSettingValue('player.lyricMotionEnabled')
   const lyricPulseEnabled = useSettingValue('player.lyricPulseEnabled')
+  const starPulseEnabled = useSettingValue('player.starPulseEnabled')
   const lyricDisplayMode = useSettingValue('player.lyricDisplayMode')
   const lyricColor = useSettingValue('player.lyricColor')
   const lyricFontSize = useSettingValue('player.lyricFontSize')
@@ -225,6 +227,7 @@ export default ({ componentId }: { componentId: string }) => {
     particleQuality,
     lyricMotionEnabled,
     lyricPulseEnabled,
+    starPulseEnabled,
     lyricDisplayMode,
     lyricColor,
     lyricFontSize,
@@ -240,7 +243,7 @@ export default ({ componentId }: { componentId: string }) => {
     playMode,
     topInset,
     bottomInset: 0,
-  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode, immersiveVisualsEnabled, reactiveVisuals, particleQuality, lyricMotionEnabled, lyricPulseEnabled, lyricDisplayMode, lyricColor, lyricFontSize, lyricFontFamily, pageFontFamily, pageFontColor, lyricAlign, backgroundMotion, respectReducedMotion, wallpaperPath, wallpaperKind, wallpaperScope])
+  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode, immersiveVisualsEnabled, reactiveVisuals, particleQuality, lyricMotionEnabled, lyricPulseEnabled, starPulseEnabled, lyricDisplayMode, lyricColor, lyricFontSize, lyricFontFamily, pageFontFamily, pageFontColor, lyricAlign, backgroundMotion, respectReducedMotion, wallpaperPath, wallpaperKind, wallpaperScope])
 
   return <>
     <NativeVinylPlayer style={{ flex: 1 }} playerState={playerState} onPlayerAction={({ nativeEvent }) => { handlePlayerAction(nativeEvent.action, nativeEvent.value) }} />

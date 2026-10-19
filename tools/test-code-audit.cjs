@@ -93,20 +93,30 @@ test('lazy pages refresh after relevant settings changes without hiding the sett
 })
 
 function searchPage(saved = { source: 'wy', type: 'music' }) {
-  const env = { effects: [], loads: [], saved: [], timers: new Map(), tips: [] }
+  const env = { effects: [], loads: [], saved: [], timers: new Map(), tips: [], historyEnabled: true, history: [], text: '', blurs: 0 }
   const events = new EventEmitter()
-  const components = Object.fromEntries(['./HeaderBar', './TipList', './List', './SearchTypeSelector'].map(id => [id, id]))
+  const components = Object.fromEntries(['./HeaderBar', './TipList', './List', './SearchTypeSelector', './BlankView/HistorySearch'].map(id => [id, id]))
   let timerId = 1
+  const refs = []
+  const states = []
+  let refIndex = 0
+  let stateIndex = 0
+  let mounted = false
   const jsx = (type, props) => ({ type, props })
   const page = load('src/screens/Home/Views/Search/index.tsx', {
-    react: { useRef: current => ({ current }), useEffect: effect => { env.effects.push(effect) } },
+    react: {
+      useRef: current => { const index = refIndex++; return refs[index] ??= { current } },
+      useState: initial => { const index = stateIndex++; states[index] ??= initial; return [states[index], value => { states[index] = value }] },
+      useEffect: effect => { if (!mounted) env.effects.push(effect) },
+    },
     'react/jsx-runtime': { jsx, jsxs: jsx },
-    'react-native': { View: 'View' },
+    'react-native': { View: 'View', ScrollView: 'ScrollView' },
     ...Object.fromEntries(Object.entries(components).map(([id, component]) => [id, { default: component }])),
     '@/store/search/state': { default: { searchText: 'test song' } },
     '@/utils/data': { getSearchSetting: async() => saved, saveSearchSetting: async value => { env.saved.push(value) } },
     '@/utils/tools': { createStyle: value => value },
-    '@/core/search/search': { addHistoryWord: async() => {} },
+    '@/core/search/search': { addHistoryWord: async word => { env.history.push(word) }, setSearchText: text => { env.text = text } },
+    '@/store/setting/hook': { useSettingValue: () => env.historyEnabled },
   }, {
     global: { app_event: events },
     setTimeout: fn => { const key = timerId++; env.timers.set(key, fn); return key },
@@ -114,12 +124,19 @@ function searchPage(saved = { source: 'wy', type: 'music' }) {
   }).default
   const nodes = []
   const walk = node => { if (!node || typeof node != 'object') return; nodes.push(node); for (const child of [node.props?.children].flat()) walk(child) }
-  walk(page())
   const get = component => nodes.find(node => node.type == component).props
-  env.header = get('./HeaderBar')
-  env.header.ref.current = { setText() {}, blur() {} }
-  get('./List').ref.current = { loadList: (...args) => env.loads.push(args) }
-  get('./TipList').ref.current = { hide() {}, search: text => env.tips.push(text) }
+  env.render = () => {
+    refIndex = 0
+    stateIndex = 0
+    nodes.length = 0
+    walk(page())
+    env.header = get('./HeaderBar')
+    env.header.ref.current = { setText() {}, blur() { env.blurs++ } }
+    get('./List').ref.current = { loadList: (...args) => env.loads.push(args) }
+    get('./TipList').ref.current = { hide() {}, search: text => env.tips.push(text) }
+    mounted = true
+  }
+  env.render()
   env.cleanup = env.effects[0]()
   env.events = events
   env.nodes = nodes
@@ -159,4 +176,48 @@ test('search suggestions debounce rapid input and cancel pending work when leavi
   env.header.onTipSearch('cancelled')
   env.cleanup()
   assert.equal(env.timers.size, 0)
+})
+
+test('focusing search shows enabled history immediately, preserving results and reacting to the setting', () => {
+  const env = searchPage()
+  const historyVisible = () => env.nodes.some(node => node.type == './BlankView/HistorySearch')
+  assert.equal(historyVisible(), false)
+  const loads = env.loads.length
+  env.header.onShowTipList()
+  env.render()
+  assert.equal(historyVisible(), true)
+  assert.equal(env.timers.size, 0)
+  assert.equal(env.loads.length, loads)
+  assert.equal(env.nodes.find(node => node.type == 'ScrollView').props.keyboardShouldPersistTaps, 'handled')
+  env.historyEnabled = false
+  env.render()
+  assert.equal(historyVisible(), false)
+  env.historyEnabled = true
+  env.render()
+  assert.equal(historyVisible(), true)
+  env.header.onHideTipList()
+  env.render()
+  assert.equal(historyVisible(), false)
+})
+
+test('choosing history trims the query, submits once, cancels suggestions and dismisses the keyboard', () => {
+  const env = searchPage()
+  env.header.onShowTipList()
+  env.render()
+  env.header.onTipSearch('pending')
+  env.nodes.find(node => node.type == './BlankView/HistorySearch').props.onSearch('  Faded  ')
+  env.render()
+  assert.deepEqual(env.loads.at(-1), ['Faded', 'all', 'music'])
+  assert.equal(env.text, 'Faded')
+  assert.deepEqual(env.history, ['Faded'])
+  assert.equal(env.blurs, 1)
+  assert.equal(env.timers.size, 0)
+  assert.equal(env.nodes.some(node => node.type == './BlankView/HistorySearch'), false)
+  env.header.onShowTipList()
+  env.header.onTipSearch('')
+  env.header.onSearch('')
+  env.render()
+  assert.equal(env.blurs, 1)
+  assert.equal(env.timers.size, 0)
+  assert.equal(env.nodes.some(node => node.type == './BlankView/HistorySearch'), true)
 })

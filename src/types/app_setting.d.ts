@@ -129,6 +129,11 @@ declare global {
       'player.isSavePlayTime': boolean
 
       /**
+       * Whether local listening statistics are collected.
+       */
+      'player.isListeningStatsEnabled': boolean
+
+      /**
        * 音量大小
        */
       'player.volume': number
@@ -179,6 +184,7 @@ declare global {
       'player.particleQuality': 'auto' | 'low' | 'high' | 'off'
       'player.lyricMotionEnabled': boolean
       'player.lyricPulseEnabled': boolean
+      'player.starPulseEnabled': boolean
       'player.lyricDisplayMode': 'single' | 'multiple'
       'player.lyricColor': string
       'player.lyricFontSize': number
