@@ -145,6 +145,10 @@
   "update_metadata": {
     "version": "1.1.7",
     "prepared_after_public_asset_verification": true,
-    "online_verification": "pending push"
+    "online_verification": "verified",
+    "github_contents_verified": true,
+    "public_raw_fallback_verified": true,
+    "metadata_commit": "fa59602e",
+    "published_assets_unchanged": true
   }
 }
