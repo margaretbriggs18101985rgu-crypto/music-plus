@@ -32,6 +32,7 @@ test('listening profile uses recency, repeat plays, duration, language and style
   assert.equal(profile.artists[0].name, '常聽歌手')
   assert.equal(profile.languages[0].id, 'zh')
   assert.equal(profile.styles[0].id, 'rock')
+  assert.equal(profile.albums[0].name, '华语摇滚')
   assert.ok(profile.averageDuration > 260 && profile.averageDuration < 280)
 })
 
@@ -112,4 +113,43 @@ test('playlist ordering moves language and style matches ahead of general lists'
     { id: 'match', name: '华语摇滚精选', author: '', source: 'wy' },
   ], profile)
   assert.deepEqual(ordered.map(item => item.id), ['match', 'general'])
+})
+
+test('cold start still returns an exploration set instead of an empty recommendation rail', async () => {
+  const coldStartQueries = []
+  sdk.kw.musicSearch.search = async query => {
+    coldStartQueries.push(query)
+    return { list: [songs.get('other-taste')] }
+  }
+  const result = await recommendation.getRecommendedSongs([], 'kw')
+  assert.ok(coldStartQueries.includes('热门歌曲'))
+  assert.ok(coldStartQueries.includes('新歌推荐'))
+  assert.deepEqual(result.map(item => item.music.id), ['other-taste'])
+})
+
+test('ranking limits repeated artists and albums while keeping eligible alternatives', () => {
+  const profile = recommendation.buildListeningProfile([{ music: music('seed', '再見', '常聽歌手', '华语摇滚', '04:20'), playedAt: Date.now(), playCount: 3, listenedSeconds: 500 }])
+  const candidates = [
+    music('a1', '歌 1', '常聽歌手', '同一专辑', '04:00'),
+    music('a2', '歌 2', '常聽歌手', '同一专辑', '04:10'),
+    music('a3', '歌 3', '常聽歌手', '另一专辑', '04:20'),
+    music('b1', '歌 4', '另一个歌手', '另一专辑', '04:20'),
+  ]
+  const result = recommendation.rankRecommendedTracks(candidates, profile)
+  assert.ok(result.some(item => item.music.id === 'b1'))
+  assert.ok(result.filter(item => item.music.singer === '常聽歌手').length <= 2)
+  assert.ok(result.filter(item => item.music.meta.albumName === '同一专辑').length <= 2)
+})
+
+test('ranking reserves an exploration slot after strong personalized matches', () => {
+  const profile = recommendation.buildListeningProfile([{ music: music('seed', '再見', '常聽歌手', '华语摇滚', '04:20'), playedAt: Date.now(), playCount: 3, listenedSeconds: 500 }])
+  const candidates = [
+    music('m1', '歌 1', '常聽歌手', '专辑 1', '04:00'),
+    music('m2', '歌 2', '歌手 2', '专辑 2', '04:00'),
+    music('m3', '歌 3', '歌手 3', '专辑 3', '04:00'),
+    music('m4', '歌 4', '歌手 4', '专辑 4', '04:00'),
+    music('explore', 'Blue Sky', '陌生歌手', 'Jazz collection', '03:00'),
+  ]
+  const result = recommendation.rankRecommendedTracks(candidates, profile, new Set(['explore']))
+  assert.equal(result[4].music.id, 'explore')
 })

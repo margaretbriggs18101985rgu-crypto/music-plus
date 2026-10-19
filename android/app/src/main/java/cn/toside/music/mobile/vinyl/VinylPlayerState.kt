@@ -36,6 +36,9 @@ data class VinylPlayerState(
     val lyricAlign: String = "center",
     val backgroundMotion: Boolean = true,
     val respectReducedMotion: Boolean = true,
+    val wallpaperPath: String = "",
+    val wallpaperKind: String = "none",
+    val wallpaperScope: String = "all",
     val playMode: String = "listLoop",
 )
 

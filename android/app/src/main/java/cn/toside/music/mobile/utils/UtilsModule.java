@@ -337,6 +337,26 @@ public class UtilsModule extends ReactContextBaseJavaModule {
     Objects.requireNonNull(reactContext.getCurrentActivity()).startActivity(Intent.createChooser(shareIntent, shareTitle));
   }
 
+  @ReactMethod
+  public void shareFile(String filePath, String mimeType, String title, Promise promise) {
+    try {
+      File file = new File(filePath);
+      if (!file.exists() || !file.isFile()) throw new IllegalArgumentException("File does not exist");
+      Uri contentUri = FileProvider.getUriForFile(getReactApplicationContext(),
+          getReactApplicationContext().getPackageName() + ".provider", file);
+      Intent shareIntent = new Intent(Intent.ACTION_SEND);
+      shareIntent.setType(mimeType == null || mimeType.isBlank() ? "application/octet-stream" : mimeType);
+      shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+      shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+      Intent chooser = Intent.createChooser(shareIntent, title == null ? "Open file with" : title);
+      chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+      getReactApplicationContext().startActivity(chooser);
+      promise.resolve(null);
+    } catch (Exception e) {
+      promise.reject("SHARE_FILE", e);
+    }
+  }
+
   // https://stackoverflow.com/questions/73463341/in-per-app-language-how-to-get-app-locale-in-api-33-if-system-locale-is-diffe
   @ReactMethod
   public void getSystemLocales(Promise promise) {

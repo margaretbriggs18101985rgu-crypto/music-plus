@@ -1,5 +1,5 @@
 // import { useEffect, useState } from 'react'
-import { View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { useTheme } from '@/store/theme/hook'
 import ImageBackground from '@/components/common/ImageBackground'
 import { useWindowSize } from '@/utils/hooks'
@@ -8,6 +8,8 @@ import { scaleSizeAbsHR } from '@/utils/pixelRatio'
 import { defaultHeaders } from './common/Image'
 import SizeView from './SizeView'
 import { useBgPic } from '@/store/common/hook'
+import { useSettingValue } from '@/store/setting/hook'
+import WallpaperBackground from '@/components/common/WallpaperBackground'
 
 interface Props {
   children: React.ReactNode
@@ -19,6 +21,11 @@ export default ({ children }: Props) => {
   const theme = useTheme()
   const windowSize = useWindowSize()
   const pic = useBgPic()
+  const wallpaperPath = useSettingValue('theme.wallpaper.path')
+  const wallpaperKind = useSettingValue('theme.wallpaper.kind')
+  const wallpaperScope = useSettingValue('theme.wallpaper.scope')
+  const useWallpaper = wallpaperPath.length > 0 && wallpaperKind != 'none' && wallpaperKind != 'mpkg' &&
+    (wallpaperScope == 'all' || wallpaperScope == 'pages')
   // const [wh, setWH] = useState<{ width: number | string, height: number | string }>({ width: '100%', height: Dimensions.get('screen').height })
 
   // 固定宽高度 防止弹窗键盘时大小改变导致背景被缩放
@@ -39,6 +46,14 @@ export default ({ children }: Props) => {
   // }
   // console.log('render page content')
 
+  const wallpaperComponent = useMemo(() => (
+    <View style={{ flex: 1, overflow: 'hidden' }}>
+      <WallpaperBackground style={{ position: 'absolute', left: 0, top: 0, height: windowSize.height, width: windowSize.width }}
+        path={wallpaperPath} kind={wallpaperKind as 'image' | 'gif' | 'video'} />
+      <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.16)' }} />
+      <View style={{ flex: 1 }}>{children}</View>
+    </View>
+  ), [children, wallpaperKind, wallpaperPath, windowSize.height, windowSize.width])
   const themeComponent = useMemo(() => (
     <View style={{ flex: 1, overflow: 'hidden' }}>
       <ImageBackground
@@ -73,7 +88,7 @@ export default ({ children }: Props) => {
   return (
     <>
       <SizeView />
-      {pic ? picComponent : themeComponent}
+      {useWallpaper ? wallpaperComponent : pic ? picComponent : themeComponent}
     </>
   )
 }

@@ -86,6 +86,10 @@ const defaultSetting: LX.AppSetting = {
   'theme.id': 'mineradio',
   'theme.hideBgDark': false,
   'theme.dynamicBg': false,
+  'theme.wallpaper.path': '',
+  'theme.wallpaper.name': '',
+  'theme.wallpaper.kind': 'none',
+  'theme.wallpaper.scope': 'all',
   'theme.fontShadow': false,
 }
 

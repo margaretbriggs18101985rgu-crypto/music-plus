@@ -76,6 +76,9 @@ class VinylPlayerView(context: ThemedReactContext) : FrameLayout(context) {
             lyricAlign = string("lyricAlign", "center"),
             backgroundMotion = bool("backgroundMotion", true),
             respectReducedMotion = bool("respectReducedMotion", true),
+            wallpaperPath = string("wallpaperPath"),
+            wallpaperKind = string("wallpaperKind", "none"),
+            wallpaperScope = string("wallpaperScope", "all"),
             lyrics = if (map.hasKey("lyrics") && !map.isNull("lyrics")) {
                 val lines = map.getArray("lyrics")!!
                 // Preserve slots (including duplicate timestamps) so activeLyric keeps its RN index.

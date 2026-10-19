@@ -67,6 +67,10 @@ export const shareText = async(shareTitle: string, title: string, text: string):
   UtilsModule.shareText(shareTitle, title, text)
 }
 
+export const shareFile = async(filePath: string, mimeType: string, title: string): Promise<void> => {
+  await UtilsModule.shareFile(filePath, mimeType, title)
+}
+
 export const getSystemLocales = async(): Promise<string> => {
   return UtilsModule.getSystemLocales()
 }

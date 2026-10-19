@@ -7,5 +7,5 @@ import com.facebook.react.uimanager.ViewManager
 
 class VinylPackage : ReactPackage {
     override fun createNativeModules(context: ReactApplicationContext): List<NativeModule> = listOf(VinylNavigationModule(context), MusicDownloadModule(context))
-    override fun createViewManagers(context: ReactApplicationContext): List<ViewManager<*, *>> = listOf(VinylPlayerViewManager())
+    override fun createViewManagers(context: ReactApplicationContext): List<ViewManager<*, *>> = listOf(VinylPlayerViewManager(), WallpaperViewManager())
 }

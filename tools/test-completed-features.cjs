@@ -140,10 +140,20 @@ async function seal(payload) { const text = JSON.stringify(payload); return { fo
 
 test('full backups capture live settings, playlists, edited lyrics, history and sources while excluding device credentials', async() => {
   const env = await backupEnvironment()
+  Object.assign(env.settings.setting, {
+    'theme.wallpaper.path': '/private/wallpapers/sample.mp4',
+    'theme.wallpaper.name': 'sample.mp4',
+    'theme.wallpaper.kind': 'video',
+    'theme.wallpaper.scope': 'player',
+  })
   const doc = await env.api.createBackup('full')
   const payload = await env.api.parseBackup(doc)
   const data = new Map(payload.entries)
   assert.equal(data.get('@setting_v1')['player.volume'], 0.7)
+  assert.equal(data.get('@setting_v1')['theme.wallpaper.path'], '')
+  assert.equal(data.get('@setting_v1')['theme.wallpaper.name'], '')
+  assert.equal(data.get('@setting_v1')['theme.wallpaper.kind'], 'none')
+  assert.equal(data.get('@setting_v1')['theme.wallpaper.scope'], 'player')
   assert.deepEqual(data.get('@list__remote'), env.songs.remote)
   assert.deepEqual(data.get('@user_list'), env.lists.userList)
   assert.ok(data.has('@list__temp'))

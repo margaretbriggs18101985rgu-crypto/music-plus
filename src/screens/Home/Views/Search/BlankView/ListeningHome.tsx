@@ -58,7 +58,7 @@ export default ({ refreshKey, onRefreshComplete }: ListeningHomeProps) => {
   const recommendationHistoryRef = useRef(new Set<string>())
   recentRef.current = recent
   songsRef.current = songs
-  const recommendationKey = recent.map(item => `${item.music.id}:${item.playedAt}:${item.playCount ?? 0}`).join('|')
+  const recommendationKey = recent.map(item => `${item.music.id}:${item.playedAt}:${item.playCount ?? 0}:${item.listenedSeconds ?? 0}:${item.completedCount ?? 0}`).join('|')
   const favoriteKey = songs.map(song => song.id).join('|')
   const completeRefresh = useCallback((part: 'catalog' | 'songs') => {
     if (refreshKey > 0) onRefreshComplete(refreshKey, part)
@@ -96,12 +96,6 @@ export default ({ refreshKey, onRefreshComplete }: ListeningHomeProps) => {
 
   useEffect(() => {
     let active = true
-    if (!recentRef.current.length) {
-      setRecommendations([])
-      setRecommendationStatus('idle')
-      completeRefresh('songs')
-      return () => { active = false }
-    }
     setRecommendationStatus('loading')
     const previouslyShownIds = [...recommendationHistoryRef.current]
     const savedIds = songsRef.current.map(song => song.id)

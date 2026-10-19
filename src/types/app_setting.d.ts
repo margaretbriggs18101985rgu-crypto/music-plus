@@ -90,6 +90,12 @@ declare global {
        */
       'theme.dynamicBg': boolean
 
+      /** Imported wallpaper file stored in the app's private documents directory. */
+      'theme.wallpaper.path': string
+      'theme.wallpaper.name': string
+      'theme.wallpaper.kind': 'image' | 'gif' | 'video' | 'mpkg' | 'none'
+      'theme.wallpaper.scope': 'all' | 'player' | 'pages'
+
       /**
        * 字体阴影
        */

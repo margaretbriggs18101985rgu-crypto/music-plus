@@ -39,14 +39,18 @@ internal fun PlayerScreen(state: VinylPlayerState, clock: VinylRotationClock = r
         if (BuildConfig.DEBUG) Log.d("ImmersivePolicy", "lyrics=${state.lyricsVisible} animate=${policy.animate} particles=${policy.particleCount} lyricMotion=${policy.lyricMotion}")
     }
     val artwork = rememberPlayerArtwork(state)
-    val phase = rememberAmbientPhase(state.trackId, policy.animate && state.hasTrack)
+    val customWallpaper = hasPlayerWallpaper(state)
+    val phase = rememberAmbientPhase(state.trackId, policy.animate && state.hasTrack && !customWallpaper)
     val pulse = policy.colorMotion && state.lyricPulseEnabled
     val lyricPhase = rememberAmbientPhase(state.trackId, state.isPlaying && (pulse || policy.lyricMotion))
     val audio = rememberAudioMotion(state.trackId, state.hasTrack && pulse, state.isPlaying)
     val switchPage = { onAction("lyrics", if (state.lyricsVisible) 0.0 else 1.0) }
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(VinylPalette.Top, VinylPalette.Middle, VinylPalette.Bottom)))) {
-        AmbientBackground(state.isPlaying && visualConfig.visualEffectsEnabled, Color(lyricColorArgb(state.lyricColor)), policy.colorMotion)
-        AmbientParticles(state.trackId, policy.particleCount, phase, drag)
+        if (customWallpaper) PlayerWallpaper(state)
+        else {
+            AmbientBackground(state.isPlaying && visualConfig.visualEffectsEnabled, Color(lyricColorArgb(state.lyricColor)), policy.colorMotion)
+            AmbientParticles(state.trackId, policy.particleCount, phase, drag)
+        }
         BoxWithConstraints(Modifier.fillMaxSize().padding(start = state.startInset.dp, end = state.endInset.dp,
             top = state.topInset.dp, bottom = state.bottomInset.dp)) {
             val landscape = maxWidth > maxHeight

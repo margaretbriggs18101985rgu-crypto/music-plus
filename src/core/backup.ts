@@ -55,7 +55,12 @@ const validateEntries = (payload: BackupPayload) => {
 
 export const createBackup = async(kind: BackupKind) => {
   const entries = new Map(await getLogicalStorageSnapshot(key => isBackupKey(key, kind)))
-  entries.set(storageDataPrefix.setting, { ...settingState.setting })
+  entries.set(storageDataPrefix.setting, {
+    ...settingState.setting,
+    'theme.wallpaper.path': '',
+    'theme.wallpaper.name': '',
+    'theme.wallpaper.kind': 'none',
+  })
   if (kind == 'full') {
     const lists = listState.userList.map(item => ({ ...item }))
     entries.set(storageDataPrefix.userList, lists)

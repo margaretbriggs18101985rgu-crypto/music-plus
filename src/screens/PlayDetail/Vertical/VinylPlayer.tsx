@@ -57,6 +57,9 @@ interface NativePlayerProps extends ViewProps {
     lyricAlign: LX.AppSetting['player.lyricAlign']
     backgroundMotion: boolean
     respectReducedMotion: boolean
+    wallpaperPath: string
+    wallpaperKind: LX.AppSetting['theme.wallpaper.kind']
+    wallpaperScope: LX.AppSetting['theme.wallpaper.scope']
     playMode: string
     bottomInset: number
   }
@@ -79,6 +82,9 @@ export default ({ componentId }: { componentId: string }) => {
   const lyricAlign = useSettingValue('player.lyricAlign')
   const backgroundMotion = useSettingValue('player.backgroundMotion')
   const respectReducedMotion = useSettingValue('player.respectReducedMotion')
+  const wallpaperPath = useSettingValue('theme.wallpaper.path')
+  const wallpaperKind = useSettingValue('theme.wallpaper.kind')
+  const wallpaperScope = useSettingValue('theme.wallpaper.scope')
   const [lyricsVisible, setLyricsVisible] = useState(false)
   const { width, height } = useWindowDimensions()
   const landscape = width > height
@@ -216,10 +222,13 @@ export default ({ componentId }: { componentId: string }) => {
     lyricAlign,
     backgroundMotion,
     respectReducedMotion,
+    wallpaperPath,
+    wallpaperKind,
+    wallpaperScope,
     playMode,
     topInset,
     bottomInset: 0,
-  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode, immersiveVisualsEnabled, particleQuality, lyricMotionEnabled, lyricPulseEnabled, lyricDisplayMode, lyricColor, lyricFontSize, lyricFontFamily, lyricAlign, backgroundMotion, respectReducedMotion])
+  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode, immersiveVisualsEnabled, particleQuality, lyricMotionEnabled, lyricPulseEnabled, lyricDisplayMode, lyricColor, lyricFontSize, lyricFontFamily, lyricAlign, backgroundMotion, respectReducedMotion, wallpaperPath, wallpaperKind, wallpaperScope])
 
   return <>
     <NativeVinylPlayer style={{ flex: 1 }} playerState={playerState} onPlayerAction={({ nativeEvent }) => { handlePlayerAction(nativeEvent.action, nativeEvent.value) }} />
