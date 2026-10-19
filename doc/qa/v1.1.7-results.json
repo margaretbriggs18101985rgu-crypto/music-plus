@@ -8,7 +8,9 @@
     "release_android_tests": 58,
     "signed_apks": 5,
     "sha256_verified": true,
-    "signature_matches_public_v1_1_6": true
+    "signature_matches_public_v1_1_6": true,
+    "cloud_source_checks": "passed",
+    "cloud_release_build": "cancelled_after_GitHub_Actions_incident"
   },
   "local_apks": [
     {
@@ -70,5 +72,79 @@
   "release_date": "2026-10-20",
   "existing_lyric_evidence": "doc/qa/2026-10-19-playback-source-and-lyric-highlight.md",
   "runtime_evidence_scope": "Previous Debug build from the same functional source before the release version increment; API 37 emulator, native PLAYING and saved source record across force-stop/restart. No new v1.1.7 Release device playback test.",
-  "github_public_assets": "pending verification after tag workflow"
+  "github_public_assets": "verified independently after local-build fallback publication",
+  "public_release_verification": {
+    "status": "public_assets_verified",
+    "build_origin": "locally_checked_signed_apks",
+    "cancellation_requested": true,
+    "url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/tag/v1.1.7",
+    "tag": "v1.1.7",
+    "published_at": "2026-10-19T16:28:01Z",
+    "workflow_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/actions/runs/39283844081",
+    "source_commit": "3ff06ea25081cb04bba98456c2559b3f80a1ba86",
+    "assets": [
+      {
+        "name": "music-plus-v1.1.7-arm64-v8a.apk",
+        "size": 31126927,
+        "digest": "sha256:09152fa9d2957ffefede82082acc622998bd5e06bb96f56326eb9ac408cdda71",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.7/music-plus-v1.1.7-arm64-v8a.apk"
+      },
+      {
+        "name": "music-plus-v1.1.7-armeabi-v7a.apk",
+        "size": 30094079,
+        "digest": "sha256:7cd3a02d174178dcf124779092b36d06d054f429d4eaae281a74e1190db354e7",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.7/music-plus-v1.1.7-armeabi-v7a.apk"
+      },
+      {
+        "name": "music-plus-v1.1.7-universal.apk",
+        "size": 46398073,
+        "digest": "sha256:f0f01cfb6bb3670bfab77d2cedef5ae11e3c821caf1e0e7f43a3d24957028dd5",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.7/music-plus-v1.1.7-universal.apk"
+      },
+      {
+        "name": "music-plus-v1.1.7-x86.apk",
+        "size": 31574777,
+        "digest": "sha256:80d810cba2e5733c217dd45ee63e5bad38e153618538162d3647a2573a7a315d",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.7/music-plus-v1.1.7-x86.apk"
+      },
+      {
+        "name": "music-plus-v1.1.7-x86_64.apk",
+        "size": 31455101,
+        "digest": "sha256:f724ebe859d80b59337fc6cda746fe3990debd1522ad17704200a04da49a490c",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.7/music-plus-v1.1.7-x86_64.apk"
+      },
+      {
+        "name": "SHA256SUMS.txt",
+        "size": 483,
+        "digest": "sha256:895c6f1650c5e989fa714762675c23b8af0d20501c1843044372c17391317b4d",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.7/SHA256SUMS.txt"
+      }
+    ],
+    "downloaded_arm64": {
+      "name": "music-plus-v1.1.7-arm64-v8a.apk",
+      "bytes": 31126927,
+      "sha256": "09152fa9d2957ffefede82082acc622998bd5e06bb96f56326eb9ac408cdda71",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 9003,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "licenses_and_fonts_present": true
+    },
+    "cloud_job_conclusion": "cancelled",
+    "cloud_publish_step": "skipped",
+    "cloud_workflow_parent_status_observed": "in_progress",
+    "cloud_workflow_parent_conclusion_observed": null,
+    "cloud_parent_status_note": "The workflow parent API still reported in_progress while its only job was completed/cancelled, publish skipped and key cleanup completed. The terminal job evidence was checked directly.",
+    "download_method": "Anonymous public GitHub asset API, HTTP byte ranges, merged full file SHA-256 checked against the independently downloaded public manifest; no authenticated asset download."
+  },
+  "cloud_ci_limit": "GitHub Actions workflow processing incident: https://www.githubstatus.com/. Release job cancelled, APK publish step skipped and signing key cleanup completed. Cloud APK build success is not claimed; local signed APK gates and independent public download verification passed.",
+  "cloud_source_workflow": {
+    "url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/actions/runs/39283824677",
+    "status": "success"
+  },
+  "update_metadata": {
+    "version": "1.1.7",
+    "prepared_after_public_asset_verification": true,
+    "online_verification": "pending push"
+  }
 }
