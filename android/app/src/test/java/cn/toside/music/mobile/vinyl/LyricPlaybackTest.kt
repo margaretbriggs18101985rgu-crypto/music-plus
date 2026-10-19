@@ -50,4 +50,23 @@ class LyricPlaybackTest {
         assertEquals(0f, lyricHighlightProgress(lines, 0, Double.NaN, 30.0, 0), 0f)
         assertEquals(0f, lyricHighlightProgress(lines, 0, 20.0, 30.0, -1), 0f)
     }
+
+    @Test fun wordTimingPreservesVocalPausesAndFillsOnlyTheSungCharacters() {
+        val lines = listOf(VinylLyricLine(10_000.0, "铁盒的钥匙我找不到", words = listOf(
+            VinylLyricWord(0, 2, 10_000.0, 11_000.0), VinylLyricWord(2, 5, 12_000.0, 13_500.0),
+            VinylLyricWord(5, 9, 14_000.0, 16_000.0))))
+        assertEquals(1f / 9f, lyricHighlightProgress(lines, 0, 10.5, 30.0, 0), .0001f)
+        assertEquals(2f / 9f, lyricHighlightProgress(lines, 0, 11.8, 30.0, 0), .0001f)
+        assertEquals(3.5f / 9f, lyricHighlightProgress(lines, 0, 12.75, 30.0, 0), .0001f)
+        assertEquals(1f, lyricHighlightProgress(lines, 0, 16.0, 30.0, 0), 0f)
+        assertEquals(0f, lyricHighlightProgress(lines, 0, 9.0, 30.0, 0), 0f)
+    }
+
+    @Test fun displayInterpolationStopsAtTheNextMissingSampleAndHonorsPauseAndRate() {
+        assertEquals(12.25, lyricInterpolatedPosition(12.0, .25, true, 1.0), 0.0)
+        assertEquals(12.5, lyricInterpolatedPosition(12.0, .25, true, 2.0), 0.0)
+        assertEquals(12.65, lyricInterpolatedPosition(12.0, 10.0, true, 1.0), .00001)
+        assertEquals(12.0, lyricInterpolatedPosition(12.0, .25, false, 1.0), 0.0)
+        assertEquals(3.0, lyricInterpolatedPosition(3.0, 0.0, true, 1.0), 0.0)
+    }
 }

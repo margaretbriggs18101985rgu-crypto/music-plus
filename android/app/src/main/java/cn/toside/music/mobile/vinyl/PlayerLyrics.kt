@@ -49,6 +49,7 @@ private fun SinglePlayerLyrics(state: VinylPlayerState, modifier: Modifier,
     val family = lyricFontFamily(state.lyricFontFamily)
     val synthesis = if (state.lyricFontFamily == "system") FontSynthesis.All else FontSynthesis.None
     val measurer = rememberTextMeasurer()
+    val position = rememberLyricPlaybackPosition(state)
     val density = LocalDensity.current
     BoxWithConstraints(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         val typography = lyricViewportTypography((maxWidth - 56.dp).value, maxHeight.value,
@@ -107,7 +108,7 @@ private fun SinglePlayerLyrics(state: VinylPlayerState, modifier: Modifier,
             }, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 ReactiveLyricText(text, modifier = Modifier.fillMaxWidth(), fx = fx, audio = audio,
                     reactive = current && state.isPlaying && pulseEnabled, tint = color,
-                    highlightProgress = lyricHighlightProgress(state.lyrics, index, state.position, state.duration, lineIndex),
+                    highlightProgress = { lyricHighlightProgress(state.lyrics, index, position.value, state.duration, lineIndex) },
                     style = TextStyle(fontFamily = family, fontSynthesis = synthesis,
                     brush = Brush.verticalGradient(listOf(lerp(color, Color.White, .85f), lerp(color, Color.White, .55f))),
                     fontSize = font.sp, lineHeight = (font * 1.4f).sp, fontWeight = FontWeight.SemiBold,
@@ -124,6 +125,7 @@ private fun SinglePlayerLyrics(state: VinylPlayerState, modifier: Modifier,
 private fun MultiplePlayerLyrics(state: VinylPlayerState, modifier: Modifier, motionEnabled: Boolean,
     pulseEnabled: Boolean, audio: State<AudioMotion>, phase: State<Double>) {
     val active = state.activeLyric.coerceIn(-1, state.lyrics.lastIndex)
+    val position = rememberLyricPlaybackPosition(state)
     val camera = remember { Animatable(active.toFloat()) }
     LaunchedEffect(active, motionEnabled, state.seekRevision) {
         // Seek directly to distant lines; adjacent lines keep their velocity on interruption.
@@ -156,7 +158,7 @@ private fun MultiplePlayerLyrics(state: VinylPlayerState, modifier: Modifier, mo
                     // Emphasis changes layers, never typography/layout, so rows do not reflow.
                     ReactiveLyricText(line.text.ifBlank { "♪" }, modifier = Modifier.fillMaxWidth(), maxLines = 4,
                         fx = fx, audio = audio, reactive = index == active && state.isPlaying && pulseEnabled, tint = color,
-                        highlightProgress = lyricHighlightProgress(state.lyrics, index, state.position, state.duration, active),
+                        highlightProgress = { lyricHighlightProgress(state.lyrics, index, position.value, state.duration, active) },
                         overflow = TextOverflow.Ellipsis, style = TextStyle(fontFamily = family, fontSynthesis = synthesis, color = textColor,
                             fontSize = font.sp, lineHeight = (font * 1.38f).sp,
                             fontWeight = FontWeight.Bold, textAlign = lyricAlignment(state.lyricAlign),

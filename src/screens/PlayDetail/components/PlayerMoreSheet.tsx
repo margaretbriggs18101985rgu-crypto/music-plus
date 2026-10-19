@@ -174,6 +174,7 @@ export default forwardRef<PlayerMoreSheetRef, Props>(({ music, hasTrack, favorit
               <View style={styles.divider} />
               {row('list', '播放列表', () => { action('queue') })}
               {row('headphones', '切换音质', () => { setPanel('quality') }, quality)}
+              {row('repeat', '手动换源', () => { action('source') }, undefined, !hasTrack)}
               {row('fast-forward', '音量与倍速播放', () => { setPanel('audio') }, `${Math.round(volume * 100)}% · ${playbackRate.toFixed(2)}x`)}
               <View style={styles.divider} />
               {row('align-center', '歌词显示', () => { updateSetting({ 'player.lyricDisplayMode': displayMode == 'single' ? 'multiple' : 'single' }) }, displayMode == 'single' ? '单句歌词' : '多排歌词')}

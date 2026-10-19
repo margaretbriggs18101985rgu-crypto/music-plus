@@ -5,7 +5,8 @@ import { State } from 'react-native-track-player'
 import { usePlaybackState } from '@/plugins/player/hook'
 import { usePlayerMusicInfo, usePlayMusicInfo, useProgress, useStatusText } from '@/store/player/hook'
 import { useStatusbarHeight } from '@/store/common/hook'
-import { collectMusic, uncollectMusic, togglePlay, playNext, playPrev } from '@/core/player/player'
+import { collectMusic, uncollectMusic, togglePlay, playNext, playPrev, switchCurrentSource } from '@/core/player/player'
+import MusicToggleModal, { type MusicToggleModalType } from '@/screens/Home/Views/Mylist/MusicList/MusicToggleModal'
 import { getListMusics } from '@/core/list'
 import { updateSetting, setNavActiveId } from '@/core/common'
 import { LIST_IDS, MUSIC_TOGGLE_MODE_LIST } from '@/config/constant'
@@ -24,6 +25,7 @@ import { getTrackAlbum } from '@/core/music/artist'
 import { normalizeLyricFont } from '@/utils/lyricAppearance'
 import { normalizePageColor, normalizePageFont } from '@/utils/pageAppearance'
 import { parseReactiveVisuals, type ReactiveVisuals } from '@/utils/reactiveVisuals'
+import { matchLyricWords, type LyricWordTiming } from '@/utils/lyricWords'
 
 interface PlayerActionEvent {
   action: string
@@ -41,11 +43,12 @@ interface NativePlayerProps extends ViewProps {
     isStopped: boolean
     position: number
     duration: number
+    playbackRate: number
     favorite: boolean
     status: string
     topInset: number
     lyricsVisible: boolean
-    lyrics: Array<{ time: number, text: string, translation: string }>
+    lyrics: Array<{ time: number, text: string, translation: string, words: LyricWordTiming[] }>
     activeLyric: number
     seekRevision: number
     immersiveVisualsEnabled: boolean
@@ -77,6 +80,7 @@ export default ({ componentId }: { componentId: string }) => {
   const lines = useLrcSet()
   const lyric = useLrcPlay()
   const playMode = useSettingValue('player.togglePlayMethod')
+  const playbackRate = useSettingValue('player.playbackRate')
   const immersiveVisualsEnabled = useSettingValue('player.immersiveVisualsEnabled')
   const storedReactiveVisuals = useSettingValue('player.reactiveVisuals')
   const reactiveVisuals = useMemo(() => parseReactiveVisuals(storedReactiveVisuals), [storedReactiveVisuals])
@@ -105,6 +109,8 @@ export default ({ componentId }: { componentId: string }) => {
   const artistPicker = useRef<ArtistPickerRef>(null)
   const lyricSettings = useRef<PlayerMoreSheetRef>(null)
   const musicAdd = useRef<MusicAddModalType>(null)
+  const sourcePicker = useRef<MusicToggleModalType>(null)
+  const sourceSelection = useRef(current)
   const albumRequest = useRef(0)
   useEffect(() => {
     const counter = albumRequest
@@ -170,6 +176,12 @@ export default ({ componentId }: { componentId: string }) => {
       case 'artist': if (hasTrack) artistPicker.current?.open(); break
       case 'queue': showPlaybackQueue(); break
       case 'settings': lyricSettings.current?.show(); break
+      case 'source':
+        if (song) {
+          sourceSelection.current = current
+          sourcePicker.current?.show({ musicInfo: song, listId: current.listId ?? '' })
+        }
+        break
       case 'addToPlaylist': if (song) musicAdd.current?.show({ musicInfo: song, listId: current.listId ?? '', isMove: false }); break
       case 'share': if (song) shareMusic('system', settingState.setting['download.fileName'], song); break
       case 'album':
@@ -204,7 +216,10 @@ export default ({ componentId }: { componentId: string }) => {
     }
   }
 
-  const nativeLyrics = useMemo(() => lines.map(line => ({ time: line.time, text: line.text, translation: line.extendedLyrics.join('\n') })), [lines])
+  const nativeLyrics = useMemo(() => {
+    const words = matchLyricWords(lines, music.lxlrc ?? '')
+    return lines.map((line, index) => ({ time: line.time, text: line.text, translation: line.extendedLyrics.join('\n'), words: words[index] }))
+  }, [lines, music.lxlrc])
   const playerState = useMemo<NativePlayerProps['playerState']>(() => ({
     trackId: music.id ?? '',
     title: hasTrack ? music.name : '暂无播放歌曲',
@@ -216,6 +231,7 @@ export default ({ componentId }: { componentId: string }) => {
     isStopped: !hasTrack || playback == State.Stopped || playback == State.None,
     position: progress.nowPlayTime,
     duration: progress.maxPlayTime,
+    playbackRate,
     favorite,
     status: !hasTrack ? '选择歌曲后即可播放' : playback == State.Buffering || playback == State.Connecting ? '缓冲中' : statusText,
     lyricsVisible,
@@ -243,12 +259,22 @@ export default ({ componentId }: { componentId: string }) => {
     playMode,
     topInset,
     bottomInset: 0,
-  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode, immersiveVisualsEnabled, reactiveVisuals, particleQuality, lyricMotionEnabled, lyricPulseEnabled, starPulseEnabled, lyricDisplayMode, lyricColor, lyricFontSize, lyricFontFamily, pageFontFamily, pageFontColor, lyricAlign, backgroundMotion, respectReducedMotion, wallpaperPath, wallpaperKind, wallpaperScope])
+  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode, playbackRate, immersiveVisualsEnabled, reactiveVisuals, particleQuality, lyricMotionEnabled, lyricPulseEnabled, starPulseEnabled, lyricDisplayMode, lyricColor, lyricFontSize, lyricFontFamily, pageFontFamily, pageFontColor, lyricAlign, backgroundMotion, respectReducedMotion, wallpaperPath, wallpaperKind, wallpaperScope])
 
   return <>
     <NativeVinylPlayer style={{ flex: 1 }} playerState={playerState} onPlayerAction={({ nativeEvent }) => { handlePlayerAction(nativeEvent.action, nativeEvent.value) }} />
     <ArtistPicker ref={artistPicker} componentId={componentId} music={song} />
     <MusicAddModal ref={musicAdd} />
+    <MusicToggleModal ref={sourcePicker} previewOnSelect={false} onConfirm={async target => {
+      try {
+        const changed = await switchCurrentSource(target, sourceSelection.current)
+        if (!changed) toast('当前歌曲已切换，请重新打开换源面板')
+        return true
+      } catch {
+        toast('保存音源选择失败，请重试')
+        return false
+      }
+    }} />
     <PlayerMoreSheet ref={lyricSettings} music={music} hasTrack={hasTrack} favorite={favorite}
       onAction={action => { handlePlayerAction(action, 0) }} />
   </>

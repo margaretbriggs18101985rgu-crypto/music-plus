@@ -56,7 +56,7 @@ class VinylPlayerView(context: ThemedReactContext) : FrameLayout(context) {
     fun updatePlayer(map: ReadableMap?) {
         if (map == null) return
         fun string(key: String, fallback: String = "") = if (map.hasKey(key) && !map.isNull(key)) map.getString(key) ?: fallback else fallback
-        fun number(key: String) = if (map.hasKey(key) && !map.isNull(key)) map.getDouble(key) else 0.0
+        fun number(key: String, fallback: Double = 0.0) = if (map.hasKey(key) && !map.isNull(key)) map.getDouble(key) else fallback
         fun bool(key: String, fallback: Boolean = false) = if (map.hasKey(key) && map.getType(key) == ReadableType.Boolean) map.getBoolean(key) else fallback
         val visuals = if (map.hasKey("reactiveVisuals") && map.getType("reactiveVisuals") == ReadableType.Map) map.getMap("reactiveVisuals") else null
         fun visualNumber(key: String, fallback: Float, min: Float, max: Float): Float {
@@ -70,6 +70,7 @@ class VinylPlayerView(context: ThemedReactContext) : FrameLayout(context) {
             artworkUserAgent = string("artworkUserAgent"),
             hasTrack = bool("hasTrack"), isStopped = bool("isStopped"), position = number("position"),
             duration = number("duration"), favorite = bool("favorite"), status = string("status"),
+            playbackRate = number("playbackRate", 1.0).let { if (it.isFinite()) it.coerceIn(.25, 4.0) else 1.0 },
             topInset = number("topInset").toFloat(), bottomInset = number("bottomInset").toFloat(),
             lyricsVisible = bool("lyricsVisible"), activeLyric = number("activeLyric").toInt(), playMode = string("playMode", "listLoop"),
             seekRevision = number("seekRevision").toInt(),
@@ -126,7 +127,20 @@ class VinylPlayerView(context: ThemedReactContext) : FrameLayout(context) {
                     val line = if (lines.getType(index) == ReadableType.Map) lines.getMap(index) else null
                     fun text(key: String) = if (line?.hasKey(key) == true && line.getType(key) == ReadableType.String) line.getString(key) ?: "" else ""
                     val time = if (line?.hasKey("time") == true && line.getType("time") == ReadableType.Number) line.getDouble("time") else Double.NaN
-                    VinylLyricLine(time, text("text"), text("translation"))
+                    val visibleText = text("text")
+                    val words = if (line?.hasKey("words") == true && line.getType("words") == ReadableType.Array) {
+                        val values = line.getArray("words")!!
+                        (0 until values.size()).mapNotNull { slot ->
+                            val word = if (values.getType(slot) == ReadableType.Map) values.getMap(slot) else null
+                            fun number(key: String) = if (word?.hasKey(key) == true && word.getType(key) == ReadableType.Number) word.getDouble(key) else Double.NaN
+                            val start = number("start"); val end = number("end")
+                            val from = number("startTime"); val to = number("endTime")
+                            if (start.isFinite() && end.isFinite() && start >= 0 && end > start && end <= visibleText.length &&
+                                from.isFinite() && to.isFinite() && to > from)
+                                VinylLyricWord(start.toInt(), end.toInt(), from, to) else null
+                        }
+                    } else emptyList()
+                    VinylLyricLine(time, visibleText, text("translation"), words)
                 }
             } else emptyList(),
         )

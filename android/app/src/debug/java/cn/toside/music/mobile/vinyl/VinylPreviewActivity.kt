@@ -58,7 +58,8 @@ class VinylPreviewActivity : AppCompatActivity() {
         if (action in setOf("snapshot", "toggle", "refresh", "buffer", "stop", "resume", "empty", "lyrics", "ambient-red", "ambient-blue", "ambient-white", "ambient-missing", "ambient-invalid", "ambient-off", "ambient-low", "ambient-high", "ambient-auto",
                 "fixture-single", "fixture-multiple", "fixture-next", "fixture-previous", "fixture-end", "fixture-start", "fixture-reduced",
                 "fixture-font-system", "fixture-font-wenkai", "fixture-font-xiaowei", "fixture-font-huangyou",
-                "fixture-pulse-on", "fixture-pulse-off", "fixture-background-off", "fixture-background-on")) handleAction(action, 0.0)
+                "fixture-pulse-on", "fixture-pulse-off", "fixture-background-off", "fixture-background-on", "fixture-highlight"))
+            handleAction(action, intent.getDoubleExtra("vinyl_value", 0.0))
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -77,6 +78,15 @@ class VinylPreviewActivity : AppCompatActivity() {
 
     private fun handleAction(action: String, value: Double) {
         when (action) {
+            "fixture-highlight" -> {
+                visualConfig.value = visualConfig.value.copy(lyricMotionEnabled = false, backgroundMotion = false,
+                    visualEffectsEnabled = false, particleQuality = ParticleQuality.Off)
+                state.value = state.value.copy(trackId = "highlight-fixture", title = "换行高光测试", artist = "界面测试 · 无音频",
+                    lyricsVisible = true, hasTrack = true, isPlaying = false, isStopped = false,
+                    lyricDisplayMode = "single", lyricFontSize = 56f, lyricColor = "#FF3B6B", lyricPulseEnabled = false,
+                    immersiveVisualsEnabled = false, activeLyric = 0, position = value.coerceIn(0.0, 1.0) * 10.0, duration = 10.0,
+                    lyrics = listOf(VinylLyricLine(0.0, "铁盒的钥匙我找不到")))
+            }
             "fixture-pulse-on", "fixture-pulse-off" -> state.value = state.value.copy(lyricPulseEnabled = action == "fixture-pulse-on")
             "fixture-background-off", "fixture-background-on" -> visualConfig.value = visualConfig.value.copy(backgroundMotion = action == "fixture-background-on")
             "fixture-font-system", "fixture-font-wenkai", "fixture-font-xiaowei", "fixture-font-huangyou" ->

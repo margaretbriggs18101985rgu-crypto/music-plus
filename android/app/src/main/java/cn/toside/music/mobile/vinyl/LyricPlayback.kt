@@ -23,6 +23,20 @@ internal fun lyricHighlightProgress(
 ): Float {
     if (index !in lines.indices || !positionSeconds.isFinite() || positionSeconds < 0 ||
         activeIndex !in lines.indices) return 0f
+    val line = lines[index]
+    if (line.words.isNotEmpty() && line.text.isNotEmpty()) {
+        val now = positionSeconds * 1000.0
+        var characters = 0.0
+        for (word in line.words) {
+            if (now < word.startTime) break
+            if (now >= word.endTime) characters = word.end.toDouble()
+            else {
+                characters = word.start + (word.end - word.start) * ((now - word.startTime) / (word.endTime - word.startTime))
+                break
+            }
+        }
+        return (characters / line.text.length).toFloat().coerceIn(0f, 1f)
+    }
     if (index < activeIndex) return 1f
     if (index > activeIndex) return 0f
 
@@ -34,4 +48,12 @@ internal fun lyricHighlightProgress(
         ?: if (durationSeconds.isFinite() && durationSeconds * 1000.0 > start) durationSeconds * 1000.0 else return 0f
     if (end <= start) return 0f
     return (((positionSeconds * 1000.0 - start) / (end - start)).toFloat()).coerceIn(0f, 1f)
+}
+
+// Interpolate only between frequent, player-confirmed samples. A missing sample
+// freezes the sweep after 650 ms; pause, buffering and seek use the anchor itself.
+internal fun lyricInterpolatedPosition(position: Double, elapsedSeconds: Double, playing: Boolean, rate: Double): Double {
+    if (!position.isFinite() || position < 0) return 0.0
+    if (!playing || !elapsedSeconds.isFinite() || !rate.isFinite()) return position
+    return position + elapsedSeconds.coerceIn(0.0, .65) * rate.coerceIn(.25, 4.0)
 }

@@ -11,6 +11,7 @@ import { onScreenStateChange } from '@/utils/nativeModules/utils'
 import { AppState } from 'react-native'
 import { createPlaybackSeeker } from '@/core/player/seek'
 import { syncPosition as syncLyricPosition } from '@/core/lyric'
+import { observePlaybackSource, needsPlaybackSourceObservation } from '@/core/player/player'
 
 const delaySavePlayInfo = throttleBackgroundTimer(() => {
   void savePlayInfo({
@@ -26,8 +27,10 @@ export default () => {
 
   let updateTimeout: number | null = null
   let positionRequest = 0
+  let sourceObservationUntil = 0
 
   let isScreenOn = true
+  const needsBackgroundObservation = () => Date.now() < sourceObservationUntil && needsPlaybackSourceObservation()
 
   const seeker = createPlaybackSeeker({
     trackId: () => playerState.musicInfo.id,
@@ -53,6 +56,8 @@ export default () => {
       setNowPlayTime(position)
       syncLyricPosition(position)
       if (!playerState.isPlay) return
+      observePlaybackSource(position)
+      if (!isScreenOn && !needsBackgroundObservation()) clearUpdateTimeout()
 
       if (settingState.setting['player.isSavePlayTime'] && !playerState.playMusicInfo.isTempPlay && isScreenOn) {
         delaySavePlayInfo()
@@ -86,9 +91,13 @@ export default () => {
     updateTimeout = null
   }
   const startUpdateTimeout = () => {
-    if (!isScreenOn) return
+    if (!isScreenOn && !needsBackgroundObservation()) return
     clearUpdateTimeout()
     updateTimeout = BackgroundTimer.setInterval(() => {
+      if (!isScreenOn && !needsBackgroundObservation()) {
+        clearUpdateTimeout()
+        return
+      }
       getCurrentTime()
     }, 500 / settingState.setting['player.playbackRate'])
     getCurrentTime()
@@ -103,12 +112,16 @@ export default () => {
 
 
   const handlePlay = () => {
+    // Keep only a short confirmation window when the screen is off. A stalled
+    // native clock must not leave a new permanent background polling loop.
+    sourceObservationUntil = Date.now() + 20000
     void getMaxTime()
     // prevProgressStatus = 'normal'
     // handleSetTaskBarState(playProgress.progress, prevProgressStatus)
     startUpdateTimeout()
   }
   const handlePause = () => {
+    observePlaybackSource(playerState.progress.nowPlayTime)
     // prevProgressStatus = 'paused'
     // handleSetTaskBarState(playProgress.progress, prevProgressStatus)
     // clearBufferTimeout()
@@ -178,7 +191,8 @@ export default () => {
     isScreenOn = state == 'ON'
     if (isScreenOn) {
       if (playerState.isPlay) startUpdateTimeout()
-    } else clearUpdateTimeout()
+    } else if (playerState.isPlay && needsBackgroundObservation()) startUpdateTimeout()
+    else clearUpdateTimeout()
   }
 
   // 修复在某些设备上屏幕状态改变事件未触发导致的进度条未更新的问题

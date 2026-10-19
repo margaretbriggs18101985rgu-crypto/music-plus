@@ -160,7 +160,7 @@ const List = ({ source, lists, onPlay }: {
   )
 }
 
-const SourceDetail = ({ info, onConfirm, toggleSource }: { info: LX.Music.MusicInfo, onConfirm: (info: LX.Music.MusicInfoOnline) => void, toggleSource: LX.Music.MusicInfoOnline | null }) => {
+const SourceDetail = ({ info, onConfirm, toggleSource, allowCurrentSource = false }: { info: LX.Music.MusicInfo, onConfirm: (info: LX.Music.MusicInfoOnline) => void, toggleSource: LX.Music.MusicInfoOnline | null, allowCurrentSource?: boolean }) => {
   const theme = useTheme()
   const isHorizontalMode = useHorizontalMode()
   const t = useI18n()
@@ -278,7 +278,7 @@ const SourceDetail = ({ info, onConfirm, toggleSource }: { info: LX.Music.MusicI
           onConfirm(toggleSource!)
         }}
         style={{ ...styles.button, backgroundColor: theme['c-button-background'] }}
-        disabled={!toggleSource || toggleSource.id == info.id}
+        disabled={!toggleSource || (!allowCurrentSource && toggleSource.id == info.id)}
       >
         <Text color={theme['c-button-font']}>{t('music_toggle__confirm')}</Text>
       </Button>
@@ -290,9 +290,13 @@ const SourceDetail = ({ info, onConfirm, toggleSource }: { info: LX.Music.MusicI
 interface ModalType {
   show: (info: SelectInfo) => void
 }
+interface Props {
+  onConfirm?: (musicInfo: LX.Music.MusicInfoOnline) => Promise<boolean>
+  previewOnSelect?: boolean
+}
 const initInfo = {}
 
-const Modal = forwardRef<ModalType, {}>((props, ref) => {
+const Modal = forwardRef<ModalType, Props>(({ onConfirm, previewOnSelect = true }, ref) => {
   const infoRef = useRef<SelectInfo>(initInfo as SelectInfo)
   const [sourceInfo, setSourceInfo] = useState<{
     sourceInfo: LX.OnlineSource[]
@@ -304,22 +308,25 @@ const Modal = forwardRef<ModalType, {}>((props, ref) => {
   const dialogRef = useRef<DialogType>(null)
   const isUnmountedRef = useUnmounted()
   const [toggleSource, setToggleSource] = useState<LX.Music.MusicInfoOnline | null>(null)
+  const requestVersion = useRef(0)
 
   const handlePlay = useCallback((musicInfo: LX.Music.MusicInfoOnline) => {
     setToggleSource(musicInfo)
+    if (!previewOnSelect) return
     const isPlaying = !!playerState.playMusicInfo.musicInfo
     addTempPlayList([{ listId: LIST_IDS.PLAY_LATER, musicInfo, isTop: true }])
     if (isPlaying) void playNext()
-  }, [])
+  }, [previewOnSelect])
 
   const loadData = useCallback((selectInfo: SelectInfo = infoRef.current) => {
+    const version = ++requestVersion.current
     setSourceInfo({ sourceInfo: [], lists: {}, loading: true, error: false })
     searchMusic({
       name: selectInfo.musicInfo.name,
       singer: selectInfo.musicInfo.singer,
       source: '',
     }).then((result: Array<{ source: LX.OnlineSource, list: LX.Music.MusicInfoOnline[] }>) => {
-      if (isUnmountedRef.current) return
+      if (isUnmountedRef.current || version != requestVersion.current) return
       const tags: LX.OnlineSource[] = []
       const lists: Partial<Record<LX.OnlineSource, LX.Music.MusicInfoOnline[]>> = {}
       for (const s of result) {
@@ -329,13 +336,14 @@ const Modal = forwardRef<ModalType, {}>((props, ref) => {
       setSourceInfo({ sourceInfo: tags, lists, loading: false, error: false })
       if (tags.length) setSource(tags[0])
     }).catch(() => {
-      if (isUnmountedRef.current) return
-      setSourceInfo({ ...sourceInfo, error: true })
+      if (isUnmountedRef.current || version != requestVersion.current) return
+      setSourceInfo({ sourceInfo: [], lists: {}, loading: false, error: true })
     })
-  }, [isUnmountedRef, sourceInfo])
+  }, [isUnmountedRef])
   useImperativeHandle(ref, () => ({
     show(info) {
       infoRef.current = info
+      setToggleSource(null)
       setSource('')
       loadData(info)
       requestAnimationFrame(() => {
@@ -345,9 +353,11 @@ const Modal = forwardRef<ModalType, {}>((props, ref) => {
   }))
 
   const confirmToggleSource = useCallback(async(musicInfo: LX.Music.MusicInfoOnline) => {
-    const isClose = await handleToggleSource(infoRef.current.listId, infoRef.current.musicInfo, musicInfo)
+    const isClose = onConfirm
+      ? await onConfirm(musicInfo)
+      : await handleToggleSource(infoRef.current.listId, infoRef.current.musicInfo, musicInfo)
     if (isClose) dialogRef.current?.setVisible(false)
-  }, [])
+  }, [onConfirm])
 
   return (
     <Dialog ref={dialogRef}>
@@ -368,7 +378,7 @@ const Modal = forwardRef<ModalType, {}>((props, ref) => {
               </>)
             : <Empty loading={sourceInfo.loading} error={sourceInfo.error} onReload={loadData} />
         }
-        <SourceDetail info={infoRef.current.musicInfo} onConfirm={confirmToggleSource} toggleSource={toggleSource} />
+        <SourceDetail info={infoRef.current.musicInfo} onConfirm={confirmToggleSource} toggleSource={toggleSource} allowCurrentSource={!!onConfirm} />
       </View>
     </Dialog>
   )
@@ -382,7 +392,7 @@ export interface MusicToggleModalType {
   show: (listInfo: SelectInfo) => void
 }
 
-export default forwardRef<MusicToggleModalType, {}>((props, ref) => {
+export default forwardRef<MusicToggleModalType, Props>((props, ref) => {
   const musicAddModalRef = useRef<ModalType>(null)
   const [visible, setVisible] = useState(false)
 
@@ -400,7 +410,7 @@ export default forwardRef<MusicToggleModalType, {}>((props, ref) => {
 
   return (
     visible
-      ? <Modal ref={musicAddModalRef} />
+      ? <Modal ref={musicAddModalRef} {...props} />
       : null
   )
 })

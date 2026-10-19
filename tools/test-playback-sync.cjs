@@ -3,15 +3,15 @@ const fs = require('node:fs')
 const ts = require('typescript')
 const { test } = require('node:test')
 
-function load(filename, dependencies = {}) {
+function load(filename, dependencies = {}, clock = Date) {
   const module = { exports: {} }
   const output = ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, esModuleInterop: true },
   }).outputText
-  new Function('module', 'exports', 'require', output)(module, module.exports, id => { // eslint-disable-line no-new-func
+  new Function('module', 'exports', 'require', 'Date', output)(module, module.exports, id => { // eslint-disable-line no-new-func
     assert.ok(Object.hasOwn(dependencies, id), `Unexpected dependency: ${id}`)
     return dependencies[id]
-  })
+  }, clock)
   return module.exports
 }
 const { createPlaybackSeeker } = load('src/core/player/seek.ts')
@@ -85,7 +85,7 @@ test('track changes discard queued and in-flight seek results', async() => {
 })
 
 test('poll started before a seek cannot rewind the confirmed progress or lyric clock', async() => {
-  const listeners = {}; const stateListeners = {}; const positions = []; const lyrics = []; const completed = []
+  const listeners = {}; const stateListeners = {}; const positions = []; const lyrics = []; const completed = []; const observations = []
   const oldPoll = deferred()
   const player = {
     musicInfo: { id: 'song' },
@@ -116,6 +116,7 @@ test('poll started before a seek cannot rewind the confirmed progress or lyric c
       'react-native': { AppState: { addEventListener: () => {} } },
       '@/core/player/seek': { createPlaybackSeeker },
       '@/core/lyric': { syncPosition: time => lyrics.push(time) },
+      '@/core/player/player': { observePlaybackSource: time => observations.push(time), needsPlaybackSourceObservation: () => false },
     }).default()
     listeners.play()
     listeners.setProgress(90)
@@ -125,12 +126,13 @@ test('poll started before a seek cannot rewind the confirmed progress or lyric c
     assert.deepEqual(positions, [90])
     assert.deepEqual(lyrics, [90])
     assert.deepEqual(completed, [90])
+    assert.deepEqual(observations, [])
   } finally { global.app_event = oldGlobal; global.state_event = oldState }
 })
 
 test('overlapping position polls keep the newest native clock reading', async() => {
   const oldPoll = deferred(); const newPoll = deferred()
-  const listeners = {}; const positions = []
+  const listeners = {}; const positions = []; const observations = []
   const player = {
     musicInfo: { id: 'song' },
     isPlay: true,
@@ -160,6 +162,7 @@ test('overlapping position polls keep the newest native clock reading', async() 
       'react-native': { AppState: { addEventListener: () => {} } },
       '@/core/player/seek': { createPlaybackSeeker },
       '@/core/lyric': { syncPosition: () => {} },
+      '@/core/player/player': { observePlaybackSource: time => observations.push(time), needsPlaybackSourceObservation: () => false },
     }).default()
     listeners.play()
     tick()
@@ -168,8 +171,46 @@ test('overlapping position polls keep the newest native clock reading', async() 
     oldPoll.resolve(10)
     await flush()
     assert.deepEqual(positions, [90])
+    assert.deepEqual(observations, [90])
   } finally { global.app_event = oldGlobal; global.state_event = oldState }
 })
+
+for (const outcome of ['confirmed', 'stalled']) {
+  test(`screen-off source sampling stops when ${outcome === 'confirmed' ? 'success is confirmed' : 'the confirmation window expires'}`, async() => {
+    const listeners = {}; const observations = []
+    let now = 0; let pending = true; let tick; let screenChanged; let clears = 0
+    const player = { musicInfo: { id: 'song' }, isPlay: true, progress: { nowPlayTime: 1, maxPlayTime: 180 }, playMusicInfo: { isTempPlay: true } }
+    const oldGlobal = global.app_event; const oldState = global.state_event
+    global.app_event = { on: (name, callback) => { listeners[name] = callback } }
+    global.state_event = { on: () => {} }
+    try {
+      load('src/core/init/player/playProgress.ts', {
+        '@/core/list': {},
+        '@/core/player/progress': { setNowPlayTime: () => {}, setMaxplayTime: () => {} },
+        '@/plugins/player': { setCurrentTime: async() => {}, getDuration: async() => 180, getPosition: async() => 1 },
+        '@/utils/common': {},
+        '@/utils/data': {},
+        '@/utils/tools': { throttleBackgroundTimer: fn => fn },
+        'react-native-background-timer': { setInterval: callback => { tick = callback; return 1 }, clearInterval: () => { clears++ } },
+        '@/store/player/state': { __esModule: true, default: player },
+        '@/store/setting/state': { __esModule: true, default: { setting: { 'player.playbackRate': 1 } } },
+        '@/utils/nativeModules/utils': { onScreenStateChange: callback => { screenChanged = callback } },
+        'react-native': { AppState: { addEventListener: () => {} } },
+        '@/core/player/seek': { createPlaybackSeeker },
+        '@/core/lyric': { syncPosition: () => {} },
+        '@/core/player/player': { observePlaybackSource: time => observations.push(time), needsPlaybackSourceObservation: () => pending },
+      }, { now: () => now }).default()
+      listeners.play(); await flush()
+      screenChanged('OFF'); await flush()
+      const before = clears
+      if (outcome === 'confirmed') pending = false
+      else now = 21000
+      tick(); await flush()
+      assert.equal(clears, before + 1)
+      assert.ok(observations.length >= 2)
+    } finally { global.app_event = oldGlobal; global.state_event = oldState }
+  })
+}
 
 test('paused lyric seeks render the confirmed line and remain paused', () => {
   const played = []; const paused = []

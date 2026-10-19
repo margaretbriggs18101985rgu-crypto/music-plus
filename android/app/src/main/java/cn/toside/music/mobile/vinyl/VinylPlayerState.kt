@@ -14,6 +14,7 @@ data class VinylPlayerState(
     val isStopped: Boolean = true,
     val position: Double = 0.0,
     val duration: Double = 0.0,
+    val playbackRate: Double = 1.0,
     val favorite: Boolean = false,
     val status: String = "选择歌曲后即可播放",
     val topInset: Float = 0f,
@@ -46,7 +47,8 @@ data class VinylPlayerState(
     val playMode: String = "listLoop",
 )
 
-data class VinylLyricLine(val time: Double, val text: String, val translation: String = "")
+data class VinylLyricWord(val start: Int, val end: Int, val startTime: Double, val endTime: Double)
+data class VinylLyricLine(val time: Double, val text: String, val translation: String = "", val words: List<VinylLyricWord> = emptyList())
 
 object VinylPalette {
     val Top = Color(0xFF625D65)
