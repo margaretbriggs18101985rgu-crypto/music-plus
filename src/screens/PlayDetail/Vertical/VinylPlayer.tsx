@@ -22,6 +22,8 @@ import PlayerMoreSheet, { type PlayerMoreSheetRef } from '../components/PlayerMo
 import MusicAddModal, { type MusicAddModalType } from '@/components/MusicAddModal'
 import { getTrackAlbum } from '@/core/music/artist'
 import { normalizeLyricFont } from '@/utils/lyricAppearance'
+import { normalizePageColor, normalizePageFont } from '@/utils/pageAppearance'
+import { parseReactiveVisuals, type ReactiveVisuals } from '@/utils/reactiveVisuals'
 
 interface PlayerActionEvent {
   action: string
@@ -47,6 +49,7 @@ interface NativePlayerProps extends ViewProps {
     activeLyric: number
     seekRevision: number
     immersiveVisualsEnabled: boolean
+    reactiveVisuals: ReactiveVisuals
     particleQuality: LX.AppSetting['player.particleQuality']
     lyricMotionEnabled: boolean
     lyricPulseEnabled: boolean
@@ -54,6 +57,8 @@ interface NativePlayerProps extends ViewProps {
     lyricColor: string
     lyricFontSize: number
     lyricFontFamily: LX.AppSetting['player.lyricFontFamily']
+    pageFontFamily: LX.AppSetting['theme.pageFontFamily']
+    pageFontColor: string
     lyricAlign: LX.AppSetting['player.lyricAlign']
     backgroundMotion: boolean
     respectReducedMotion: boolean
@@ -72,6 +77,8 @@ export default ({ componentId }: { componentId: string }) => {
   const lyric = useLrcPlay()
   const playMode = useSettingValue('player.togglePlayMethod')
   const immersiveVisualsEnabled = useSettingValue('player.immersiveVisualsEnabled')
+  const storedReactiveVisuals = useSettingValue('player.reactiveVisuals')
+  const reactiveVisuals = useMemo(() => parseReactiveVisuals(storedReactiveVisuals), [storedReactiveVisuals])
   const particleQuality = useSettingValue('player.particleQuality')
   const lyricMotionEnabled = useSettingValue('player.lyricMotionEnabled')
   const lyricPulseEnabled = useSettingValue('player.lyricPulseEnabled')
@@ -79,6 +86,8 @@ export default ({ componentId }: { componentId: string }) => {
   const lyricColor = useSettingValue('player.lyricColor')
   const lyricFontSize = useSettingValue('player.lyricFontSize')
   const lyricFontFamily = normalizeLyricFont(useSettingValue('player.lyricFontFamily'))
+  const pageFontFamily = normalizePageFont(useSettingValue('theme.pageFontFamily'))
+  const pageFontColor = normalizePageColor(useSettingValue('theme.pageFontColor'))
   const lyricAlign = useSettingValue('player.lyricAlign')
   const backgroundMotion = useSettingValue('player.backgroundMotion')
   const respectReducedMotion = useSettingValue('player.respectReducedMotion')
@@ -212,6 +221,7 @@ export default ({ componentId }: { componentId: string }) => {
     activeLyric: lyric.line,
     seekRevision,
     immersiveVisualsEnabled,
+    reactiveVisuals,
     particleQuality,
     lyricMotionEnabled,
     lyricPulseEnabled,
@@ -219,6 +229,8 @@ export default ({ componentId }: { componentId: string }) => {
     lyricColor,
     lyricFontSize,
     lyricFontFamily,
+    pageFontFamily,
+    pageFontColor,
     lyricAlign,
     backgroundMotion,
     respectReducedMotion,
@@ -228,7 +240,7 @@ export default ({ componentId }: { componentId: string }) => {
     playMode,
     topInset,
     bottomInset: 0,
-  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode, immersiveVisualsEnabled, particleQuality, lyricMotionEnabled, lyricPulseEnabled, lyricDisplayMode, lyricColor, lyricFontSize, lyricFontFamily, lyricAlign, backgroundMotion, respectReducedMotion, wallpaperPath, wallpaperKind, wallpaperScope])
+  }), [music, hasTrack, playback, progress, favorite, statusText, topInset, lyricsVisible, nativeLyrics, lyric.line, seekRevision, playMode, immersiveVisualsEnabled, reactiveVisuals, particleQuality, lyricMotionEnabled, lyricPulseEnabled, lyricDisplayMode, lyricColor, lyricFontSize, lyricFontFamily, pageFontFamily, pageFontColor, lyricAlign, backgroundMotion, respectReducedMotion, wallpaperPath, wallpaperKind, wallpaperScope])
 
   return <>
     <NativeVinylPlayer style={{ flex: 1 }} playerState={playerState} onPlayerAction={({ nativeEvent }) => { handlePlayerAction(nativeEvent.action, nativeEvent.value) }} />

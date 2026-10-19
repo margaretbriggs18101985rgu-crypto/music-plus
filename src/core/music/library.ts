@@ -8,7 +8,16 @@ import { LIST_IDS } from '@/config/constant'
 
 export const LIBRARY_EVENT = 'lx_musicLibraryUpdated'
 export const OPEN_LIBRARY = 'lx_openLibraryPlaylist'
-export interface RecentTrack { music: LX.Music.MusicInfo, playedAt: number, playCount?: number, listenedSeconds?: number, completedCount?: number }
+export interface RecentTrack {
+  music: LX.Music.MusicInfo
+  playedAt: number
+  playCount?: number
+  listenedSeconds?: number
+  completedCount?: number
+  measuredSessions?: number
+  measuredListenedSeconds?: number
+  listenedRatioTotal?: number
+}
 export interface DownloadStatus { status: number, reason: number, bytes: number, total: number, uri?: string }
 export interface Folder { uri: string, name: string }
 export interface DownloadJob { id: number, musicId: string, filename: string, title: string, folderName: string, music?: LX.Music.MusicInfo }
@@ -60,10 +69,19 @@ export const forgetDownloadJob = async(id: number) => write(async() => {
   DeviceEventEmitter.emit(LIBRARY_EVENT)
 })
 export const startRecentTracking = () => {
-  interface Session { music: LX.Music.MusicInfo, listenedSeconds: number, lastTickAt: number | null, timer: number | null, completed: boolean }
+  interface Session {
+    music: LX.Music.MusicInfo
+    listenedSeconds: number
+    lastTickAt: number | null
+    lastPosition: number | null
+    ranges: Array<[number, number]>
+    ratio: number
+    timer: number | null
+    completed: boolean
+  }
   let session: Session | null = null
   let active = true
-  const saveStats = async(music: LX.Music.MusicInfo, update: Partial<Pick<RecentTrack, 'playCount' | 'listenedSeconds' | 'completedCount'>>, playedAt?: number) => {
+  const saveStats = async(music: LX.Music.MusicInfo, update: Partial<Omit<RecentTrack, 'music' | 'playedAt'>>, playedAt?: number) => {
     await write(async() => {
       const recent = await getRecentTracks()
       const existing = recent.find(item => item.music.id == music.id)
@@ -73,6 +91,9 @@ export const startRecentTracking = () => {
         playCount: (existing?.playCount ?? 0) + (update.playCount ?? 0),
         listenedSeconds: (existing?.listenedSeconds ?? 0) + (update.listenedSeconds ?? 0),
         completedCount: (existing?.completedCount ?? 0) + (update.completedCount ?? 0),
+        measuredSessions: (existing?.measuredSessions ?? 0) + (update.measuredSessions ?? 0),
+        measuredListenedSeconds: (existing?.measuredListenedSeconds ?? 0) + (update.measuredListenedSeconds ?? 0),
+        listenedRatioTotal: (existing?.listenedRatioTotal ?? 0) + (update.listenedRatioTotal ?? 0),
       }
       await saveData(RECENT, [item, ...recent.filter(entry => entry.music.id != music.id)].slice(0, 100))
       if (active) DeviceEventEmitter.emit(LIBRARY_EVENT)
@@ -93,16 +114,37 @@ export const startRecentTracking = () => {
     const now = Date.now()
     const elapsed = Math.min(MAX_LISTEN_TICK_SECONDS, Math.max(0, (now - current.lastTickAt) / 1000))
     current.lastTickAt = now
-    if (!elapsed) return
-    current.listenedSeconds += elapsed
-    const duration = parseDuration(current.music.interval)
-    const completedCount = !current.completed && duration > 0 && current.listenedSeconds >= duration * 0.9 ? 1 : 0
+    const position = playerState.progress.nowPlayTime
+    const previous = current.lastPosition
+    current.lastPosition = position
+    const delta = previous == null ? 0 : position - previous
+    const rate = playerState.playRate > 0 ? playerState.playRate : 1
+    // Require confirmed audio progress. Paused/buffering time and seek jumps
+    // never become listening evidence; cap delayed background timer samples.
+    if (!elapsed || previous == null || delta <= 0 || delta > elapsed * rate + 2) return
+    const seconds = Math.min(elapsed, delta / rate)
+    current.listenedSeconds += seconds
+    current.ranges.push([previous, position])
+    current.ranges.sort((a, b) => a[0] - b[0])
+    const merged: Array<[number, number]> = []
+    for (const range of current.ranges) {
+      const last = merged[merged.length - 1]
+      if (last && range[0] <= last[1]) last[1] = Math.max(last[1], range[1])
+      else merged.push([...range])
+    }
+    current.ranges = merged
+    const duration = playerState.progress.maxPlayTime || parseDuration(current.music.interval)
+    const coverage = merged.reduce((total, [start, end]) => total + Math.max(0, Math.min(end, duration) - Math.max(0, start)), 0)
+    const ratio = duration > 0 ? Math.min(1, coverage / duration) : 0
+    const ratioDelta = Math.max(0, ratio - current.ratio)
+    current.ratio = Math.max(current.ratio, ratio)
+    const completedCount = !current.completed && ratio >= 0.9 ? 1 : 0
     if (completedCount) current.completed = true
-    void saveStats(current.music, { listenedSeconds: elapsed, completedCount }).catch(() => {})
+    void saveStats(current.music, { listenedSeconds: seconds, measuredListenedSeconds: seconds, listenedRatioTotal: ratioDelta, completedCount }).catch(() => {})
   }
   const pauseSession = () => {
     if (!session) return
-    creditElapsed(session)
+    if (musicInfo()?.id == session.music.id) creditElapsed(session)
     session.lastTickAt = null
     stopTimer(session)
   }
@@ -115,11 +157,12 @@ export const startRecentTracking = () => {
     if (!music) return
     if (session?.music.id != music.id) endSession()
     if (!session) {
-      session = { music, listenedSeconds: 0, lastTickAt: null, timer: null, completed: false }
-      void saveStats(music, { playCount: 1 }, Date.now()).catch(() => {})
+      session = { music, listenedSeconds: 0, lastTickAt: null, lastPosition: null, ranges: [], ratio: 0, timer: null, completed: false }
+      void saveStats(music, { playCount: 1, measuredSessions: 1 }, Date.now()).catch(() => {})
     }
     if (session.lastTickAt != null) return
     session.lastTickAt = Date.now()
+    session.lastPosition = playerState.progress.nowPlayTime
     session.timer = BackgroundTimer.setInterval(() => {
       if (!playerState.isPlay || playerState.playMusicInfo.musicInfo?.id != session?.music.id) {
         pauseSession()
@@ -133,6 +176,16 @@ export const startRecentTracking = () => {
   }
   const onEnded = () => { endSession() }
   const onStop = () => { endSession() }
+  const onSeek = () => {
+    if (!session) return
+    creditElapsed(session)
+    session.lastPosition = null
+  }
+  const onSeekCompleted = (position: number) => {
+    if (!session) return
+    session.lastPosition = position
+    if (session.lastTickAt != null) session.lastTickAt = Date.now()
+  }
   const removeListeners = () => {
     active = false
     endSession()
@@ -142,6 +195,11 @@ export const startRecentTracking = () => {
     global.app_event.off('playerEnded', onEnded)
     global.app_event.off('stop', onStop)
     global.app_event.off('error', pauseSession)
+    global.app_event.off('playerWaiting', pauseSession)
+    global.app_event.off('playerLoadstart', pauseSession)
+    global.app_event.off('playerPlaying', onPlay)
+    global.app_event.off('setProgress', onSeek)
+    global.app_event.off('seekCompleted', onSeekCompleted)
   }
   global.app_event.on('play', onPlay)
   global.app_event.on('pause', pauseSession)
@@ -149,6 +207,11 @@ export const startRecentTracking = () => {
   global.app_event.on('playerEnded', onEnded)
   global.app_event.on('stop', onStop)
   global.app_event.on('error', pauseSession)
+  global.app_event.on('playerWaiting', pauseSession)
+  global.app_event.on('playerLoadstart', pauseSession)
+  global.app_event.on('playerPlaying', onPlay)
+  global.app_event.on('setProgress', onSeek)
+  global.app_event.on('seekCompleted', onSeekCompleted)
   if (playerState.isPlay) onPlay()
   return removeListeners
 }

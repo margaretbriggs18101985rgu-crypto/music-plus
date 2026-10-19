@@ -85,6 +85,7 @@ export default {
         interval: formatPlayTime(item.dt / 1000),
         songmid: item.id,
         img: item.al.picUrl,
+        searchMetadata: { heat: item.pop, publishedAt: item.publishTime },
         lrc: null,
         types,
         _types,

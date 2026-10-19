@@ -15,14 +15,15 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import cn.toside.music.mobile.BuildConfig
 
 @Composable
-internal fun rememberAmbientPhase(trackId: String, running: Boolean): State<Double> {
+internal fun rememberAmbientPhase(trackId: String, running: Boolean, speed: Float = 1f): State<Double> {
     val clock = remember(trackId) { AmbientAnimationClock() }
     val phase = remember(trackId) { mutableDoubleStateOf(0.0) }
+    val currentSpeed by rememberUpdatedState(speed)
     LaunchedEffect(clock, running) {
         clock.pause()
         if (BuildConfig.DEBUG) Log.d("ImmersiveAmbient", "running=$running phase=${clock.seconds}")
         if (running) try {
-            while (true) withFrameNanos { phase.doubleValue = clock.frame(it) }
+            while (true) withFrameNanos { phase.doubleValue = clock.frame(it, currentSpeed.toDouble()) }
         } finally { clock.pause() }
     }
     return phase

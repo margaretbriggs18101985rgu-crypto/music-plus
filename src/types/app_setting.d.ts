@@ -5,6 +5,8 @@ declare global {
     type AddMusicLocationType = 'top' | 'bottom'
 
     interface AppSetting {
+      'theme.pageFontFamily': 'system' | 'wenkai' | 'xiaowei' | 'huangyou'
+      'theme.pageFontColor': string
       version: string
       /**
        * 是否跟随系统切换亮暗主题
@@ -173,6 +175,7 @@ declare global {
 
       /** Android 原生歌词视觉设置；旧配置由默认值合并补齐。 */
       'player.immersiveVisualsEnabled': boolean
+      'player.reactiveVisuals': string
       'player.particleQuality': 'auto' | 'low' | 'high' | 'off'
       'player.lyricMotionEnabled': boolean
       'player.lyricPulseEnabled': boolean

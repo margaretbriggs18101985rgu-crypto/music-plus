@@ -43,7 +43,8 @@ internal fun PlayerLyrics(state: VinylPlayerState, modifier: Modifier,
 @Composable
 private fun SinglePlayerLyrics(state: VinylPlayerState, modifier: Modifier,
     motionEnabled: Boolean, pulseEnabled: Boolean, audio: State<AudioMotion>, phase: State<Double>) {
-    val color = Color(lyricColorArgb(state.lyricColor))
+    val fx = lyricVisuals(state)
+    val color = stageColor(Color(lyricColorArgb(state.lyricColor)), fx.colorTension)
     val family = lyricFontFamily(state.lyricFontFamily)
     val synthesis = if (state.lyricFontFamily == "system") FontSynthesis.All else FontSynthesis.None
     val measurer = rememberTextMeasurer()
@@ -86,17 +87,18 @@ private fun SinglePlayerLyrics(state: VinylPlayerState, modifier: Modifier,
             Column(Modifier.fillMaxWidth().graphicsLayer {
                 val enabled = current && state.isPlaying && pulseEnabled
                 val sound = if (enabled) audio.value else AudioMotion()
-                val amount = lyricTextPulse(phase.value, sound.bass, sound.energy, enabled)
+                val amount = lyricTextPulse(0.0, sound.beat * state.reactiveVisuals.bassWeight,
+                    weightedAudioEnergy(sound, state.reactiveVisuals), enabled) * state.reactiveVisuals.intensity
                 scaleX = 1f + amount
                 scaleY = 1f + amount * .8f
-                translationY = if (enabled) (-sound.bass * 1.5f).dp.toPx() else 0f
                 rotationX = pitch.value
                 cameraDistance = 1000.dp.toPx()
             }.semantics {
                 if (current) { liveRegion = LiveRegionMode.Polite; contentDescription = text }
                 else invisibleToUser()
             }, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                BasicText(text, modifier = Modifier.fillMaxWidth(), style = TextStyle(fontFamily = family, fontSynthesis = synthesis,
+                ReactiveLyricText(text, modifier = Modifier.fillMaxWidth(), fx = fx, audio = audio,
+                    reactive = current && state.isPlaying && pulseEnabled, tint = color, style = TextStyle(fontFamily = family, fontSynthesis = synthesis,
                     brush = Brush.verticalGradient(listOf(lerp(color, Color.White, .85f), lerp(color, Color.White, .55f))),
                     fontSize = font.sp, lineHeight = (font * 1.4f).sp, fontWeight = FontWeight.SemiBold,
                     textAlign = lyricAlignment(state.lyricAlign), shadow = Shadow(color.copy(alpha = .38f), Offset.Zero, 18f)))
@@ -119,7 +121,8 @@ private fun MultiplePlayerLyrics(state: VinylPlayerState, modifier: Modifier, mo
         else camera.animateTo(active.toFloat(), spring(dampingRatio = 1f, stiffness = 95f, visibilityThreshold = .001f))
     }
     val window by remember(state.lyrics.size) { derivedStateOf { lyricScrollWindow(camera.value, state.lyrics.size) } }
-    val color = Color(lyricColorArgb(state.lyricColor))
+    val fx = lyricVisuals(state)
+    val color = stageColor(Color(lyricColorArgb(state.lyricColor)), fx.colorTension)
     val family = lyricFontFamily(state.lyricFontFamily)
     val synthesis = if (state.lyricFontFamily == "system") FontSynthesis.All else FontSynthesis.None
     val density = LocalDensity.current
@@ -138,7 +141,8 @@ private fun MultiplePlayerLyrics(state: VinylPlayerState, modifier: Modifier, mo
                     if (index == active) { liveRegion = LiveRegionMode.Polite; contentDescription = line.text }
                 }, horizontalAlignment = Alignment.CenterHorizontally) {
                     // Emphasis changes layers, never typography/layout, so rows do not reflow.
-                    BasicText(line.text.ifBlank { "♪" }, modifier = Modifier.fillMaxWidth(), maxLines = 4,
+                    ReactiveLyricText(line.text.ifBlank { "♪" }, modifier = Modifier.fillMaxWidth(), maxLines = 4,
+                        fx = fx, audio = audio, reactive = index == active && state.isPlaying && pulseEnabled, tint = color,
                         overflow = TextOverflow.Ellipsis, style = TextStyle(fontFamily = family, fontSynthesis = synthesis, color = textColor,
                             fontSize = font.sp, lineHeight = (font * 1.38f).sp,
                             fontWeight = FontWeight.Bold, textAlign = lyricAlignment(state.lyricAlign),
@@ -164,7 +168,8 @@ private fun MultiplePlayerLyrics(state: VinylPlayerState, modifier: Modifier, mo
                     row.placeRelativeWithLayer(0, (y - row.height / 2f).roundToInt()) {
                         val enabled = state.isPlaying && pulseEnabled
                         val sound = if (enabled) audio.value else AudioMotion()
-                        val amount = lyricTextPulse(phase.value, sound.bass, sound.energy, enabled) * focus
+                        val amount = lyricTextPulse(0.0, sound.beat * state.reactiveVisuals.bassWeight,
+                            weightedAudioEnergy(sound, state.reactiveVisuals), enabled) * focus * state.reactiveVisuals.intensity
                         alpha = (.62f + focus * .38f) * edge
                         scaleX = .90f + focus * .10f + amount
                         scaleY = .90f + focus * .10f + amount * .8f

@@ -2,7 +2,7 @@ package cn.toside.music.mobile.vinyl
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.BasicText
+import cn.toside.music.mobile.vinyl.PageText as BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,7 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-internal fun PlayerTopNavigation(state: VinylPlayerState, onAction: PlayerAction, showTitle: Boolean = true) {
+internal fun PlayerTopNavigation(state: VinylPlayerState, onAction: PlayerAction, showTitle: Boolean = true,
+    landscape: Boolean = false, locked: Boolean = false, onToggleLock: () -> Unit = {}) {
     Box(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
         if (showTitle) Column(Modifier.fillMaxWidth().padding(horizontal = 72.dp).heightIn(min = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
@@ -30,8 +31,13 @@ internal fun PlayerTopNavigation(state: VinylPlayerState, onAction: PlayerAction
             }
         }
         PlayerIconButton(PlayerIcon.Back, "收起播放器", 24, modifier = Modifier.align(Alignment.CenterStart).width(64.dp).height(48.dp).rotate(-90f)) { onAction("back", 0.0) }
-        PlayerIconButton(PlayerIcon.More, "更多播放设置", 22, color = VinylPalette.Muted,
-            modifier = Modifier.align(Alignment.CenterEnd).width(56.dp).height(48.dp)) { onAction("settings", 0.0) }
+        Row(Modifier.align(Alignment.CenterEnd), verticalAlignment = Alignment.CenterVertically) {
+            if (landscape) PlayerIconButton(PlayerIcon.Lock,
+                if (locked) "解锁界面" else "锁定界面", 20, color = VinylPalette.Muted,
+                modifier = Modifier.width(48.dp).height(48.dp)) { onToggleLock() }
+            PlayerIconButton(PlayerIcon.More, "更多播放设置", 22, color = VinylPalette.Muted,
+                modifier = Modifier.width(56.dp).height(48.dp)) { onAction("settings", 0.0) }
+        }
     }
 }
 

@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -31,7 +32,7 @@ internal val PlayerIconFont = FontFamily(Font(R.font.vinyl_icons))
 internal enum class PlayerIcon(val code: Int) {
     Menu(59680), Search(59660), Heart(59657), Comment(59672),
     Play(59653), Pause(59661), Previous(59668), Next(59654), Back(59664),
-    Repeat(59649), Shuffle(59650), Order(59651), RepeatOne(59652), Single(59673), Info(0), Download(59656), More(59667)
+    Repeat(59649), Shuffle(59650), Order(59651), RepeatOne(59652), Single(59673), Info(0), Download(59656), More(59667), Lock(0)
 }
 
 @Composable
@@ -53,7 +54,11 @@ internal fun PlayerIconButton(
     ) {
         if (icon == PlayerIcon.Info) Image(imageVector = Icons.Outlined.Info, contentDescription = null,
             modifier = Modifier.size(size.dp), colorFilter = ColorFilter.tint(if (enabled) color else color.copy(alpha = .3f)))
-        else if (icon == PlayerIcon.Heart) Image(
+        else if (icon == PlayerIcon.Lock) Image(
+            imageVector = Icons.Filled.Lock,
+            contentDescription = null, modifier = Modifier.size(size.dp),
+            colorFilter = ColorFilter.tint(if (enabled) color else color.copy(alpha = .3f)),
+        ) else if (icon == PlayerIcon.Heart) Image(
             imageVector = if (selected) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
             contentDescription = null, modifier = Modifier.size(size.dp),
             colorFilter = ColorFilter.tint(if (enabled) color else color.copy(alpha = .3f)),

@@ -1,162 +1,25 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react'
-import { View, TouchableOpacity, type ImageSourcePropType } from 'react-native'
+import { memo } from 'react'
+import { View, TouchableOpacity } from 'react-native'
 import { setTheme } from '@/core/theme'
-import { useI18n } from '@/lang'
 import { useSettingValue } from '@/store/setting/hook'
 import { useTheme } from '@/store/theme/hook'
-
 import SubTitle from '../../components/SubTitle'
-import { BG_IMAGES, getAllThemes, type LocalTheme } from '@/theme/themes'
 import Text from '@/components/common/Text'
-import { createStyle } from '@/utils/tools'
-import { scaleSizeH } from '@/utils/pixelRatio'
-import { Icon } from '@/components/common/Icon'
-import ImageBackground from '@/components/common/ImageBackground'
 
-const useActive = (id: string) => {
-  const activeThemeId = useSettingValue('theme.id')
-  const isActive = useMemo(() => activeThemeId == id, [activeThemeId, id])
-  return isActive
-}
-
-const ThemeItem = ({ id, name, color, image, setTheme, showAll }: {
-  id: string
-  name: string
-  color: string
-  showAll: boolean
-  image?: ImageSourcePropType
-  setTheme: (id: string) => void
-}) => {
-  const theme = useTheme()
-  const isActive = useActive(id)
-
-  return (
-    showAll || isActive ? (
-      <TouchableOpacity style={{ ...styles.item, width: scaleSizeH(ITEM_HEIGHT) }} activeOpacity={0.5} onPress={() => { setTheme(id) }}>
-        <View style={{ ...styles.colorContent, width: scaleSizeH(COLOR_ITEM_HEIGHT), borderColor: isActive ? color : 'transparent' }}>
-          {
-            image
-              ? <ImageBackground style={{ ...styles.imageContent, width: scaleSizeH(IMAGE_HEIGHT), backgroundColor: color }}
-                  imageStyle={{ borderRadius: 4 }}
-                  source={image} />
-              : <View style={{ ...styles.imageContent, width: scaleSizeH(IMAGE_HEIGHT), backgroundColor: color }}></View>
-            }
-        </View>
-        <Text style={styles.name} size={12} color={isActive ? color : theme['c-font']} numberOfLines={1}>{name}</Text>
-      </TouchableOpacity>
-    ) : null
-  )
-}
-
-const MoreBtn = ({ showAll, setShowAll }: {
-  showAll: boolean
-  setShowAll: (showAll: boolean) => void
-}) => {
-  const theme = useTheme()
-  const t = useI18n()
-
-  return (
-    showAll ? null
-      : (
-          <TouchableOpacity style={styles.moreBtn} activeOpacity={0.5} onPress={() => { setShowAll(!showAll) }}>
-            <Text size={14} color={theme['c-primary-font']} numberOfLines={1}>{t('setting_basic_theme_more_btn_show')}</Text>
-            <Icon name="chevron-right" size={12} color={theme['c-primary-font']} />
-          </TouchableOpacity>
-        )
-
-  )
-}
-
-interface ThemeInfo {
-  themes: Readonly<LocalTheme[]>
-  userThemes: LX.Theme[]
-  dataPath: string
-}
-const initInfo: ThemeInfo = { themes: [], userThemes: [], dataPath: '' }
+const options = [
+  { id: 'mineradio', name: '黑胶深色', background: '#0D0D12', foreground: '#F3F3F5' },
+  { id: 'white', name: '白色', background: '#FAFAFC', foreground: '#1B1B20' },
+] as const
 export default memo(() => {
-  const [showAll, setShowAll] = useState(false)
-  const t = useI18n()
-  const [themeInfo, setThemeInfo] = useState(initInfo)
-  const setThemeId = useCallback((id: string) => {
-    requestAnimationFrame(() => {
-      setTheme(id)
-    })
-  }, [])
-
-  useEffect(() => {
-    void getAllThemes().then(setThemeInfo)
-  }, [])
-
-  return (
-    <SubTitle title={t('setting_basic_theme')}>
-      <View style={styles.list}>
-        {
-          themeInfo.themes.map(({ id, config }) => {
-            return <ThemeItem
-              key={id}
-              color={config.themeColors['c-theme']}
-              image={config.extInfo['bg-image'] ? BG_IMAGES[config.extInfo['bg-image']] : undefined}
-              showAll={showAll}
-              id={id}
-              name={t(`theme_${id}`)}
-              setTheme={setThemeId} />
-          })
-        }
-        {
-          themeInfo.userThemes.map(({ id, name, config }) => {
-            return <ThemeItem
-              key={id}
-              color={config.themeColors['c-theme']}
-              // image={undefined}
-              showAll={showAll}
-              id={id}
-              name={name}
-              setTheme={setThemeId} />
-          })
-        }
-        <MoreBtn showAll={showAll} setShowAll={setShowAll} />
-      </View>
-    </SubTitle>
-  )
-})
-
-const ITEM_HEIGHT = 62
-const COLOR_ITEM_HEIGHT = 36
-const IMAGE_HEIGHT = 29
-const styles = createStyle({
-  list: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginTop: 5,
-  },
-  item: {
-    // marginRight: 15,
-    alignItems: 'center',
-    // marginTop: 5,
-    // backgroundColor: 'rgba(0,0,0,0.2)',
-  },
-  colorContent: {
-    height: COLOR_ITEM_HEIGHT,
-    borderRadius: 4,
-    borderWidth: 1.6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    // backgroundColor: 'rgba(0,0,0,0.2)',
-  },
-  imageContent: {
-    height: IMAGE_HEIGHT,
-    borderRadius: 4,
-    // elevation: 1,
-  },
-  name: {
-    marginTop: 2,
-  },
-  moreBtn: {
-    marginLeft: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    // justifyContent: 'center',
-    gap: 8,
-  },
+  const active = useSettingValue('theme.id')
+  const theme = useTheme()
+  return <SubTitle title="页面主题">
+    <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', gap: 12, marginTop: 6 }}>
+      {options.map(item => <TouchableOpacity key={item.id} accessibilityRole="radio" accessibilityLabel={`页面主题：${item.name}`} accessibilityState={{ checked: active == item.id }}
+        onPress={() => { setTheme(item.id) }} style={{ flex: 1, maxWidth: 190, padding: 12, borderRadius: 10, minHeight: 90, borderWidth: 2, borderColor: active == item.id ? theme['c-font'] : theme['c-border-background'], backgroundColor: item.background }}>
+        <Text appearance="fixed" size={18} color={item.foreground}>Aa 音乐</Text>
+        <Text appearance="fixed" size={13} color={item.foreground} style={{ marginTop: 10 }}>{item.name}{active == item.id ? ' ✓' : ''}</Text>
+      </TouchableOpacity>)}
+    </View>
+  </SubTitle>
 })

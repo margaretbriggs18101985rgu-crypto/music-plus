@@ -24,4 +24,16 @@ class AudioMotionTest {
         assertTrue(levels.mid in 0f..1f)
         assertEquals(0f, levels.treble, 0f)
     }
+
+    @Test fun cinematicTravelRequiresObservedBeatsAndSettlesDuringSilence() {
+        val noBeat = AudioMotion(energy = 1f, available = true)
+        assertEquals(0f, smoothAudioMotion(AudioMotion(), noBeat, .016f).orbitYaw, 0f)
+        val beat = noBeat.copy(beatSerial = 3)
+        val first = smoothAudioMotion(AudioMotion(), beat, .016f)
+        assertTrue(first.orbitYaw > 0f && first.orbitYaw < .06f)
+        var settled = first
+        repeat(300) { settled = smoothAudioMotion(settled, AudioMotion(), .016f) }
+        assertEquals(0f, settled.orbitYaw, .00001f)
+        assertEquals(0f, settled.orbitPitch, .00001f)
+    }
 }

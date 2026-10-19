@@ -1,7 +1,7 @@
 import TrackPlayer, { Capability, Event, RepeatMode, State } from 'react-native-track-player'
 import BackgroundTimer from 'react-native-background-timer'
 import { playMusic as handlePlayMusic } from './playList'
-import { existsFile, moveFile, privateStorageDirectoryPath, temporaryDirectoryPath } from '@/utils/fs'
+import { existsFile, moveFile, privateStorageDirectoryPath, temporaryDirectoryPath, unlink } from '@/utils/fs'
 import { toast } from '@/utils/tools'
 // import { PlayerMusicInfo } from '@/store/modules/player/playInfo'
 
@@ -187,11 +187,28 @@ export const resetPlay = async() => Promise.all([setPause(), setCurrentTime(0)])
 export const isCached = async(url: string) => TrackPlayer.isCached(url)
 export const getCacheSize = async() => TrackPlayer.getCacheSize()
 export const clearCache = async() => TrackPlayer.clearCache()
+export const clearPlayerCacheFiles = async() => {
+  await Promise.all([privateStorageDirectoryPath + '/TrackPlayer', temporaryDirectoryPath + '/TrackPlayer'].map(async path => {
+    if (await existsFile(path)) {
+      await unlink(path).catch(error => {
+        console.warn('Player cache files cleanup failed', error)
+      })
+    }
+  }))
+}
 export const migratePlayerCache = async() => {
   const newCachePath = privateStorageDirectoryPath + '/TrackPlayer'
-  if (await existsFile(newCachePath)) return
   const oldCachePath = temporaryDirectoryPath + '/TrackPlayer'
-  if (!await existsFile(oldCachePath)) return
+  const [hasNewCache, hasOldCache] = await Promise.all([existsFile(newCachePath), existsFile(oldCachePath)])
+  if (hasNewCache) {
+    if (hasOldCache) {
+      await unlink(oldCachePath).catch(error => {
+        console.warn('Old player cache cleanup failed', error)
+      })
+    }
+    return
+  }
+  if (!hasOldCache) return
   let timeout: number | null = BackgroundTimer.setTimeout(() => {
     timeout = null
     toast(global.i18n.t('player_cache_migrating'), 'long')
@@ -253,7 +270,7 @@ export const onStateChange = async(listener: (state: PlayStatus) => void) => {
 
 export const updateOptions = async(options = {
   // Whether the player should stop running when the app is closed on Android
-  // stopWithApp: true,
+  stopWithApp: true,
 
   // An array of media controls capabilities
   // Can contain CAPABILITY_PLAY, CAPABILITY_PAUSE, CAPABILITY_STOP, CAPABILITY_SEEK_TO,

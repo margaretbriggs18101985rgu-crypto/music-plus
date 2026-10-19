@@ -5,6 +5,7 @@ import com.facebook.react.flipper.ReactNativeFlipper;
 import com.reactnativenavigation.NavigationApplication;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
+import com.facebook.react.views.text.ReactFontManager;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.reactnativenavigation.react.NavigationReactNativeHost;
 import java.util.List;
@@ -64,6 +65,10 @@ public class MainApplication extends NavigationApplication {
   @Override
   public void onCreate() {
     super.onCreate();
+    // Register page fonts before the first RN screen; lyrics have separate aliases/settings.
+    ReactFontManager.getInstance().addCustomFont(this, "PageWenKai", R.font.lyric_wenkai);
+    ReactFontManager.getInstance().addCustomFont(this, "PageXiaoWei", R.font.lyric_xiaowei);
+    ReactFontManager.getInstance().addCustomFont(this, "PageHuangYou", R.font.lyric_huangyou);
 
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
       // If you opted-in for the New Architecture, we load the native entry point for this app.

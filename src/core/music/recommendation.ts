@@ -14,6 +14,7 @@ export interface ListeningProfile {
   averageDuration: number
 }
 export interface RecommendedTrack { music: LX.Music.MusicInfo, reasons: Array<keyof Message> }
+interface TrackSignals { name: string, singer: string, interval?: string | null, meta: { albumName?: string } }
 
 const languageLabels: Record<string, string> = {
   zh: '华语',
@@ -52,29 +53,58 @@ const stylePatterns: Array<[string, RegExp]> = [
 ]
 const artistSeparators = /、|&|;|；|\/|,|，|\|/g
 
-const trackText = (music: LX.Music.MusicInfo) => `${music.name} ${music.singer} ${music.meta.albumName ?? ''}`
+const trackText = (music: TrackSignals) => `${music.name} ${music.singer} ${music.meta.albumName ?? ''}`
 const normalize = (value: string) => value.toLocaleLowerCase().replace(/[\s.'’`()（）\u005b\u005d【】]/g, '')
 
-export const getTrackLanguage = (music: LX.Music.MusicInfo): string => {
+export const getTrackLanguage = (music: TrackSignals): string => {
   const text = trackText(music)
   if (/粤语|广东歌|cantopop/i.test(text)) return 'yue'
   if (/日语|日本語|j[ -]?pop|动漫歌曲|anime/i.test(text) || /[\u3040-\u30ff]/.test(text)) return 'ja'
   if (/韩语|한국어|k[ -]?pop/i.test(text) || /[\uac00-\ud7af]/.test(text)) return 'ko'
+  if (/欧美|英文|英语|western|english/i.test(text)) return 'en'
   if (/国语|华语|中文|普通话|mandopop/i.test(text) || /[\u3400-\u9fff]/.test(text)) return 'zh'
   if (/[a-z]/i.test(text)) return 'en'
   return ''
 }
 
-export const getTrackStyles = (music: LX.Music.MusicInfo) => {
+export const getTrackStyles = (music: TrackSignals) => {
   const text = trackText(music)
   return stylePatterns.filter(([, pattern]) => pattern.test(text)).map(([id]) => id)
 }
 
-const trackDuration = (music: LX.Music.MusicInfo) => {
+const trackDuration = (music: TrackSignals) => {
   if (!music.interval) return 0
   const parts = music.interval.split(':').map(Number)
   if (parts.some(part => !Number.isFinite(part))) return 0
   return parts.reduce((total, part) => total * 60 + part, 0)
+}
+
+export const getListeningEvidence = (item: RecentTrack) => {
+  const duration = trackDuration(item.music)
+  const measured = (item.measuredSessions ?? 0) > 0
+  const sessions = Math.max(1, measured ? item.measuredSessions! : item.playCount ?? 1)
+  const seconds = Math.max(0, (measured ? item.measuredListenedSeconds : item.listenedSeconds) ?? 0)
+  // Legacy cumulative time is divided by plays, never treated as one full listen.
+  const ratio = Math.min(1, Math.max(0, measured
+    ? (item.listenedRatioTotal ?? 0) / sessions
+    : duration ? seconds / (sessions * duration) : 0))
+  const averageSeconds = seconds / sessions
+  const eligible = duration > 0 ? ratio >= 0.2 && averageSeconds >= Math.min(30, duration * 0.2) : averageSeconds >= 60
+  return { sessions, seconds, ratio, eligible }
+}
+
+export const getRecommendationProfileKey = (recent: RecentTrack[]) => recent.flatMap(item => {
+  const evidence = getListeningEvidence(item)
+  return evidence.eligible ? [`${item.music.id}:${Math.floor(evidence.ratio * 4)}:${Math.floor(Math.log2(1 + evidence.seconds / 60))}:${Math.floor(item.playedAt / 86_400_000)}`] : []
+}).sort().join('|')
+
+export const getRecommendationSource = (recent: RecentTrack[]): 'wy' | 'tx' => {
+  const weights = { wy: 0, tx: 0 }
+  for (const item of recent) {
+    const evidence = getListeningEvidence(item)
+    if (evidence.eligible && (item.music.source == 'wy' || item.music.source == 'tx')) weights[item.music.source] += evidence.ratio * Math.log2(1 + evidence.seconds)
+  }
+  return weights.tx > weights.wy ? 'tx' : 'wy'
 }
 
 export const buildListeningProfile = (recent: RecentTrack[]): ListeningProfile => {
@@ -85,16 +115,15 @@ export const buildListeningProfile = (recent: RecentTrack[]): ListeningProfile =
   let durationTotal = 0
   let durationWeight = 0
   for (const item of recent) {
+    const evidence = getListeningEvidence(item)
+    if (!evidence.eligible) continue
     const ageDays = Math.max(0, (Date.now() - item.playedAt) / 86_400_000)
     const recencyWeight = Math.max(0.25, 1 - ageDays / 120)
-    const listenWeight = Math.min(2.5, Math.log2(1 + (item.listenedSeconds ?? 0) / 60) * 0.65)
-    const playWeight = Math.min(2, Math.log2(1 + (item.playCount ?? 0)) * 0.7)
+    const listenWeight = Math.min(2.5, Math.log2(1 + evidence.seconds / 60) * 0.65)
     const duration = trackDuration(item.music)
-    const completionRatio = duration
-      ? Math.min(1, Math.max((item.listenedSeconds ?? 0) / duration, (item.completedCount ?? 0) > 0 ? 0.9 : 0))
-      : 0.6
-    const engagementWeight = 0.35 + completionRatio * 0.65
-    const weight = (0.5 + recencyWeight + listenWeight + playWeight) * recencyWeight * engagementWeight
+    const completionRatio = duration ? evidence.ratio : 0.5
+    const repeatWeight = Math.min(1.5, Math.log2(1 + evidence.sessions * completionRatio) * 0.5)
+    const weight = (1 + listenWeight + repeatWeight) * recencyWeight * completionRatio ** 2
     for (const rawArtist of item.music.singer.split(artistSeparators).map(name => name.trim()).filter(Boolean)) {
       const key = normalize(rawArtist)
       if (!key) continue
@@ -138,7 +167,7 @@ export const buildListeningProfile = (recent: RecentTrack[]): ListeningProfile =
   }
 }
 
-export const scoreRecommendedTrack = (music: LX.Music.MusicInfo, profile: ListeningProfile) => {
+export const scoreRecommendedTrack = (music: TrackSignals, profile: ListeningProfile) => {
   const artistNames = music.singer.split(artistSeparators).map(name => normalize(name.trim())).filter(Boolean)
   const artistWeight = profile.artists.length ? profile.artists[0].weight : 0
   const artistMatch = artistWeight
@@ -220,34 +249,39 @@ export const rankRecommendedPlaylists = (playlists: ListInfoItem[], profile: Lis
 
 const playlistScore = (playlist: ListInfoItem, profile: ListeningProfile) => {
   const text = `${playlist.name} ${playlist.desc ?? ''} ${playlist.author ?? ''}`
-  const language = /粤语|广东歌|cantopop/i.test(text) ? 'yue'
-    : /欧美|英文|英语|western|english/i.test(text) ? 'en'
-      : /日语|日本|j[ -]?pop/i.test(text) ? 'ja'
-        : /韩语|韩国|k[ -]?pop/i.test(text) ? 'ko'
-          : /华语|中文|国语|粤语|mandopop/i.test(text) ? 'zh' : ''
-  const styles = stylePatterns.filter(([, pattern]) => pattern.test(text)).map(([id]) => id)
-  const artistMatch = profile.artists.some(artist => artist.name.length > 2 && text.toLocaleLowerCase().includes(artist.name.toLocaleLowerCase()))
-  return (language && language == profile.languages[0]?.id ? 3 : 0) + (profile.styles.some(style => styles.includes(style.id)) ? 2 : 0) + (artistMatch ? 2 : 0)
+  const normalized = normalize(text)
+  return scoreRecommendedTrack({
+    name: text,
+    singer: profile.artists.filter(artist => normalized.includes(normalize(artist.name))).map(artist => artist.name).join('、'),
+    interval: '',
+    meta: { albumName: profile.albums.find(album => normalized.includes(normalize(album.name)))?.name ?? '' },
+  }, profile)
+}
+
+const recommendationQueries = (recent: RecentTrack[], profile: ListeningProfile) => {
+  const queries = profile.artists.slice(0, 3).map(artist => artist.name)
+  const language = languageLabels[profile.languages[0]?.id ?? '']
+  const styles = profile.styles.slice(0, 1).map(style => styleLabels[style.id]).filter(Boolean)
+  for (const style of styles) queries.push([style, language].filter(Boolean).join(' '))
+  for (const album of profile.albums.slice(0, 1)) queries.push(album.name)
+  const seedTracks = recent.filter(item => getListeningEvidence(item).eligible).slice(0, 1).map(item => `${item.music.name} ${item.music.singer}`.trim()).filter(Boolean)
+  queries.push(...seedTracks)
+  const explorationQueries = recent.length
+    ? [...new Set([language ? `热门${language}` : '热门歌曲', '新歌推荐'])]
+    : ['热门歌曲', '新歌推荐']
+  const uniqueQueries = [...new Set([...queries.filter(Boolean).slice(0, 6), ...explorationQueries])].slice(0, 8)
+  return { uniqueQueries, explorationQueries }
 }
 
 export const getRecommendedSongs = async(recent: RecentTrack[], source: LX.OnlineSource, excludedIds: string[] = [], page = 1): Promise<RecommendedTrack[]> => {
   const profile = buildListeningProfile(recent)
   const musicSearch = musicSdk[source]?.musicSearch
   if (!musicSearch?.search) return []
-  const queries = profile.artists.slice(0, 3).map(artist => artist.name)
-  const language = languageLabels[profile.languages[0]?.id ?? '']
-  const styles = profile.styles.slice(0, 1).map(style => styleLabels[style.id]).filter(Boolean)
-  for (const style of styles) queries.push([style, language].filter(Boolean).join(' '))
-  for (const album of profile.albums.slice(0, 1)) queries.push(album.name)
-  const seedTracks = recent.slice(0, 1).map(item => `${item.music.name} ${item.music.singer}`.trim()).filter(Boolean)
-  queries.push(...seedTracks)
-  const explorationQueries = recent.length
-    ? [...new Set([language ? `热门${language}` : '热门歌曲', '新歌推荐'])]
-    : ['热门歌曲', '新歌推荐']
-  const uniqueQueries = [...new Set([...queries.filter(Boolean).slice(0, 6), ...explorationQueries])].slice(0, 8)
+  const { uniqueQueries, explorationQueries } = recommendationQueries(recent, profile)
   const pages = page > 1 ? [page, 1] : [1]
   const requests = uniqueQueries.flatMap(query => pages.map(searchPage => ({ query, searchPage })))
   const results = await Promise.allSettled(requests.map(({ query, searchPage }) => musicSearch.search(query, searchPage, 15)))
+  if (results.every(result => result.status == 'rejected')) throw new Error('Song recommendations unavailable')
   const excluded = new Set([...recent.map(item => item.music.id), ...excludedIds])
   const candidates = new Map<string, LX.Music.MusicInfo>()
   const explorationIds = new Set<string>()
@@ -270,6 +304,42 @@ export const getRecommendedSongs = async(recent: RecentTrack[], source: LX.Onlin
     }
   }
   return rankRecommendedTracks([...candidates.values()], profile, explorationIds)
+}
+
+export const getRecommendedPlaylists = async(recent: RecentTrack[], excludedIds: string[] = [], page = 1): Promise<ListInfoItem[]> => {
+  const profile = buildListeningProfile(recent)
+  const { uniqueQueries, explorationQueries } = recommendationQueries(recent, profile)
+  const queries = [...new Set([...uniqueQueries.filter(query => !explorationQueries.includes(query)).slice(0, 4), ...explorationQueries])]
+  const pages = page > 1 ? [page, 1] : [1]
+  const sources = [getRecommendationSource(recent), getRecommendationSource(recent) == 'wy' ? 'tx' : 'wy'] as const
+  const requests = sources.flatMap(source => queries.flatMap(query => pages.map(searchPage => ({ source, query, searchPage }))))
+  const results = await Promise.allSettled(requests.map(async({ source, query, searchPage }) => musicSdk[source].songList.search(query, searchPage, 15)))
+  if (results.every(result => result.status == 'rejected')) throw new Error('Playlist recommendations unavailable')
+  const excluded = new Set(excludedIds)
+  const candidates = new Map<string, ListInfoItem>()
+  const exploration = new Set<string>()
+  results.forEach((result, index) => {
+    if (result.status != 'fulfilled' || !Array.isArray(result.value?.list)) return
+    const { source, query } = requests[index]
+    for (const item of result.value.list as ListInfoItem[]) {
+      if (!item?.id || !item.name || item.source != source) continue
+      const key = `${source}_${item.id}`
+      if (excluded.has(key)) continue
+      candidates.set(key, item)
+      if (explorationQueries.includes(query)) exploration.add(key)
+    }
+  })
+  const ranked = rankRecommendedPlaylists([...candidates.values()], profile)
+  const result: ListInfoItem[] = []
+  const authors = new Map<string, number>()
+  while (ranked.length && result.length < 8) {
+    const exploreIndex = result.length == 4 ? ranked.findIndex(item => exploration.has(`${item.source}_${item.id}`) && (authors.get(item.author) ?? 0) < 2) : -1
+    const [item] = ranked.splice(exploreIndex >= 0 ? exploreIndex : 0, 1)
+    if (item.author && (authors.get(item.author) ?? 0) >= 2) continue
+    result.push(item)
+    if (item.author) authors.set(item.author, (authors.get(item.author) ?? 0) + 1)
+  }
+  return result
 }
 
 export const getTopLanguage = (profile: ListeningProfile) => profile.languages[0]?.id ?? ''

@@ -1,6 +1,7 @@
 import { memo, useEffect, useState } from 'react'
 
 import themeState, { ThemeContext } from '../theme/state'
+import PageTypography from './PageTypography'
 
 
 export default memo(({ children }: {
@@ -22,7 +23,7 @@ export default memo(({ children }: {
 
   return (
     <ThemeContext.Provider value={theme}>
-      {children}
+      <PageTypography>{children}</PageTypography>
     </ThemeContext.Provider>
   )
 })

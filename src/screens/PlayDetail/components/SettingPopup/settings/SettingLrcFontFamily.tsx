@@ -16,7 +16,7 @@ export default () => {
         style={[styles.option, selected == font.id && styles.selected]}>
         <View style={styles.label}><Text size={14}>{font.name}</Text>
           <Text size={12} color={selected == font.id ? '#A8F6FF' : '#99999F'}>{selected == font.id ? '已选择' : font.detail}</Text></View>
-        <Text size={23} style={{ fontFamily: font.family, marginTop: 7 }}>星光与音乐相遇 Aa</Text>
+        <Text appearance="fixed" size={23} style={{ fontFamily: font.family, marginTop: 7 }}>星光与音乐相遇 Aa</Text>
       </TouchableOpacity>)}
     </View>
   </View>

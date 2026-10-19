@@ -28,6 +28,7 @@ function settingsFixture(saved) {
     '@/store/setting/state': { default: state, __esModule: true },
     './migrate': {},
     '@/utils/tools': {},
+    '@/utils/pageAppearance': load('src/utils/pageAppearance.ts', {}),
   })
   return { settings, defaults, values, state }
 }
@@ -87,6 +88,50 @@ test('disabled effects and an explicit particle selection survive the real setti
   assert.equal(setting['player.lyricFontFamily'], 'wenkai')
 })
 
+test('page typography persists independently of lyric typography and playback', async() => {
+  const first = settingsFixture({ 'player.lyricFontFamily': 'xiaowei', 'player.lyricColor': '#FF9FCF', 'player.volume': 0.35 })
+  first.state.setting = (await first.settings.initSetting()).setting
+  const { setting } = first.settings.updateSetting({ 'theme.pageFontFamily': 'wenkai', 'theme.pageFontColor': '#abc' })
+  assert.equal(setting['theme.pageFontColor'], '#AABBCC')
+  const second = settingsFixture(structuredClone(setting))
+  const restored = (await second.settings.initSetting()).setting
+  assert.equal(restored['theme.pageFontFamily'], 'wenkai')
+  assert.equal(restored['theme.pageFontColor'], '#AABBCC')
+  assert.equal(restored['player.lyricFontFamily'], 'xiaowei')
+  assert.equal(restored['player.lyricColor'], '#FF9FCF')
+  assert.equal(restored['player.volume'], 0.35)
+})
+
+test('retired themes and auto theme settings cannot restore colored themes', async() => {
+  for (const id of ['green', 'blue_plus', 'black', 'auto', 'user-custom', 'mineradio', 'white']) {
+    const { setting } = await settingsFixture({ 'theme.id': id, 'common.isAutoTheme': true }).settings.initSetting()
+    assert.equal(setting['theme.id'], id == 'white' ? 'white' : 'mineradio')
+    assert.equal(setting['common.isAutoTheme'], false)
+  }
+})
+
+test('invalid imported page appearance falls back without modifying lyric settings', async() => {
+  const { setting } = await settingsFixture({ 'theme.pageFontFamily': 'missing', 'theme.pageFontColor': 'not-a-color', 'player.lyricFontFamily': 'huangyou' }).settings.initSetting()
+  assert.equal(setting['theme.pageFontFamily'], 'system')
+  assert.equal(setting['theme.pageFontColor'], '')
+  assert.equal(setting['player.lyricFontFamily'], 'huangyou')
+})
+
+test('sequential page and lyric edits retain every unrelated selection', async() => {
+  const f = settingsFixture({ 'theme.id': 'white' })
+  f.state.setting = (await f.settings.initSetting()).setting
+  for (const change of [{ 'theme.pageFontFamily': 'wenkai' }, { 'theme.pageFontColor': '#0045D1' }, { 'player.lyricColor': '#FF3330' }]) {
+    f.state.setting = f.settings.updateSetting(change).setting
+  }
+  assert.equal(f.state.setting['theme.id'], 'white')
+  assert.equal(f.state.setting['theme.pageFontFamily'], 'wenkai')
+  assert.equal(f.state.setting['theme.pageFontColor'], '#0045D1')
+  assert.equal(f.state.setting['player.lyricFontFamily'], 'system')
+  assert.equal(f.state.setting['player.lyricColor'], '#FF3330')
+  const restored = (await settingsFixture(structuredClone(f.state.setting)).settings.initSetting()).setting
+  assert.deepEqual(restored, f.state.setting)
+})
+
 for (const font of ['system', 'wenkai', 'xiaowei', 'huangyou']) {
   test(`lyric font ${font} survives a settings reload without changing typography or playback preferences`, async() => {
     const first = settingsFixture({ version: '2.0', 'player.lyricFontSize': 36, 'player.lyricAlign': 'right', 'player.volume': 0.4 })
@@ -100,3 +145,15 @@ for (const font of ['system', 'wenkai', 'xiaowei', 'huangyou']) {
     assert.equal(reloaded['player.volume'], 0.4)
   })
 }
+
+test('reactive visual switches and sliders survive the actual settings save and reload independently of playback', async() => {
+  const first = settingsFixture({ 'player.volume': 0.45, 'common.apiSource': 'saved-source' })
+  first.state.setting = (await first.settings.initSetting()).setting
+  assert.equal(first.state.setting['player.reactiveVisuals'], '{}')
+  const selection = JSON.stringify({ intensity: 1.35, cinemaEnabled: false, spectrumEnabled: false, terrainEnabled: true, kickAuto: false, kickLowHz: 50, kickHighHz: 130 })
+  const { setting } = first.settings.updateSetting({ 'player.reactiveVisuals': selection })
+  const restored = (await settingsFixture(JSON.parse(JSON.stringify(setting))).settings.initSetting()).setting
+  assert.equal(restored['player.reactiveVisuals'], selection)
+  assert.equal(restored['player.volume'], 0.45)
+  assert.equal(restored['common.apiSource'], 'saved-source')
+})

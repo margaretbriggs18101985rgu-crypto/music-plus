@@ -6,7 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.BasicText
+import cn.toside.music.mobile.vinyl.PageText as BasicText
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +20,7 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.TextStyle
+import kotlinx.coroutines.delay
 import cn.toside.music.mobile.BuildConfig
 import coil.compose.AsyncImagePainter
 import kotlin.math.max
@@ -40,27 +41,57 @@ internal fun PlayerScreen(state: VinylPlayerState, clock: VinylRotationClock = r
     }
     val artwork = rememberPlayerArtwork(state)
     val customWallpaper = hasPlayerWallpaper(state)
-    val phase = rememberAmbientPhase(state.trackId, policy.animate && state.hasTrack && !customWallpaper)
+    val fx = state.reactiveVisuals
+    val phase = rememberAmbientPhase(state.trackId, policy.animate && state.hasTrack && !customWallpaper && state.isPlaying, fx.speed)
     val pulse = policy.colorMotion && state.lyricPulseEnabled
-    val lyricPhase = rememberAmbientPhase(state.trackId, state.isPlaying && (pulse || policy.lyricMotion))
-    val audio = rememberAudioMotion(state.trackId, state.hasTrack && pulse, state.isPlaying)
+    val lyricPhase = phase
+    val audio = rememberAudioMotion(state.trackId, state.hasTrack && policy.colorMotion, state.isPlaying, fx, state.seekRevision)
+    var chromeVisible by remember { mutableStateOf(true) }
+    var chromeLocked by remember { mutableStateOf(false) }
+    var interactionVersion by remember { mutableIntStateOf(0) }
+    val showChrome: () -> Unit = {
+        chromeVisible = true
+        interactionVersion++
+        Unit
+    }
+    val hideChrome: () -> Unit = {
+        if (!chromeLocked) chromeVisible = false
+        Unit
+    }
     val switchPage = { onAction("lyrics", if (state.lyricsVisible) 0.0 else 1.0) }
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(VinylPalette.Top, VinylPalette.Middle, VinylPalette.Bottom)))) {
         if (customWallpaper) PlayerWallpaper(state)
         else {
             AmbientBackground(state.isPlaying && visualConfig.visualEffectsEnabled, Color(lyricColorArgb(state.lyricColor)), policy.colorMotion)
-            AmbientParticles(state.trackId, policy.particleCount, phase, drag)
+            AmbientParticles(state.trackId, policy.particleCount, phase, drag, audio, fx, policy.colorMotion && state.isPlaying)
         }
+        // Dim only the scenery; lyric text and playback controls keep their contrast.
+        if (visualConfig.visualEffectsEnabled && fx.backgroundDim > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = fx.backgroundDim * .5f)))
+        if (policy.colorMotion) ReactiveSoundscape(audio, phase, fx, Color(lyricColorArgb(state.lyricColor)))
         BoxWithConstraints(Modifier.fillMaxSize().padding(start = state.startInset.dp, end = state.endInset.dp,
             top = state.topInset.dp, bottom = state.bottomInset.dp)) {
             val landscape = maxWidth > maxHeight
-            Box(Modifier.fillMaxSize().pointerInput(state.lyricsVisible) {
-                detectTapGestures { switchPage() }
+            LaunchedEffect(landscape, chromeVisible, chromeLocked, interactionVersion) {
+                if (landscape && chromeVisible && !chromeLocked) {
+                    delay(3_000)
+                    chromeVisible = false
+                }
+            }
+            Box(Modifier.fillMaxSize().pointerInput(state.lyricsVisible, chromeVisible) {
+                detectTapGestures {
+                    if (chromeVisible) {
+                        showChrome()
+                        switchPage()
+                    } else showChrome()
+                }
             }.semantics {
-                onClick(if (state.lyricsVisible) "切换到唱片" else "切换到歌词") { switchPage(); true }
+                onClick(if (chromeVisible) if (state.lyricsVisible) "切换到唱片" else "切换到歌词" else "显示播放控制") {
+                    if (chromeVisible) switchPage() else showChrome()
+                    true
+                }
             }) {
                 PlayerModeTransition(state.lyricsVisible, policy.colorMotion, Modifier.fillMaxSize()) { lyrics, current ->
-                    val bodyAction: PlayerAction = { action, value -> if (current) onAction(action, value) }
+                    val bodyAction: PlayerAction = { action, value -> if (current) { showChrome(); onAction(action, value) } }
                     val bodyDrag = if (lyrics) lyricDrag else recordDrag
                     if (lyrics) {
                         Box(Modifier.fillMaxSize()) {
@@ -68,17 +99,20 @@ internal fun PlayerScreen(state: VinylPlayerState, clock: VinylRotationClock = r
                                 Modifier.fillMaxSize(), audio, lyricPhase,
                                 onTap = { bodyAction("lyrics", 0.0) },
                                 overlayInsets = PaddingValues(top = 56.dp, bottom = if (landscape) 116.dp else 232.dp),
-                                pulseEnabled = pulse && current)
-                            Box(Modifier.align(Alignment.BottomCenter)) {
-                                ImmersivePlaybackDock(state, landscape, onAction = bodyAction)
+                                pulseEnabled = pulse && current, onInteraction = showChrome)
+                            if (chromeVisible) Box(Modifier.align(Alignment.BottomCenter)) {
+                                ImmersivePlaybackDock(state, landscape, onAction = bodyAction, onBlankTap = hideChrome)
                             }
                         }
                     } else Box(Modifier.fillMaxSize().padding(top = if (landscape) 0.dp else 56.dp)) {
-                        RecordPage(state, clock, artwork, landscape, bodyDrag, policy.lyricMotion && current, pulse && current, audio, lyricPhase, bodyAction)
+                        RecordPage(state, clock, artwork, landscape, chromeVisible, bodyDrag, policy.lyricMotion && current,
+                            pulse && current, audio, lyricPhase, bodyAction, hideChrome)
                     }
                 }
-                Box(Modifier.align(Alignment.TopCenter)) {
-                    PlayerTopNavigation(state, onAction, showTitle = !landscape || state.lyricsVisible)
+                if (chromeVisible) Box(Modifier.align(Alignment.TopCenter)) {
+                    PlayerTopNavigation(state, { action, value -> showChrome(); onAction(action, value) },
+                        showTitle = !landscape || state.lyricsVisible, landscape = landscape, locked = chromeLocked,
+                        onToggleLock = { chromeLocked = !chromeLocked; showChrome() })
                 }
             }
         }
@@ -87,7 +121,8 @@ internal fun PlayerScreen(state: VinylPlayerState, clock: VinylRotationClock = r
 
 @Composable
 private fun RecordPage(state: VinylPlayerState, clock: VinylRotationClock, artwork: AsyncImagePainter,
-    landscape: Boolean, drag: LyricStageDrag, motion: Boolean, pulse: Boolean, audio: State<AudioMotion>, phase: State<Double>, onAction: PlayerAction) {
+    landscape: Boolean, chromeVisible: Boolean, drag: LyricStageDrag, motion: Boolean, pulse: Boolean,
+    audio: State<AudioMotion>, phase: State<Double>, onAction: PlayerAction, onBlankTap: () -> Unit) {
     if (landscape) {
         Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
             Layout(modifier = Modifier.weight(.43f).fillMaxHeight(), content = {
@@ -112,10 +147,12 @@ private fun RecordPage(state: VinylPlayerState, clock: VinylRotationClock, artwo
             Column(Modifier.weight(.57f).fillMaxHeight().padding(top = 56.dp, end = 20.dp, bottom = 4.dp)) {
                 ImmersiveLyricStage(state, drag, motion, Modifier.weight(1f), audio, phase,
                     onTap = { onAction("lyrics", 1.0) }, pulseEnabled = pulse)
-                PlaybackProgress(state, onAction, compact = true)
-                BasicText("${formatPlayerTime(state.position)} / ${formatPlayerTime(state.duration.takeIf { it > 0 } ?: Double.NaN)}",
-                    modifier = Modifier.align(Alignment.End).padding(end = 20.dp), style = TextStyle(color = VinylPalette.Muted, fontSize = 10.sp))
-                LandscapePlaybackControls(state, onAction)
+                if (chromeVisible) {
+                    PlaybackProgress(state, onAction, compact = true)
+                    BasicText("${formatPlayerTime(state.position)} / ${formatPlayerTime(state.duration.takeIf { it > 0 } ?: Double.NaN)}",
+                        modifier = Modifier.align(Alignment.End).padding(end = 20.dp), style = TextStyle(color = VinylPalette.Muted, fontSize = 10.sp))
+                    LandscapePlaybackControls(state, onAction)
+                }
             }
         }
     } else {
@@ -123,7 +160,7 @@ private fun RecordPage(state: VinylPlayerState, clock: VinylRotationClock, artwo
             RecordStage(state, clock, artwork, Modifier.weight(1f).fillMaxWidth(), onAction)
             ImmersiveLyricStage(state, drag, motion, Modifier.weight(.70f), audio, phase,
                 onTap = { onAction("lyrics", 1.0) }, pulseEnabled = pulse)
-            ImmersivePlaybackDock(state, false, onAction = onAction)
+            if (chromeVisible) ImmersivePlaybackDock(state, false, onAction = onAction, onBlankTap = onBlankTap)
         }
     }
 }

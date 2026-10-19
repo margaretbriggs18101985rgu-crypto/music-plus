@@ -3,16 +3,13 @@ package cn.toside.music.mobile.vinyl
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.runtime.*
-import kotlin.math.sin
 
-/** Layer-only text motion: a gentle rhythm remains visible with line-timed lyrics;
- * decoded audio adds accents when a fresh audio frame is available. */
+/** Layer-only emphasis from actual audio. Time alone must never manufacture a beat. */
 internal fun lyricTextPulse(seconds: Double, bass: Float, energy: Float, enabled: Boolean): Float {
     if (!enabled) return 0f
-    val time = if (seconds.isFinite()) seconds else 0.0
     val low = if (bass.isFinite()) bass.coerceIn(0f, 1f) else 0f
     val level = if (energy.isFinite()) energy.coerceIn(0f, 1f) else 0f
-    return (sin(time * 2.8) * .014).toFloat() + low * .035f + level * .012f
+    return low * .022f + level * .008f
 }
 
 /** A single 360ms entrance per active line; pause/buffering cancels it without a fake beat loop. */

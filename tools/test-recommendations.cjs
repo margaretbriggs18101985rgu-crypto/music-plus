@@ -9,12 +9,19 @@ const songs = new Map([
   ['other-taste', { id: 'other-taste', name: 'Blue Sky', singer: 'Other', interval: '02:50', source: 'kw', meta: { albumName: 'Jazz collection' } }],
 ])
 const searches = []
-const sdk = { kw: { musicSearch: { search: async (query, page = 1, limit) => {
-  searches.push({ query, page, limit })
-  return { list: [...songs.values()], source: 'kw' }
-} } } }
+const sdk = {
+  kw: {
+    musicSearch: {
+      search: async(query, page = 1, limit) => {
+        searches.push({ query, page, limit })
+        return { list: [...songs.values()], source: 'kw' }
+      },
+    },
+  },
+}
 const compiledModule = { exports: {} }
 const code = ts.transpileModule(fs.readFileSync('src/core/music/recommendation.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText
+// eslint-disable-next-line no-new-func
 new Function('module', 'exports', 'require', code)(compiledModule, compiledModule.exports, id => {
   if (id === '@/utils/musicSdk') return { default: sdk }
   if (id === '@/utils') return { toNewMusicInfo: item => item }
@@ -63,7 +70,7 @@ test('longer songs are favored only when the matching style is associated with l
   assert.equal(recommendation.scoreRecommendedTrack(fourMinutes, regularProfile), recommendation.scoreRecommendedTrack(fourThirty, regularProfile))
 })
 
-test('recommendations search preferred artists and exclude songs already heard or saved', async () => {
+test('recommendations search preferred artists and exclude songs already heard or saved', async() => {
   searches.length = 0
   const recent = [{ music: music('seed', '再見', '常聽歌手', '华语摇滚', '04:20'), playedAt: Date.now(), playCount: 3, listenedSeconds: 500 }]
   const result = await recommendation.getRecommendedSongs(recent, 'kw', ['same-taste'])
@@ -73,9 +80,9 @@ test('recommendations search preferred artists and exclude songs already heard o
   assert.ok(result.length > 0)
 })
 
-test('recommendation refresh rotates search pages and excludes songs shown in the previous set', async () => {
+test('recommendation refresh rotates search pages and excludes songs shown in the previous set', async() => {
   const searchedPages = []
-  sdk.kw.musicSearch.search = async (query, page = 1) => {
+  sdk.kw.musicSearch.search = async(query, page = 1) => {
     searchedPages.push(page)
     return { list: page == 2 ? [songs.get('same-taste')] : [songs.get('artist-rock')] }
   }
@@ -85,7 +92,7 @@ test('recommendation refresh rotates search pages and excludes songs shown in th
   assert.deepEqual(result.map(item => item.music.id), ['same-taste'])
 })
 
-test('recommendations ignore rejected queries and malformed search results', async () => {
+test('recommendations ignore rejected queries and malformed search results', async() => {
   sdk.kw.musicSearch.search = async query => {
     if (query === '常聽歌手') throw new Error('search unavailable')
     return { list: [null, { id: 'missing-singer', name: 'incomplete' }, songs.get('same-taste')] }
@@ -95,7 +102,7 @@ test('recommendations ignore rejected queries and malformed search results', asy
   assert.deepEqual(result.map(item => item.music.id), ['same-taste'])
 })
 
-test('recommendation searches keep the music source receiver context', async () => {
+test('recommendation searches keep the music source receiver context', async() => {
   sdk.kw.musicSearch.search = async function(query) {
     assert.equal(this, sdk.kw.musicSearch)
     return { list: query === '摇滚 华语' ? [songs.get('same-taste')] : [] }
@@ -115,7 +122,7 @@ test('playlist ordering moves language and style matches ahead of general lists'
   assert.deepEqual(ordered.map(item => item.id), ['match', 'general'])
 })
 
-test('cold start still returns an exploration set instead of an empty recommendation rail', async () => {
+test('cold start still returns an exploration set instead of an empty recommendation rail', async() => {
   const coldStartQueries = []
   sdk.kw.musicSearch.search = async query => {
     coldStartQueries.push(query)
@@ -152,4 +159,53 @@ test('ranking reserves an exploration slot after strong personalized matches', (
   ]
   const result = recommendation.rankRecommendedTracks(candidates, profile, new Set(['explore']))
   assert.equal(result[4].music.id, 'explore')
+})
+
+test('clicks and many short previews never become taste or seed queries', async() => {
+  const clicked = { music: music('click', 'Click Only', 'Unheard Artist', 'Jazz', '04:00'), playedAt: Date.now(), playCount: 1, listenedSeconds: 0 }
+  const skipped = { music: music('skip', 'Many Previews', 'Skipped Artist', 'Rap', '04:00'), playedAt: Date.now(), playCount: 40, listenedSeconds: 320 }
+  const profile = recommendation.buildListeningProfile([clicked, skipped])
+  assert.equal(profile.artists.length, 0)
+  assert.equal(profile.languages.length, 0)
+  const queries = []
+  sdk.kw.musicSearch.search = async query => { queries.push(query); return { list: [] } }
+  await recommendation.getRecommendedSongs([clicked, skipped], 'kw')
+  assert.ok(!queries.some(query => /Unheard|Skipped|Click Only|Many Previews/.test(query)))
+  assert.equal(recommendation.getRecommendationProfileKey([clicked, skipped]), '')
+})
+
+test('listening percentage and real time outweigh opening a track repeatedly', () => {
+  const preview = { music: music('preview', 'Preview', 'Preview Artist', 'Jazz', '04:00'), playedAt: Date.now(), measuredSessions: 10, measuredListenedSeconds: 300, listenedRatioTotal: 1.25 }
+  const full = { music: music('full', 'Full', 'Full Artist', 'Rock', '04:00'), playedAt: Date.now(), measuredSessions: 1, measuredListenedSeconds: 228, listenedRatioTotal: 0.95 }
+  const profile = recommendation.buildListeningProfile([preview, full])
+  assert.deepEqual(profile.artists.map(item => item.name), ['Full Artist'])
+  const partial = { ...full, measuredListenedSeconds: 60, listenedRatioTotal: 0.25 }
+  assert.ok(recommendation.buildListeningProfile([full]).artists[0].weight > recommendation.buildListeningProfile([partial]).artists[0].weight)
+})
+
+test('playlist candidates use the same engaged profile and independent two-platform searches', async() => {
+  const queries = []
+  for (const source of ['wy', 'tx']) {
+    sdk[source] = {
+      songList: {
+        search: async function(query, page) {
+          assert.equal(this, sdk[source].songList)
+          queries.push({ source, query, page })
+          return {
+            list: [
+              { id: 'match', name: '华语摇滚精选', source, author: `${source}-author` },
+              { id: 'general', name: '其他歌曲合集', source, author: `${source}-other` },
+            ],
+          }
+        },
+      },
+    }
+  }
+  const recent = [{ music: music('seed', '再見', '常聽歌手', '华语摇滚', '04:20'), playedAt: Date.now(), playCount: 3, listenedSeconds: 500 }]
+  const result = await recommendation.getRecommendedPlaylists(recent, ['wy_match'], 2)
+  assert.ok(queries.some(item => item.source == 'wy' && item.query == '摇滚 华语' && item.page == 2))
+  assert.ok(queries.some(item => item.source == 'tx' && item.query == '常聽歌手'))
+  assert.ok(!result.some(item => item.source == 'wy' && item.id == 'match'))
+  assert.equal(result[0].id, 'match')
+  assert.ok(!fs.readFileSync('src/screens/Home/Views/Search/BlankView/ListeningHome.tsx', 'utf8').includes('getSongListSetting'))
 })

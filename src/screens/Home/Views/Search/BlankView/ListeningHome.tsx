@@ -7,14 +7,12 @@ import { Icon } from '@/components/common/Icon'
 import { useTheme } from '@/store/theme/hook'
 import { useI18n } from '@/lang'
 import { setNavActiveId } from '@/core/common'
-import { getList } from '@/core/songlist'
 import { getListMusics } from '@/core/list'
 import { playLibraryMusic, getRecentTracks, LIBRARY_EVENT, type RecentTrack } from '@/core/music/library'
-import { buildListeningProfile, getRecommendedSongs, getTopLanguage, rankRecommendedPlaylists, rankRecommendedTracks } from '@/core/music/recommendation'
+import { buildListeningProfile, getRecommendedSongs, getRecommendedPlaylists, getRecommendationSource, getRecommendationProfileKey, getTopLanguage } from '@/core/music/recommendation'
 import { playList, togglePlay } from '@/core/player/player'
 import { usePlayerMusicInfo } from '@/store/player/hook'
 import { usePlaybackState } from '@/plugins/player/hook'
-import { getSongListSetting } from '@/utils/data'
 import { createStyle } from '@/utils/tools'
 import { getDesignTokens } from '@/theme/design'
 import { LIST_IDS } from '@/config/constant'
@@ -35,16 +33,15 @@ export default ({ refreshKey, onRefreshComplete }: ListeningHomeProps) => {
   const { width: windowWidth } = useWindowDimensions()
   const [playlists, setPlaylists] = useState<ListInfoItem[]>([])
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
-  const [playlistRefreshToken, setPlaylistRefreshToken] = useState(0)
   const [songs, setSongs] = useState<LX.Music.MusicInfo[]>([])
   const [recent, setRecent] = useState<RecentTrack[]>([])
   const [recommendations, setRecommendations] = useState<LX.Music.MusicInfo[]>([])
   const [recommendationStatus, setRecommendationStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
-  const [recommendationSource, setRecommendationSource] = useState<LX.OnlineSource>('wy')
+  const recommendationSource = getRecommendationSource(recent)
   const listId = LIST_IDS.LOVE
   const profile = useMemo(() => buildListeningProfile(recent), [recent])
-  const rankedPlaylists = useMemo(() => rankRecommendedPlaylists(playlists, profile), [playlists, profile])
-  const rankedSongs = useMemo(() => rankRecommendedTracks(recommendations, profile), [recommendations, profile])
+  const rankedPlaylists = playlists
+  const rankedSongs = useMemo(() => recommendations.map(music => ({ music })), [recommendations])
   const songPages = useMemo(() => {
     const pages: Array<typeof rankedSongs> = []
     for (let i = 0; i < rankedSongs.length; i += 3) pages.push(rankedSongs.slice(i, i + 3))
@@ -56,9 +53,10 @@ export default ({ refreshKey, onRefreshComplete }: ListeningHomeProps) => {
   const recentRef = useRef(recent)
   const songsRef = useRef(songs)
   const recommendationHistoryRef = useRef(new Set<string>())
+  const playlistHistoryRef = useRef(new Set<string>())
   recentRef.current = recent
   songsRef.current = songs
-  const recommendationKey = recent.map(item => `${item.music.id}:${item.playedAt}:${item.playCount ?? 0}:${item.listenedSeconds ?? 0}:${item.completedCount ?? 0}`).join('|')
+  const recommendationKey = getRecommendationProfileKey(recent)
   const favoriteKey = songs.map(song => song.id).join('|')
   const completeRefresh = useCallback((part: 'catalog' | 'songs') => {
     if (refreshKey > 0) onRefreshComplete(refreshKey, part)
@@ -71,28 +69,29 @@ export default ({ refreshKey, onRefreshComplete }: ListeningHomeProps) => {
     const listener = DeviceEventEmitter.addListener(LIBRARY_EVENT, loadRecent)
     return () => { active = false; listener.remove() }
   }, [])
-  useEffect(() => {
-    const listener = DeviceEventEmitter.addListener('lx_discoveryPlatformChanged', () => { setPlaylistRefreshToken(value => value + 1) })
-    return () => { listener.remove() }
-  }, [])
 
   useEffect(() => {
     recommendationHistoryRef.current.clear()
+    playlistHistoryRef.current.clear()
   }, [recommendationKey, favoriteKey, recommendationSource])
 
   useEffect(() => {
     let active = true
     setStatus('loading')
-    void getSongListSetting().then(async setting => {
-      if (active) setRecommendationSource(setting.source)
-      return getList(setting.source, setting.tagId, setting.sortId, 1, refreshKey > 0 || playlistRefreshToken > 0)
-    }).then(info => {
+    void (async() => {
+      const page = refreshKey ? refreshKey % 5 + 1 : 1
+      let items = await getRecommendedPlaylists(recentRef.current, [...playlistHistoryRef.current], page)
+      if (!items.length && playlistHistoryRef.current.size) {
+        items = await getRecommendedPlaylists(recentRef.current, [], page)
+        if (active && items.length) playlistHistoryRef.current.clear()
+      }
       if (!active) return
-      setPlaylists(info.list.slice(0, 8))
+      for (const item of items) playlistHistoryRef.current.add(`${item.source}_${item.id}`)
+      setPlaylists(items)
       setStatus('ready')
-    }).catch(() => { if (active) setStatus('error') }).finally(() => { if (active) completeRefresh('catalog') })
+    })().catch(() => { if (active) setStatus('error') }).finally(() => { if (active) completeRefresh('catalog') })
     return () => { active = false }
-  }, [refreshKey, playlistRefreshToken, completeRefresh])
+  }, [recommendationKey, recommendationSource, refreshKey, completeRefresh])
 
   useEffect(() => {
     let active = true

@@ -2,7 +2,6 @@
 import { getUserTheme, saveUserTheme } from '@/utils/data'
 import themes from '@/theme/themes/themes'
 import settingState from '@/store/setting/state'
-import themeState from '@/store/theme/state'
 import { isUrl } from '@/utils'
 import { privateStorageDirectoryPath } from '@/utils/fs'
 import { type ImageSourcePropType } from 'react-native'
@@ -23,7 +22,7 @@ export const getAllThemes = async() => {
   userThemes ??= await getUserTheme()
   return {
     themes,
-    userThemes,
+    userThemes: [],
     dataPath: privateStorageDirectoryPath + '/theme_images',
   }
 }
@@ -95,6 +94,25 @@ export const buildActiveThemeColors = (theme: LX.Theme): LX.ActiveTheme => {
     'c-border-background': theme.config.themeColors['c-primary-light-100-alpha-700'],
     'bg-image': bgImg,
   } as const
+  if (theme.id == 'white') {
+    return {
+      ...activeTheme,
+      'c-font': '#1B1B20',
+      'c-font-label': '#72727A',
+      'c-primary-font': '#1B1B20',
+      'c-primary-font-active': '#1B1B20',
+      'c-button-font': '#1B1B20',
+      'c-button-font-selected': '#1B1B20',
+      'c-button-background': '#F0F0F3',
+      'c-button-background-selected': '#E7E7EC',
+      'c-primary-input-background': '#F0F0F3',
+      'c-primary-background': '#F0F0F3',
+      'c-primary-background-active': '#E7E7EC',
+      'c-content-background': '#FAFAFC',
+      'c-border-background': '#E3E3E8',
+      'c-list-header-border-bottom': '#E3E3E8',
+    }
+  }
   if (theme.id != 'mineradio') return activeTheme
   return {
     ...activeTheme,
@@ -116,22 +134,9 @@ export const buildActiveThemeColors = (theme: LX.Theme): LX.ActiveTheme => {
 // type IDS = LocalTheme['id']
 export const getTheme = async() => {
   // fs.promises.readdir()
-  const shouldUseDarkColors = themeState.shouldUseDarkColors
-  let themeId = settingState.setting['common.isAutoTheme'] && shouldUseDarkColors
-    ? 'black'
-    : settingState.setting['theme.id']
+  const themeId = settingState.setting['theme.id'] == 'white' ? 'white' : 'mineradio'
   // themeId = 'naruto'
   // themeId = 'pink'
   // themeId = 'black'
-  let theme: LocalTheme | LX.Theme | undefined = themes.find(theme => theme.id == themeId)
-  if (!theme) {
-    userThemes = await getUserTheme()
-    theme = userThemes.find(theme => theme.id == themeId)
-    if (!theme) {
-      themeId = settingState.setting['theme.id'] == 'auto' && shouldUseDarkColors ? 'black' : 'green'
-      theme = themes.find(theme => theme.id == themeId) as LX.Theme
-    }
-  }
-
-  return theme
+  return themes.find(theme => theme.id == themeId)!
 }

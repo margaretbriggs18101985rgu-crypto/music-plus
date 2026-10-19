@@ -113,6 +113,7 @@ export default {
         source: 'tx',
         interval: item.interval ? formatPlayTime(item.interval) : null,
         songId: item.id,
+        searchMetadata: { heat: item.play_count, publishedAt: item.time_public },
         albumMid: item.album?.mid ?? '',
         strMediaMid: item.file.media_mid,
         songmid: item.mid,

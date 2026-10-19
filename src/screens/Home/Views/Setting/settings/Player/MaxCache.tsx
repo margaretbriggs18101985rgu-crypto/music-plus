@@ -6,8 +6,9 @@ import { createStyle, toast } from '@/utils/tools'
 import { useSettingValue } from '@/store/setting/hook'
 import { useI18n } from '@/lang'
 import { updateSetting } from '@/core/common'
+import { MAX_PLAYER_CACHE_SIZE_MIB } from '@/plugins/player/cache'
 
-const MAX_SIZE = 1024 * 1024 * 1024
+const MAX_SIZE = MAX_PLAYER_CACHE_SIZE_MIB
 export default memo(() => {
   const t = useI18n()
   const cacheSize = useSettingValue('player.cacheSize')
@@ -18,6 +19,7 @@ export default memo(() => {
   const size = useMemo(() => {
     let size: number | string = parseInt(cacheSize)
     if (size == 0 || Number.isNaN(size)) size = ''
+    else if (typeof size == 'number' && size > MAX_SIZE) size = MAX_SIZE
     return size.toString()
   }, [cacheSize])
 

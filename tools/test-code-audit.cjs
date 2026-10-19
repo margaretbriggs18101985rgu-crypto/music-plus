@@ -93,9 +93,9 @@ test('lazy pages refresh after relevant settings changes without hiding the sett
 })
 
 function searchPage(saved = { source: 'wy', type: 'music' }) {
-  const env = { effects: [], loads: [], saved: [], sources: [], timers: new Map(), tips: [] }
+  const env = { effects: [], loads: [], saved: [], timers: new Map(), tips: [] }
   const events = new EventEmitter()
-  const components = Object.fromEntries(['./HeaderBar', './TipList', './List', './SearchTypeSelector', '@/components/SourceSelector'].map(id => [id, id]))
+  const components = Object.fromEntries(['./HeaderBar', './TipList', './List', './SearchTypeSelector'].map(id => [id, id]))
   let timerId = 1
   const jsx = (type, props) => ({ type, props })
   const page = load('src/screens/Home/Views/Search/index.tsx', {
@@ -107,8 +107,6 @@ function searchPage(saved = { source: 'wy', type: 'music' }) {
     '@/utils/data': { getSearchSetting: async() => saved, saveSearchSetting: async value => { env.saved.push(value) } },
     '@/utils/tools': { createStyle: value => value },
     '@/core/search/search': { addHistoryWord: async() => {} },
-    '@/store/search/music/state': { default: { sources: ['kw', 'tx', 'wy', 'all'] } },
-    '@/store/search/songlist/state': { default: { sources: ['tx', 'all'] } },
   }, {
     global: { app_event: events },
     setTimeout: fn => { const key = timerId++; env.timers.set(key, fn); return key },
@@ -122,33 +120,31 @@ function searchPage(saved = { source: 'wy', type: 'music' }) {
   env.header.ref.current = { setText() {}, blur() {} }
   get('./List').ref.current = { loadList: (...args) => env.loads.push(args) }
   get('./TipList').ref.current = { hide() {}, search: text => env.tips.push(text) }
-  env.selector = get('@/components/SourceSelector')
-  env.selector.ref.current = { setSourceList: (...args) => env.sources.push(args) }
   env.cleanup = env.effects[0]()
   env.events = events
+  env.nodes = nodes
   env.settle = () => new Promise(resolve => setImmediate(resolve))
   return env
 }
 
-test('restored search filters load the saved platform and route platform and playlist choices', async() => {
+test('search removes the type tabs and delegates keywords to aggregated results', async() => {
   const env = searchPage()
   await env.settle()
-  assert.deepEqual(env.loads.at(-1), ['test song', 'wy', 'music'])
-  env.selector.onSourceChange('tx')
-  assert.deepEqual(env.loads.at(-1), ['test song', 'tx', 'music'])
+  assert.deepEqual(env.loads.at(-1), ['test song', 'all', 'music'])
+  assert.deepEqual(env.saved[0], { source: 'all' })
+  assert.ok(!env.nodes.some(node => node.type == './SearchTypeSelector'))
   env.events.emit('searchTypeChanged', 'songlist')
-  assert.deepEqual(env.loads.at(-1), ['test song', 'tx', 'songlist'])
-  assert.deepEqual(env.sources.at(-1), [['tx', 'all'], 'tx'])
-  assert.deepEqual(env.saved.at(-1), { type: 'songlist', source: 'tx' })
+  env.header.onSearch('next song')
+  assert.deepEqual(env.loads.at(-1), ['next song', 'all', 'music'])
   env.cleanup()
   assert.deepEqual(env.events.eventNames(), [])
 })
 
-test('changing search type replaces an unsupported platform with a supported one', async() => {
-  const env = searchPage()
+test('a previously saved playlist search cannot strand the page without type tabs', async() => {
+  const env = searchPage({ source: 'wy', type: 'songlist' })
   await env.settle()
-  env.events.emit('searchTypeChanged', 'songlist')
-  assert.deepEqual(env.loads.at(-1), ['test song', 'tx', 'songlist'])
+  assert.deepEqual(env.loads.at(-1), ['test song', 'all', 'music'])
+  assert.deepEqual(env.saved.at(-1), { source: 'all' })
   env.cleanup()
 })
 

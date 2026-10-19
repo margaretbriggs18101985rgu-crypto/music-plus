@@ -1,6 +1,8 @@
 package cn.toside.music.mobile.vinyl
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -11,8 +13,9 @@ import androidx.compose.ui.unit.dp
 
 /** The same lyric-stage dock in both orientations, with reachable native controls. */
 @Composable
-internal fun ImmersivePlaybackDock(state: VinylPlayerState, landscape: Boolean, onAction: PlayerAction) {
-    Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp).widthIn(max = 980.dp).fillMaxWidth()
+internal fun ImmersivePlaybackDock(state: VinylPlayerState, landscape: Boolean, onAction: PlayerAction, onBlankTap: () -> Unit = {}) {
+    Column(Modifier.clickable(interactionSource = MutableInteractionSource(), indication = null, onClick = onBlankTap)
+        .padding(horizontal = 12.dp, vertical = 8.dp).widthIn(max = 980.dp).fillMaxWidth()
         .semantics { contentDescription = "播放控制栏" }
         .padding(horizontal = 8.dp, vertical = 4.dp)) {
         if (landscape) {

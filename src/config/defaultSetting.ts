@@ -23,13 +23,14 @@ const defaultSetting: LX.AppSetting = {
   'player.isSavePlayTime': false,
   'player.volume': 1,
   'player.playbackRate': 1,
-  'player.cacheSize': '1024',
+  'player.cacheSize': '256',
   'player.timeoutExit': '',
   'player.timeoutExitPlayed': true,
   'player.isAutoCleanPlayedList': false,
   'player.isHandleAudioFocus': true,
   'player.isEnableAudioOffload': true,
   'player.immersiveVisualsEnabled': true,
+  'player.reactiveVisuals': '{}',
   'player.particleQuality': 'auto',
   'player.lyricMotionEnabled': true,
   'player.lyricPulseEnabled': true,
@@ -91,6 +92,8 @@ const defaultSetting: LX.AppSetting = {
   'theme.wallpaper.kind': 'none',
   'theme.wallpaper.scope': 'all',
   'theme.fontShadow': false,
+  'theme.pageFontFamily': 'system',
+  'theme.pageFontColor': '',
 }
 
 

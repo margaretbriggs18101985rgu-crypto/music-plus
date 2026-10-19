@@ -29,7 +29,8 @@ internal class LyricStageDrag {
 @Composable
 internal fun ImmersiveLyricStage(state: VinylPlayerState, drag: LyricStageDrag, motionEnabled: Boolean,
     modifier: Modifier, audio: State<AudioMotion>, phase: State<Double>, onTap: (() -> Unit)? = null,
-    overlayInsets: PaddingValues = PaddingValues(), pulseEnabled: Boolean = motionEnabled && state.lyricPulseEnabled) {
+    overlayInsets: PaddingValues = PaddingValues(), pulseEnabled: Boolean = motionEnabled && state.lyricPulseEnabled,
+    onInteraction: () -> Unit = {}) {
     val density = LocalDensity.current.density
     val scope = rememberCoroutineScope()
     var inertia by remember { mutableStateOf<Job?>(null) }
@@ -40,6 +41,7 @@ internal fun ImmersiveLyricStage(state: VinylPlayerState, drag: LyricStageDrag, 
     Box(modifier.fillMaxWidth().clipToBounds().pointerInput(state.trackId, motionEnabled) {
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+            onInteraction()
             inertia?.cancel()
             val velocity = VelocityTracker()
             velocity.addPosition(down.uptimeMillis, down.position)
@@ -91,9 +93,12 @@ internal fun ImmersiveLyricStage(state: VinylPlayerState, drag: LyricStageDrag, 
         }
     }) {
         PlayerLyrics(state, Modifier.fillMaxSize().graphicsLayer {
-            rotationY = drag.rotation.yaw
-            rotationX = drag.rotation.pitch
-            cameraDistance = maxOf(500f * density, size.width * 1.2f)
+            val camera = stageCamera(audio.value, state.reactiveVisuals, motionEnabled && state.isPlaying)
+            rotationY = drag.rotation.yaw + camera.yaw
+            rotationX = drag.rotation.pitch + camera.pitch
+            scaleX = camera.scale
+            scaleY = camera.scale
+            cameraDistance = maxOf((900f - state.reactiveVisuals.depth * 500f) * density, size.width * 1.2f)
         }, motionEnabled, audio, phase, overlayInsets.calculateTopPadding(), overlayInsets.calculateBottomPadding(), pulseEnabled)
     }
 }

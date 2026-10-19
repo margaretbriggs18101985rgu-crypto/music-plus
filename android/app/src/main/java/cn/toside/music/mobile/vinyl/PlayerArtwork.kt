@@ -18,10 +18,10 @@ import kotlinx.coroutines.withContext
 /** One painter/request for both the record and palette. A mode/progress update cannot reload it. */
 @Composable
 internal fun rememberPlayerArtwork(state: VinylPlayerState): AsyncImagePainter =
-    key(state.trackId, state.artwork, state.artworkUserAgent) {
+    key(state.trackId, state.artwork, state.artworkUserAgent, state.reactiveVisuals.coverResolution) {
         val context = LocalContext.current
         val request = remember {
-            ImageRequest.Builder(context.applicationContext).data(state.artwork).size(512).allowHardware(false)
+            ImageRequest.Builder(context.applicationContext).data(state.artwork).size(state.reactiveVisuals.coverResolution).allowHardware(false)
                 .crossfade(300).apply {
                     if (state.artworkUserAgent.isNotBlank()) addHeader("User-Agent", state.artworkUserAgent)
                 }.build()

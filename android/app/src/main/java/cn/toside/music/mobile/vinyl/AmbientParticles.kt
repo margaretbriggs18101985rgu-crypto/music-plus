@@ -9,6 +9,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import kotlin.math.*
@@ -49,22 +50,25 @@ internal fun createAmbientStars(seed: Int, count: Int): List<AmbientStar> {
 
 /** Shared camera and caller-owned point buffers: no per-star allocations or trig per frame. */
 internal fun projectAmbientStars(stars: List<AmbientStar>, width: Float, height: Float,
-    yaw: Float, pitch: Float, points: Array<FloatArray>, used: IntArray, elapsedSeconds: Double = 0.0) {
+    yaw: Float, pitch: Float, points: Array<FloatArray>, used: IntArray, elapsedSeconds: Double = 0.0,
+    fx: ReactiveVisuals = ReactiveVisuals(), audio: AudioMotion = AudioMotion()) {
     used.fill(0)
     if (width <= 0f || height <= 0f || !yaw.isFinite() || !pitch.isFinite()) return
     val cy = cos(yaw); val sy = sin(yaw); val cp = cos(pitch); val sp = sin(pitch)
     val unit = minOf(width, height)
-    val focal = unit * 2.8f
+    val focal = unit * (3.2f - fx.depth * 2f)
     val time = if (elapsedSeconds.isFinite()) elapsedSeconds else 0.0
     val sway = sin(time * .45).toFloat() * .65f
+    val twist = fx.twist * (.25f + sin(time * .07).toFloat() * .15f)
+    val expansion = 1f + fx.scatter * .85f + audio.beat * fx.intensity * fx.bassWeight * .045f
     fun drift(position: Float, velocity: Float, extent: Float): Float {
         val span = extent * 2.0
         return (((position + velocity * time + extent) % span + span) % span - extent).toFloat()
     }
     for (star in stars) {
-        val x = (drift(star.x, star.velocityX, 1.8f) + star.velocityY * sway) * width * .38f
-        val y = (drift(star.y, star.velocityY, 1.3f) + star.velocityX * sway) * height * .68f
-        val z = drift(star.z, star.velocityZ, 1f) * unit * .8f
+        val x = (drift(star.x, star.velocityX, 1.8f) + star.velocityY * sway + star.z * twist) * width * .38f * expansion
+        val y = (drift(star.y, star.velocityY, 1.3f) + star.velocityX * sway + star.x * twist * .3f + star.velocityY * fx.scatter * 12f) * height * .68f * expansion
+        val z = drift(star.z, star.velocityZ, 1f) * unit * (.5f + fx.depth * 1.5f)
         val rx = x * cy + z * sy
         val rz = z * cy - x * sy
         val ry = y * cp - rz * sp
@@ -89,29 +93,41 @@ internal fun ambientStarBuffers(stars: List<AmbientStar>): Array<FloatArray> {
 }
 
 @Composable
-internal fun AmbientParticles(trackId: String, count: Int, phase: State<Double>, drag: LyricStageDrag) {
-    if (count == 0) return
+internal fun AmbientParticles(trackId: String, count: Int, phase: State<Double>, drag: LyricStageDrag,
+    audio: State<AudioMotion>, fx: ReactiveVisuals, reactive: Boolean) {
+    if (count == 0 || !fx.starRiver) return
     val stars = remember(trackId, count) { createAmbientStars(trackId.hashCode(), count) }
     Box(Modifier.fillMaxSize().clipToBounds().clearAndSetSemantics { }.drawWithCache {
         val points = ambientStarBuffers(stars)
         val used = IntArray(STAR_BUCKETS)
         val colors = intArrayOf(0xFF6F889F.toInt(), 0xFF92A4BB.toInt(), 0xFF9FBAC8.toInt(), 0xFFBCD0DD.toInt())
         val paints = Array(STAR_BUCKETS) { bucket -> Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = colors[(bucket % 8) / 2]
+            val base = androidx.compose.ui.graphics.Color(colors[(bucket % 8) / 2])
+            color = stageColor(base, fx.colorTension).toArgb()
             strokeCap = Paint.Cap.ROUND
-            strokeWidth = when (bucket / 8) { 0 -> .50.dp.toPx(); 1 -> .80.dp.toPx(); else -> 1.10.dp.toPx() }
+            strokeWidth = (when (bucket / 8) { 0 -> .50.dp.toPx(); 1 -> .80.dp.toPx(); else -> 1.10.dp.toPx() }) * fx.particleSize
         } }
+        val glows = Array(STAR_BUCKETS) { bucket -> Paint(paints[bucket]).apply { strokeWidth *= 4f } }
         onDrawBehind {
             val time = phase.value
+            val sound = if (reactive) audio.value else AudioMotion()
+            val camera = stageCamera(sound, fx, reactive)
             // Independent seeded velocities drift through the shared camera without per-frame randomness.
-            val yaw = (drag.rotation.yaw * PI / 180.0 + sin(time * .025) * .045).toFloat()
-            val pitch = (drag.rotation.pitch * PI / 180.0 + sin(time * .019) * .025).toFloat()
-            projectAmbientStars(stars, size.width, size.height, yaw, pitch, points, used, time)
+            val yaw = ((drag.rotation.yaw + camera.yaw) * PI / 180.0 + sin(time * .025) * .045).toFloat()
+            val pitch = ((drag.rotation.pitch + camera.pitch) * PI / 180.0 + sin(time * .019) * .025).toFloat()
+            projectAmbientStars(stars, size.width, size.height, yaw, pitch, points, used, time, fx, sound)
             drawIntoCanvas { canvas ->
                 for (bucket in 0 until STAR_BUCKETS) {
                     val twinkle = .96f + sin(time * .19 + bucket * 1.7).toFloat() * .035f
-                    paints[bucket].alpha = ((if (bucket % 2 == 0) 105 else 185) * twinkle).roundToInt()
-                    if (used[bucket] > 0) canvas.nativeCanvas.drawPoints(points[bucket], 0, used[bucket], paints[bucket])
+                    val accent = 1f + (sound.treble * fx.trebleWeight * .15f + sound.beat * fx.bassWeight * .35f) * fx.intensity
+                    paints[bucket].alpha = ((if (bucket % 2 == 0) 105 else 185) * twinkle * accent * (1f - fx.backgroundDim * .75f)).roundToInt().coerceIn(0, 255)
+                    if (used[bucket] > 0) {
+                        if (fx.particleGlow && fx.bloom > 0f) {
+                            glows[bucket].alpha = (paints[bucket].alpha * .18f * fx.bloom).roundToInt().coerceIn(0, 255)
+                            canvas.nativeCanvas.drawPoints(points[bucket], 0, used[bucket], glows[bucket])
+                        }
+                        canvas.nativeCanvas.drawPoints(points[bucket], 0, used[bucket], paints[bucket])
+                    }
                 }
             }
         }

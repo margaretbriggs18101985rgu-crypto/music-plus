@@ -1,5 +1,6 @@
 import TrackPlayer from 'react-native-track-player'
-import { updateOptions, setVolume, setPlaybackRate, migratePlayerCache } from './utils'
+import { updateOptions, setVolume, setPlaybackRate, migratePlayerCache, clearPlayerCacheFiles, clearCache, getCacheSize } from './utils'
+import { normalizePlayerCacheSize } from './cache'
 
 // const listenEvent = () => {
 //   TrackPlayer.addEventListener('playback-error', err => {
@@ -25,16 +26,27 @@ const initial = async({ volume, playRate, cacheSize, isHandleAudioFocus, isEnabl
 }) => {
   if (global.lx.playerStatus.isIniting || global.lx.playerStatus.isInitialized) return
   global.lx.playerStatus.isIniting = true
-  console.log('Cache Size', cacheSize * 1024)
-  await migratePlayerCache()
+  const normalizedCacheSize = normalizePlayerCacheSize(cacheSize)
+  const maxCacheSize = normalizedCacheSize * 1024
+  console.log('Cache Size', maxCacheSize)
+  if (normalizedCacheSize > 0) await migratePlayerCache()
+  else await clearPlayerCacheFiles()
   await TrackPlayer.setupPlayer({
-    maxCacheSize: cacheSize * 1024,
+    maxCacheSize,
     maxBuffer: 1000,
     waitForBuffer: true,
     handleAudioFocus: isHandleAudioFocus,
     audioOffload: isEnableAudioOffload,
     autoUpdateMetadata: false,
   })
+  if (maxCacheSize > 0) {
+    try {
+      const currentCacheSize = await getCacheSize()
+      if (currentCacheSize > maxCacheSize * 1024) await clearCache()
+    } catch (error) {
+      console.warn('Player cache cleanup failed', error)
+    }
+  }
   global.lx.playerStatus.isInitialized = true
   global.lx.playerStatus.isIniting = false
   await updateOptions()

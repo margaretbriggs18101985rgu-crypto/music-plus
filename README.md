@@ -23,9 +23,11 @@ MUSIC++ 使用独立应用标识 `io.github.musicplus.player`，首次安装不�
 > v1.1.4 已发布：主题壁纸、多路音乐推荐、可选应用内更新、歌词编辑、歌单自动同步、完整数据备份与播放器布局优化。
 
 - 音乐搜索、歌手歌曲与专辑浏览、榜单和歌单。
+- 页面提供黑胶深色、白色两种主题，可独立调整页面字体与文字颜色；页面和播放器歌词均可用预设颜色或色盘选色，页面设置不覆盖歌词设置。
 - 我的音乐、收藏、播放队列、歌单导入。
 - 原生黑胶唱片播放页、歌词、播放进度和后台播放。
 - 根据实际音频律动的空间歌词、双轴自由旋转与惯性、密集三维星流；无尾线或拖影叠加。
+- 原生 FFT 频谱和鼓点检测驱动歌词、电影镜头及星流；景深、粒子光影、音域地形和频段权重可调，频谱柱默认隐藏。见[音频视觉设置](doc/REACTIVE_VISUALS.md)。
 - 黑胶＋歌词和全屏歌词两种布局，适配横竖屏；透明控制栏、空白处隐藏与轻点舞台恢复。详见[布局与验证说明](doc/PLAYER_LAYOUTS.md)。
 - 单句／多排歌词、四种离线字体、颜色、字号与对齐设置，支持系统减少动画和省电适配。
 - 播放器更多菜单：歌曲操作、音质、倍速、歌词字体与特效、睡眠定时。
@@ -58,6 +60,8 @@ npm run pack:android:debug
 空间歌词的自由旋转、切句及星河视觉参考 [MineRadio Mobile](https://github.com/MorsBrenn/mineradio-mobile)，以 Android Compose 和实际解码音频分析实现。
 
 本次星流与双布局视觉参考 [Mineradio-paused](https://github.com/XxHuberrr/Mineradio-paused)，Android 实现独立编写。三款附带中文字体采用 SIL OFL 1.1，完整版权与授权随源码及 APK 提供，见[字体来源与布局说明](doc/PLAYER_LAYOUTS.md)。
+
+页面和歌词的色盘复用 [react-native-wheel-color-picker](https://github.com/naeemur/react-native-wheel-color-picker)，组件及其 react-native-elevation 依赖采用 MIT 许可证，授权随 APK 分发。
 
 内置墨澜音源 v2.3.4 来自 [baiji6/molanyinyueyuan](https://github.com/baiji6/molanyinyueyuan)，其 [MIT 许可证](android/app/src/main/assets/licenses/molanyinyueyuan-MIT.txt) 随源码与 APK 分发。音乐、封面、歌词等内容的权利属于各自权利人，请尊重版权，支持正版。项目不附带歌曲文件。
 

@@ -5,6 +5,7 @@ import migrateSetting from './migrateSetting'
 import settingState from '@/store/setting/state'
 import { migrateMetaData, migrateListData } from './migrate'
 import { exitApp, tipDialog } from '@/utils/tools'
+import { normalizePageColor, normalizePageFont } from '@/utils/pageAppearance'
 
 // 业务相关工具方法
 
@@ -24,7 +25,12 @@ const mergeSetting = (originSetting: LX.AppSetting, targetSetting?: Partial<LX.A
 
   if (targetSetting) {
     for (const key of Object.keys(originSettingCopy) as Array<keyof LX.AppSetting>) {
-      const targetValue: any = targetSetting[key]
+      if (!Object.prototype.hasOwnProperty.call(targetSetting, key)) continue
+      let targetValue: any = targetSetting[key]
+      if (key == 'theme.id') targetValue = targetValue == 'white' ? 'white' : 'mineradio'
+      if (key == 'common.isAutoTheme') targetValue = false
+      if (key == 'theme.pageFontFamily') targetValue = normalizePageFont(targetValue)
+      if (key == 'theme.pageFontColor') targetValue = normalizePageColor(targetValue)
       if (!checkPrimitiveType(targetValue) || targetValue == originSettingCopy[key]) continue
       updatedSettingKeys.push(key)
       updatedSetting[key] = targetValue
