@@ -166,5 +166,22 @@
       },
       "licenses_and_fonts_present": true
     }
-  }
+  },
+  "online_update_source_verification": [
+    {
+      "mode": "live GitHub latest Release response",
+      "version": "1.1.8",
+      "urls": [
+        "https://api.github.com/repos/margaretbriggs18101985rgu-crypto/music-plus/releases/latest"
+      ]
+    },
+    {
+      "mode": "API outage uses live raw manifest response",
+      "version": "1.1.8",
+      "urls": [
+        "https://api.github.com/repos/margaretbriggs18101985rgu-crypto/music-plus/releases/latest",
+        "https://raw.githubusercontent.com/margaretbriggs18101985rgu-crypto/music-plus/main/publish/version.json"
+      ]
+    }
+  ]
 }
