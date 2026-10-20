@@ -132,6 +132,12 @@ declare global {
        * Whether local listening statistics are collected.
        */
       'player.isListeningStatsEnabled': boolean
+      /** Show the portrait vinyl + lyrics above keyguard while music is playing. */
+      'player.lockScreenLyrics': boolean
+      /** Independent, privately imported lock screen background. */
+      'player.lockScreenWallpaper.path': string
+      'player.lockScreenWallpaper.name': string
+      'player.lockScreenWallpaper.kind': 'image' | 'gif' | 'video' | 'none'
 
       /**
        * 音量大小

@@ -7,9 +7,11 @@ import StatusBar from '@/components/common/StatusBar'
 import { Icon } from '@/components/common/Icon'
 import PlayerBar from '@/components/player/PlayerBar'
 import SceneTransition from '@/components/common/SceneTransition'
+import InlineOptions, { OFFICIAL_PLATFORMS } from '@/components/common/InlineOptions'
 import { useTheme } from '@/store/theme/hook'
 import { useStatusbarHeight } from '@/store/common/hook'
-import { artistUrl, getArtistAlbums, getArtistBiography, getArtistIdentity, getArtistProfile, getArtistSongs, type AlbumPage, type Artist, type ArtistAlbum, type ArtistBiography, type ArtistProfile, type MusicPage } from '@/core/music/artist'
+import { artistUrl, getArtistAlbums, getArtistBiography, getArtistIdentity, getArtistProfile, getArtistSongs, type AlbumPage, type Artist, type ArtistAlbum, type ArtistBiography, type ArtistProfile, type ArtistSource, type MusicPage } from '@/core/music/artist'
+import { loadArtistSources, saveArtistSource, type ArtistSources } from '@/core/music/artistSources'
 import { navigations, pop } from '@/navigation'
 import { toast } from '@/utils/tools'
 import { getDesignTokens } from '@/theme/design'
@@ -19,6 +21,45 @@ import { LoadState, PlayAll, SongRow } from './components'
 type Tab = 'music' | 'albums' | 'about'
 interface ArtistMusicPage extends MusicPage { profile?: ArtistProfile }
 export default ({ componentId, artist }: { componentId: string, artist: Artist }) => {
+  const [sources, setSources] = useState<ArtistSources>()
+  const [choice, setChoice] = useState<ArtistSource | 'auto'>('auto')
+  const [reload, setReload] = useState(0)
+  const [failed, setFailed] = useState(false)
+  useEffect(() => {
+    let active = true
+    setSources(undefined); setFailed(false)
+    void loadArtistSources(artist).then(result => {
+      if (!active) return
+      setSources(result)
+      setChoice(result.preferred ?? 'auto')
+    }).catch(() => { if (active) setFailed(true) })
+    return () => { active = false }
+  }, [artist, reload])
+  if (!sources) {
+    return <PageContent><StatusBar /><View style={{ flex: 1, paddingTop: 48 }}>
+    <TouchableOpacity accessibilityRole="button" accessibilityLabel="返回歌曲页面" onPress={() => { void pop(componentId) }} style={{ minWidth: 48, minHeight: 48, alignSelf: 'flex-start', padding: 12 }}><Icon name="chevron-left" size={25} /></TouchableOpacity>
+    <Text size={20} style={{ margin: 24 }}>{artist.name}</Text>
+    <LoadState loading={!failed} error={failed ? '歌手资料暂时无法加载' : ''} empty={false} retry={() => { setReload(value => value + 1) }} />
+    {!failed ? <Text size={13} style={{ marginHorizontal: 24 }}>正在比较两平台作品…</Text> : null}
+    </View></PageContent>
+  }
+  const selected = sources.options.find(option => option.artist.source == (choice == 'auto' ? sources.recommended : choice)) ?? sources.options[0]
+  const changeSource = (next: ArtistSource | 'auto') => {
+    if (next != 'auto' && !sources.options.some(option => option.artist.source == next)) { toast(`未在${next == 'tx' ? 'QQ音乐' : '网易云音乐'}找到同名或别名匹配的歌手，可稍后重试`); return }
+    setChoice(next)
+    void saveArtistSource(sources.options, next == 'auto' ? undefined : next).catch(() => { toast('本次已切换，但偏好保存失败') })
+  }
+  const selector = <View style={{ marginTop: 8 }}>
+    <InlineOptions value={choice} options={[{ value: 'auto', label: '自动选择' }, ...OFFICIAL_PLATFORMS]} onChange={changeSource} />
+    <Text size={11} style={{ marginTop: 6 }}>{choice == 'auto' ? '系统根据可获取的热门作品优选' : '已记住这位歌手的平台选择'}</Text>
+    {sources.options.length < 2 ? <TouchableOpacity accessibilityRole="button" onPress={() => { setReload(value => value + 1) }} style={{ minHeight: 44, justifyContent: 'center' }}><Text size={12}>另一平台暂未匹配，点击重新查找</Text></TouchableOpacity> : null}
+  </View>
+  // Remount the complete content on source changes: no stale portrait, songs,
+  // albums, biography or pagination can leak across platform identities.
+  return <ArtistContent key={`${selected.artist.source}_${selected.artist.id}`} componentId={componentId} artist={selected.artist} initialProfile={selected.profile} selector={selector} />
+}
+
+const ArtistContent = ({ componentId, artist, initialProfile, selector }: { componentId: string, artist: Artist, initialProfile?: ArtistProfile, selector: React.ReactElement }) => {
   const theme = useTheme()
   const colors = getDesignTokens(theme)
   const inset = useStatusbarHeight()
@@ -38,9 +79,12 @@ export default ({ componentId, artist }: { componentId: string, artist: Artist }
     Animated.timing(headerOpacity, { toValue: next ? 1 : 0, duration: 180, useNativeDriver: true }).start()
   }, [headerOpacity])
   useEffect(() => { collapsed.current = false; headerOpacity.setValue(0) }, [tab, headerOpacity])
+  const firstProfile = useRef<ArtistProfile | undefined>(initialProfile)
   const fetchMusic = useCallback(async(offset: number): Promise<ArtistMusicPage> => {
     if (offset) return getArtistSongs(artist, offset)
-    const profile = await getArtistProfile(artist)
+    const cached = firstProfile.current
+    firstProfile.current = undefined
+    const profile = cached ?? await getArtistProfile(artist)
     return { ...profile.songs, profile }
   }, [artist])
   const music = usePagedContent<LX.Music.MusicInfoOnline, ArtistMusicPage>(fetchMusic)
@@ -65,6 +109,7 @@ export default ({ componentId, artist }: { componentId: string, artist: Artist }
     </View>
     <View style={{ paddingHorizontal: 24, paddingBottom: 22 }}>
       <Text size={12} color={colors.muted}>{artist.source == 'wy' ? '网易云音乐' : 'QQ音乐'} · 歌手主页</Text>
+      {selector}
       <View style={{ flexDirection: 'row', marginTop: 18, gap: 30 }}>
         <View><Text size={21} style={{ fontWeight: '600' }}>{profile?.songCount ?? '—'}</Text><Text size={11} color={colors.muted} style={{ marginTop: 4 }}>歌曲</Text></View>
         {profile?.albumCount != null ? <View><Text size={21} style={{ fontWeight: '600' }}>{profile.albumCount}</Text><Text size={11} color={colors.muted} style={{ marginTop: 4 }}>专辑</Text></View> : null}

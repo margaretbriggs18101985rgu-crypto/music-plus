@@ -2,6 +2,7 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs')
 const ts = require('typescript')
 const { test } = require('node:test')
+const { ranking } = require('./search-test-utils.cjs')
 
 function api({ respond = () => ({}), wy, match, signResponse } = {}) {
   const module = { exports: {} }
@@ -9,6 +10,7 @@ function api({ respond = () => ({}), wy, match, signResponse } = {}) {
   const output = ts.transpileModule(fs.readFileSync('src/core/music/artist.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText
   new Function('module', 'exports', 'require', output)(module, module.exports, id => { // eslint-disable-line no-new-func
     if (id === '@/utils/request') return { httpFetch(url, options) { calls.push({ url, options }); return { promise: Promise.resolve(respond(url, options)).then(body => ({ statusCode: 200, body })) } } }
+    if (id === '@/core/search/ranking') return ranking
     if (id.endsWith('/tx/utils')) return { signRequest(data) { calls.push({ signedRequest: data }); return Promise.resolve({ body: signResponse?.(data) ?? {} }) } }
     if (id.endsWith('/musicInfo')) return { default: () => ({ promise: Promise.resolve(wy) }) }
     if (id === './officialInfo') {
@@ -58,7 +60,7 @@ test('QQ search uses the existing signed singer search and official artist MID',
     signResponse: data => {
       const request = data['music.search.SearchCgiService']
       assert.equal(request.method, 'DoSearchForQQMusicDesktop')
-      assert.equal(request.param.search_type, 0)
+      assert.equal(request.param.search_type, 1)
       assert.equal(request.param.query, 'G.E.M.')
       return {
         code: 0,
@@ -87,6 +89,20 @@ test('QQ search uses the existing signed singer search and official artist MID',
 test('artist search does not show an unrelated singer when the query is not matched', async() => {
   const get = api({ respond: () => ({ code: 200, result: { artists: [{ id: 22, name: 'AC/DC', alias: [] }] } }) })
   assert.equal(await get.searchArtist('Unknown Artist', 'wy'), null)
+})
+
+test('QQ dedicated artist search accepts the actual camel-case singer response', async() => {
+  const get = api({
+    signResponse: data => {
+      assert.equal(data['music.search.SearchCgiService'].param.search_type, 1)
+      return { code: 0, 'music.search.SearchCgiService': { code: 0, data: { body: { singer: { list: [{ singerID: 4558, singerMID: '0025NhlN2yWrP4', singerName: '周杰伦', singerPic: 'http://y.gtimg.cn/jay.jpg', songNum: 1011, albumNum: 43 }] } } } } }
+    },
+  })
+  const result = await get.searchArtist('周杰伦', 'tx')
+  assert.equal(result.artist.id, '0025NhlN2yWrP4')
+  assert.equal(result.artist.avatar, 'https://y.gtimg.cn/jay.jpg')
+  assert.equal(result.songCount, 1011)
+  assert.equal(result.albumCount, 43)
 })
 
 test('official artist arrays preserve AC/DC and multiple artists instead of splitting display text', async() => {

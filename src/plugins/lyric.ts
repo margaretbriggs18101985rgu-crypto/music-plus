@@ -98,6 +98,16 @@ export const pause = () => {
   lrcTools.lrc!.pause()
 }
 
+/** Background surfaces share the same parsed lines as the full player. */
+export const subscribeLyrics = (onSet: SetLyricHook, onPlay: PlayHook) => {
+  lrcTools.addSetLyricHook(onSet)
+  lrcTools.addPlayHook(onPlay)
+  return () => {
+    lrcTools.removeSetLyricHook(onSet)
+    lrcTools.removePlayHook(onPlay)
+  }
+}
+
 // on lyric play hook
 export const useLrcPlay = (autoUpdate = true) => {
   const [lrcInfo, setLrcInfo] = useState(lrcTools.currentLineData)

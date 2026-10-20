@@ -12,6 +12,7 @@ import { useI18n } from '@/lang'
 import { useVersionDownloadProgressUpdated, useVersionInfo } from '@/store/version/hook'
 import ModalContent from './ModalContent'
 import { checkUpdate, downloadUpdate, hideModal, setIgnoreVersion, installDownloadedUpdate } from '@/core/version'
+import { appVersion } from '@/config/appInfo'
 
 const VersionItem = ({ version, desc }: VersionInfo) => {
   return (
@@ -72,7 +73,7 @@ const Content = memo(({ title, newVersionInfo }: {
   )
 })
 
-const currentVer = process.versions.app
+const currentVer = appVersion
 const VersionModal = ({ componentId }: { componentId: string }) => {
   const theme = useTheme()
   const t = useI18n()

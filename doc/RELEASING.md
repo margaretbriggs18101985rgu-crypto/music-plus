@@ -27,6 +27,8 @@ npm run pack:android
 
 命令会构建 Release 并运行 Android Release 单元测试，将五个架构 APK 和 `SHA256SUMS.txt` 放入 `build/apk/`。Release 包内置 JS/Hermes 与资源、关闭调试并由维护者密钥签名。
 
+打包器还会检查每个 APK 的原生版本及内置 `assets/musicplus-build.json`，要求其版本、版本码和 Hermes 文件哈希与当前构建一致；不一致时停止发布。Gradle 显式跟踪版本文件和应用 JSON 的变化，避免只更新版本号却复用旧脚本包。发布验证应包含实际覆盖升级后“当前版本”和“已是最新版本”的检查，不能只看 APK 外层版本。
+
 ## GitHub Actions 发布
 
 仓库 Settings → Secrets and variables → Actions 中需配置以下 Repository secrets：

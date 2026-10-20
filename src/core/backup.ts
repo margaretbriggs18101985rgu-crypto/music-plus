@@ -1,4 +1,4 @@
-import { version } from '../../package.json'
+import { appVersion as version } from '@/config/appInfo'
 import { storageDataPrefix } from '@/config/constant'
 import { getLogicalStorageSnapshot, replaceStorageSnapshot } from '@/plugins/storage'
 import { hashSHA256 } from '@/utils/nativeModules/crypto'
@@ -60,6 +60,9 @@ export const createBackup = async(kind: BackupKind) => {
     'theme.wallpaper.path': '',
     'theme.wallpaper.name': '',
     'theme.wallpaper.kind': 'none',
+    'player.lockScreenWallpaper.path': '',
+    'player.lockScreenWallpaper.name': '',
+    'player.lockScreenWallpaper.kind': 'none',
   })
   if (kind == 'full') {
     const lists = listState.userList.map(item => ({ ...item }))

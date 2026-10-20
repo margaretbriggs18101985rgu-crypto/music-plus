@@ -2,6 +2,7 @@ import { httpFetch } from '@/utils/request'
 import getWyMusicInfo from '@/utils/musicSdk/wy/musicInfo'
 import { signRequest } from '@/utils/musicSdk/tx/utils'
 import { resolveOfficialTrack } from './officialInfo'
+import { normalizeSearchText } from '@/core/search/ranking'
 
 export type ArtistSource = 'wy' | 'tx'
 export interface Artist { source: ArtistSource, id: string, name: string, avatar?: string, cover?: string }
@@ -11,7 +12,7 @@ export interface MusicPage { list: LX.Music.MusicInfoOnline[], more: boolean, to
 export interface AlbumPage { list: ArtistAlbum[], more: boolean, nextOffset?: number }
 export interface ArtistBiography { summary: string, sections: Array<{ title: string, text: string }> }
 export interface ArtistSearchResult { artist: Artist, aliases: string[], songCount?: number, albumCount?: number }
-interface RawArtist { id?: number, mid?: string, name: string, picUrl?: string, img1v1Url?: string, briefDesc?: string, musicSize?: number, albumSize?: number, singer_id?: number, singer_mid?: string, singer_name?: string, singer_pic?: string, pic?: string, alias?: string[], alia?: string[], singer_trans?: string, song_num?: number, album_num?: number }
+interface RawArtist { id?: number, mid?: string, name: string, picUrl?: string, img1v1Url?: string, briefDesc?: string, musicSize?: number, albumSize?: number, singer_id?: number, singer_mid?: string, singer_name?: string, singer_pic?: string, singerMID?: string, singerName?: string, singerPic?: string, songNum?: number, albumNum?: number, pic?: string, alias?: string[], alia?: string[], singer_trans?: string, song_num?: number, album_num?: number }
 interface RawAlbum { id: number, mid?: string, name: string, picUrl?: string, publishTime?: number, size?: number }
 interface RawSong {
   id: number
@@ -142,7 +143,7 @@ export const getTrackAlbum = async(music: LX.Music.MusicInfo): Promise<ArtistAlb
   if (!album?.mid || !album.name) throw new Error('未获取到这首歌曲的专辑')
   return { source: 'tx', id: album.mid, name: album.name, cover: qqImage(album.mid) }
 }
-const normalizeArtistQuery = (value: string) => value.toLocaleLowerCase().replace(/[\s\p{P}\p{S}]/gu, '')
+const normalizeArtistQuery = normalizeSearchText
 const matchArtist = (keyword: string, results: ArtistSearchResult[]): ArtistSearchResult | null => {
   const query = normalizeArtistQuery(keyword)
   if (!query) return null
@@ -159,10 +160,11 @@ const matchArtist = (keyword: string, results: ArtistSearchResult[]): ArtistSear
     .sort((a, b) => b.score - a.score || (b.item.songCount ?? 0) - (a.item.songCount ?? 0) || a.index - b.index)[0]?.item ?? null
 }
 const toArtistSearchResult = (raw: RawArtist, source: ArtistSource): ArtistSearchResult => {
+  const mid = raw.mid ?? raw.singer_mid ?? raw.singerMID
   const artist = source == 'tx'
-    ? { source, id: String(raw.mid ?? raw.singer_mid ?? ''), name: raw.name ?? raw.singer_name ?? '', avatar: raw.pic ?? raw.singer_pic ?? (raw.mid ?? raw.singer_mid ? qqImage(raw.mid ?? raw.singer_mid!, true) : undefined) }
+    ? { source, id: mid ?? '', name: raw.name ?? raw.singer_name ?? raw.singerName ?? '', avatar: (raw.pic ?? raw.singer_pic ?? raw.singerPic)?.replace(/^http:/, 'https:') ?? (mid ? qqImage(mid, true) : undefined), cover: mid ? qqImage(mid, true) : undefined }
     : toArtist(raw, source)
-  return { artist, aliases: raw.alias ?? raw.alia ?? (raw.singer_trans ? [raw.singer_trans] : []), songCount: raw.musicSize ?? raw.song_num, albumCount: raw.albumSize ?? raw.album_num }
+  return { artist, aliases: raw.alias ?? raw.alia ?? (raw.singer_trans ? [raw.singer_trans] : []), songCount: raw.musicSize ?? raw.song_num ?? raw.songNum, albumCount: raw.albumSize ?? raw.album_num ?? raw.albumNum }
 }
 const searchWyArtist = async(keyword: string): Promise<ArtistSearchResult | null> => {
   const body = await request<{ code: number, result?: { artists?: RawArtist[] } }>(`https://music.163.com/api/search/get/web?s=${encodeURIComponent(keyword)}&type=100&limit=10&offset=0`, 'wy')
@@ -178,7 +180,7 @@ const searchQqArtist = async(keyword: string): Promise<ArtistSearchResult | null
     'music.search.SearchCgiService': {
       module: 'music.search.SearchCgiService',
       method: 'DoSearchForQQMusicDesktop',
-      param: { grp: 1, num_per_page: 10, page_num: 1, query: keyword, remoteplace: 'txt.newclient.top', search_type: 0, searchid: searchId },
+      param: { grp: 1, num_per_page: 10, page_num: 1, query: keyword, remoteplace: 'txt.newclient.top', search_type: 1, searchid: searchId },
     },
   })
   const body = response.body as { code?: number, 'music.search.SearchCgiService'?: { code?: number, data?: { body?: { singer?: { list?: RawArtist[] } } } } }

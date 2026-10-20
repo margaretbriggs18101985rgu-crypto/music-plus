@@ -4,7 +4,7 @@ import OnlineList, { type OnlineListType } from '@/components/OnlineList'
 import InlineOptions from '@/components/common/InlineOptions'
 import Text from '@/components/common/Text'
 import Image from '@/components/common/Image'
-import { searchCombined, sortedSongs, sortedPlaylists, enrichSearchDates, type CombinedSearch, type SearchSort } from '@/core/search/combined'
+import { searchCombined, sortedSongs, sortedPlaylists, enrichSearchDates, filterCombinedSearch, type CombinedSearch, type SearchSort, type SearchSource } from '@/core/search/combined'
 import { useTheme } from '@/store/theme/hook'
 import { navigations } from '@/navigation'
 import commonState from '@/store/common/state'
@@ -13,23 +13,26 @@ import { toast } from '@/utils/tools'
 
 export interface CombinedResultsType { loadList: (text: string, source?: string) => void }
 const sortOptions = [{ value: 'relevance', label: '综合匹配' }, { value: 'hot', label: '热度优先' }, { value: 'newest', label: '发布时间' }] as const
+const sourceOptions = [{ value: 'all', label: '综合' }, { value: 'tx', label: 'QQ音乐' }, { value: 'wy', label: '网易云音乐' }] as const
 
 export default forwardRef<CombinedResultsType, {}>((props, ref) => {
   const list = useRef<OnlineListType>(null)
   const generation = useRef(0)
   const loading = useRef(false)
-  const selection = useRef({ text: '', sort: 'relevance' as SearchSort })
+  const selection = useRef({ text: '', sort: 'relevance' as SearchSort, source: 'all' as SearchSource })
   const resultRef = useRef<CombinedSearch>()
   const [result, setResult] = useState<CombinedSearch>()
   const [sort, setSort] = useState<SearchSort>('relevance')
+  const [source, setSource] = useState<SearchSource>('all')
   const [keyword, setKeyword] = useState('')
   const [sorting, setSorting] = useState(false)
   const theme = useTheme()
   const apply = (data: CombinedSearch, append = false) => {
     resultRef.current = data
     setResult(data)
-    list.current?.setList(sortedSongs(data.songs, selection.current.sort, selection.current.text).map(item => item.music), append, true)
-    list.current?.setStatus(Object.values(data.more).some(Boolean) ? 'idle' : 'end')
+    const visible = filterCombinedSearch(data, selection.current.source)
+    list.current?.setList(sortedSongs(visible.songs, selection.current.sort, selection.current.text, visible.artists).map(item => item.music), append, true)
+    list.current?.setStatus(Object.values(visible.more).some(Boolean) ? 'idle' : 'end')
   }
   const load = async(text: string, page = 1) => {
     const request = ++generation.current
@@ -57,6 +60,11 @@ export default forwardRef<CombinedResultsType, {}>((props, ref) => {
   }
   useImperativeHandle(ref, () => ({ loadList: text => { void load(text) } }))
   useEffect(() => () => { generation.current++ }, [])
+  const changeSource = (next: SearchSource) => {
+    selection.current.source = next
+    setSource(next)
+    if (resultRef.current) apply(resultRef.current)
+  }
   const changeSort = (next: SearchSort) => {
     selection.current.sort = next
     setSort(next)
@@ -72,19 +80,24 @@ export default forwardRef<CombinedResultsType, {}>((props, ref) => {
       }).finally(() => { if (request == generation.current) setSorting(false) })
     }
   }
-  const playlists = sortedPlaylists(result?.playlists ?? [], sort, keyword)
-  return <OnlineList ref={list} checkHomePagerIdle
+  const visible = result ? filterCombinedSearch(result, source) : undefined
+  const playlists = sortedPlaylists(visible?.playlists ?? [], sort, keyword)
+  return <View style={{ flex: 1 }}>
+    <View style={{ paddingHorizontal: 18 }}>
+      <InlineOptions value={source} options={sourceOptions} onChange={changeSource} />
+      <InlineOptions value={sort} options={sortOptions} onChange={changeSort} />
+      {sorting ? <Text size={11} color={theme['c-font-label']}>正在补充官方发行日期…</Text> : null}
+    </View>
+    <OnlineList ref={list} checkHomePagerIdle
     onRefresh={() => { void load(selection.current.text) }}
     onLoadMore={() => {
-      if (loading.current || (resultRef.current && !Object.values(resultRef.current.more).some(Boolean))) return
+      if (loading.current || (resultRef.current && !Object.values(filterCombinedSearch(resultRef.current, selection.current.source).more).some(Boolean))) return
       void load(selection.current.text, (resultRef.current?.page ?? 0) + 1)
     }}
     ListHeaderComponent={<View style={{ paddingHorizontal: 18 }}>
-      <InlineOptions value={sort} options={sortOptions} onChange={changeSort} />
-      {sorting ? <Text size={11} color={theme['c-font-label']}>正在补充官方发行日期…</Text> : null}
-      <Text size={11} color={theme['c-font-label']} style={{ marginBottom: 10 }}>QQ音乐 + 网易云 · 对已加载结果排序{sort == 'hot' ? ' · 按平台内热度综合比较' : ''}{sort != 'relevance' ? ' · 缺失数据置后' : ''}</Text>
-      {result?.failures.length ? <TouchableOpacity accessibilityRole="button" onPress={() => { void load(selection.current.text) }} style={{ minHeight: 44, justifyContent: 'center' }}><Text size={12} color={theme['c-font-label']}>部分平台结果获取失败，点击重试</Text></TouchableOpacity> : null}
-      {result?.artists.map(({ artist }) => <TouchableOpacity key={`${artist.source}_${artist.id}`} accessibilityRole="button" accessibilityLabel={`打开 ${artist.name} 的歌手主页`}
+      <Text size={11} color={theme['c-font-label']} style={{ marginBottom: 10 }}>{source == 'all' ? 'QQ音乐 + 网易云' : source == 'tx' ? 'QQ音乐' : '网易云音乐'} · 对已加载结果排序{sort == 'relevance' ? ' · 匹配歌手、歌名与版本' : sort == 'hot' ? ' · 按平台内热度综合比较' : ''}{sort != 'relevance' ? ' · 缺失数据置后' : ''}</Text>
+      {visible?.failures.length ? <TouchableOpacity accessibilityRole="button" onPress={() => { void load(selection.current.text) }} style={{ minHeight: 44, justifyContent: 'center' }}><Text size={12} color={theme['c-font-label']}>部分平台结果获取失败，点击重试</Text></TouchableOpacity> : null}
+      {visible?.artists.map(({ artist }) => <TouchableOpacity key={`${artist.source}_${artist.id}`} accessibilityRole="button" accessibilityLabel={`打开 ${artist.name} 的歌手主页`}
         onPress={() => { void navigations.pushArtistScreen(commonState.componentIds.home!, artist).catch(() => { toast('歌手主页打开失败') }) }}
         style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, minHeight: 72 }}>
         <Image url={artist.avatar} style={{ width: 48, height: 48, borderRadius: 24 }} />
@@ -99,7 +112,8 @@ export default forwardRef<CombinedResultsType, {}>((props, ref) => {
             <Text size={10} color={theme['c-font-label']} numberOfLines={1}>{item.source == 'wy' ? '网易云音乐' : 'QQ音乐'}{sort == 'newest' && item.time ? ` · ${item.time}` : sort == 'hot' && item.play_count ? ` · ${item.play_count}次` : ''}</Text>
           </TouchableOpacity>)}
         </ScrollView></> : null}
-      {result ? <Text size={16} style={{ marginVertical: 10 }}>歌曲 · {result.songs.length}</Text> : null}
+      {visible ? <Text size={16} style={{ marginVertical: 10 }}>歌曲 · {visible.songs.length}</Text> : null}
     </View>}
-  />
+    />
+  </View>
 })

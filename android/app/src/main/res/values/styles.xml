@@ -8,6 +8,12 @@
         <item name="alertDialogTheme">@style/MusicPlusCompatDialogTheme</item>
     </style>
 
+    <style name="LockScreenTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
     <style name="MusicPlusDialogTheme" parent="android:style/Theme.Material.Dialog.Alert">
         <item name="android:colorAccent">#F3F3F5</item>
         <item name="android:colorBackground">#1D1D22</item>

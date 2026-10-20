@@ -57,11 +57,39 @@ test('old saved settings gain immersive defaults without changing existing prefe
   assert.equal(setting['player.lyricFontFamily'], 'system')
   assert.equal(setting['player.backgroundMotion'], true)
   assert.equal(setting['player.respectReducedMotion'], true)
+  assert.equal(setting['player.lockScreenWallpaper.path'], '')
+  assert.equal(setting['player.lockScreenWallpaper.kind'], 'none')
   assert.equal(setting['player.volume'], 0.3)
   assert.equal(setting['player.isShowLyricTranslation'], true)
   assert.equal(setting['common.apiSource'], 'user-choice')
   assert.equal(setting.version, '2.0')
   assert.deepEqual(f.values.get('@setting_v1'), setting)
+})
+
+test('lock screen wallpaper survives reload independently and clearing retains app wallpaper', async() => {
+  const f = settingsFixture({
+    'theme.wallpaper.path': '/private/wallpapers/app/background.jpg',
+    'theme.wallpaper.name': 'background.jpg',
+    'theme.wallpaper.kind': 'image',
+    'theme.wallpaper.scope': 'pages',
+  })
+  f.state.setting = (await f.settings.initSetting()).setting
+  const { setting } = f.settings.updateSetting({
+    'player.lockScreenWallpaper.path': '/private/wallpapers/lock/background.mp4',
+    'player.lockScreenWallpaper.name': 'background.mp4',
+    'player.lockScreenWallpaper.kind': 'video',
+  })
+  const restored = settingsFixture(structuredClone(setting))
+  restored.state.setting = (await restored.settings.initSetting()).setting
+  assert.equal(restored.state.setting['player.lockScreenWallpaper.path'], '/private/wallpapers/lock/background.mp4')
+  assert.equal(restored.state.setting['player.lockScreenWallpaper.kind'], 'video')
+  const cleared = restored.settings.updateSetting({
+    'player.lockScreenWallpaper.path': '', 'player.lockScreenWallpaper.name': '', 'player.lockScreenWallpaper.kind': 'none',
+  }).setting
+  assert.equal(cleared['theme.wallpaper.path'], '/private/wallpapers/app/background.jpg')
+  assert.equal(cleared['theme.wallpaper.kind'], 'image')
+  assert.equal(cleared['theme.wallpaper.scope'], 'pages')
+  assert.equal(cleared['player.lockScreenWallpaper.path'], '')
 })
 
 test('disabled effects and an explicit particle selection survive the real settings merge and reload', async() => {

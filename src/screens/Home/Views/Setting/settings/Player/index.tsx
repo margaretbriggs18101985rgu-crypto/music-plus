@@ -3,6 +3,7 @@ import { memo } from 'react'
 import Section from '../../components/Section'
 import IsSavePlayTime from './IsSavePlayTime'
 import IsListeningStatsEnabled from './IsListeningStatsEnabled'
+import LockScreenLyrics from './LockScreenLyrics'
 import IsHandleAudioFocus from './IsHandleAudioFocus'
 import IsEnableAudioOffload from './IsEnableAudioOffload'
 import IsAutoCleanPlayedList from './IsAutoCleanPlayedList'
@@ -19,6 +20,7 @@ export default memo(() => {
   return (
     <Section title={t('setting_player')}>
       <IsListeningStatsEnabled />
+      <LockScreenLyrics />
       <IsSavePlayTime />
       <IsAutoCleanPlayedList />
       <IsHandleAudioFocus />

@@ -20,11 +20,11 @@ const removeImportedWallpaper = async(path: string) => {
   await unlink(folder == WALLPAPER_DIR ? path : folder).catch(() => {})
 }
 
-export default memo(() => {
+export default memo(({ lockScreen = false }: { lockScreen?: boolean }) => {
   const t = useI18n()
-  const path = useSettingValue('theme.wallpaper.path')
-  const name = useSettingValue('theme.wallpaper.name')
-  const kind = useSettingValue('theme.wallpaper.kind')
+  const path = useSettingValue(lockScreen ? 'player.lockScreenWallpaper.path' : 'theme.wallpaper.path')
+  const name = useSettingValue(lockScreen ? 'player.lockScreenWallpaper.name' : 'theme.wallpaper.name')
+  const kind = useSettingValue(lockScreen ? 'player.lockScreenWallpaper.kind' : 'theme.wallpaper.kind')
   const scope = useSettingValue('theme.wallpaper.scope')
   const [busy, setBusy] = useState(false)
   const scopeOptions = useMemo<Array<{ id: Scope, label: string }>>(() => [
@@ -32,6 +32,13 @@ export default memo(() => {
     { id: 'player', label: t('setting_wallpaper_scope_player') },
     { id: 'pages', label: t('setting_wallpaper_scope_pages') },
   ], [t])
+
+  const saveWallpaper = useCallback((nextPath: string, nextName: string, nextKind: LX.AppSetting['theme.wallpaper.kind']) => {
+    if (lockScreen) {
+      if (nextKind == 'mpkg') return
+      updateSetting({ 'player.lockScreenWallpaper.path': nextPath, 'player.lockScreenWallpaper.name': nextName, 'player.lockScreenWallpaper.kind': nextKind })
+    } else updateSetting({ 'theme.wallpaper.path': nextPath, 'theme.wallpaper.name': nextName, 'theme.wallpaper.kind': nextKind })
+  }, [lockScreen])
 
   const choose = useCallback(async() => {
     if (busy) return
@@ -48,14 +55,14 @@ export default memo(() => {
         return
       }
       const extension = extname(file.name).toLowerCase()
-      if (!['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'mkv', 'mpkg'].includes(extension)) {
+      if (!['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'mkv', 'mpkg'].includes(extension) || (lockScreen && extension == 'mpkg')) {
         await unlink(importDirectory).catch(() => {})
-        toast(t('setting_wallpaper_unsupported'), 'long')
+        toast(lockScreen ? '锁屏背景支持 JPG、PNG、WebP、GIF 和 MP4、WebM、MKV 视频' : t('setting_wallpaper_unsupported'), 'long')
         return
       }
       const nextKind: LX.AppSetting['theme.wallpaper.kind'] = extension == 'mpkg' ? 'mpkg' : ['mp4', 'webm', 'mkv'].includes(extension) ? 'video' : extension == 'gif' ? 'gif' : 'image'
       const previousPath = path
-      updateSetting({ 'theme.wallpaper.path': file.data, 'theme.wallpaper.name': file.name, 'theme.wallpaper.kind': nextKind })
+      saveWallpaper(file.data, file.name, nextKind)
       if (previousPath != file.data) void removeImportedWallpaper(previousPath)
       if (nextKind == 'mpkg') {
         await tipDialog({ title: t('setting_wallpaper_mpkg_title'), message: t('setting_wallpaper_mpkg_message'), btnText: t('dialog_confirm'), bgClose: false })
@@ -64,22 +71,22 @@ export default memo(() => {
       await unlink(importDirectory).catch(() => {})
       toast(error instanceof Error ? error.message : t('setting_wallpaper_import_failed'), 'long')
     } finally { setBusy(false) }
-  }, [busy, path, t])
+  }, [busy, path, t, lockScreen, saveWallpaper])
 
   const clear = useCallback(() => {
     void removeImportedWallpaper(path)
-    updateSetting({ 'theme.wallpaper.path': '', 'theme.wallpaper.name': '', 'theme.wallpaper.kind': 'none' })
-  }, [path])
+    saveWallpaper('', '', 'none')
+  }, [path, saveWallpaper])
 
   return (
-    <SubTitle title={t('setting_wallpaper_title')}>
-      <Text size={12} color="#888" style={styles.help}>{t('setting_wallpaper_help')}</Text>
+    <SubTitle title={lockScreen ? '锁屏自定义背景' : t('setting_wallpaper_title')}>
+      <Text size={12} color="#888" style={styles.help}>{lockScreen ? '仅用于锁屏黑胶，支持图片、GIF 和静音视频。未设置时显示黑色星空，星空参数跟随播放器设置。' : t('setting_wallpaper_help')}</Text>
       <View style={styles.actions}>
         <Button style={styles.button} onPress={() => { void choose() }} disabled={busy}>
           <Text size={13}>{busy ? t('setting_wallpaper_importing') : t('setting_wallpaper_choose')}</Text>
         </Button>
         {path ? <Button style={styles.button} onPress={clear}>
-          <Text size={13}>{t('setting_wallpaper_clear')}</Text>
+          <Text size={13}>{lockScreen ? '恢复黑色星空' : t('setting_wallpaper_clear')}</Text>
         </Button> : null}
       </View>
       {name ? <Text size={12} numberOfLines={1} ellipsizeMode="middle">{name} ({kind})</Text> : null}
@@ -91,12 +98,12 @@ export default memo(() => {
       }}>
         <Text size={13}>{t('setting_wallpaper_open_external')}</Text>
       </Button> : null}
-      <View style={styles.scopes}>
+      {!lockScreen ? <View style={styles.scopes}>
         {scopeOptions.map(item => (
           <CheckBox key={item.id} check={scope == item.id} label={item.label}
             onChange={() => { updateSetting({ 'theme.wallpaper.scope': item.id }) }} need />
         ))}
-      </View>
+      </View> : null}
     </SubTitle>
   )
 })

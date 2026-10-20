@@ -55,6 +55,21 @@ class VinylPreviewActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         // Debug harness commands only, for reproducible on-device animation verification.
         val action = intent.getStringExtra("vinyl_action") ?: return
+        if (action == "fixture-lockscreen-arm") {
+            // Test-only input, never an audio validation: arm the real lock lifecycle with labelled state.
+            LockScreenController.setEnabled(this, true)
+            LockScreenController.update(state.value.copy(trackId = "lockscreen-fixture", demo = true,
+                hasTrack = true, isPlaying = true, isStopped = false, activeLyric = 3, position = 18.0,
+                duration = 180.0, lyricFontSize = 24f, lyricMotionEnabled = false, lyricPulseEnabled = false,
+                particleQuality = intent.getStringExtra("particle_quality") ?: state.value.particleQuality,
+                wallpaperPath = intent.getStringExtra("wallpaper_path") ?: "",
+                wallpaperKind = intent.getStringExtra("wallpaper_kind") ?: "none", wallpaperScope = "player",
+                backgroundMotion = false, starPulseEnabled = false,
+                lyrics = listOf("夜色慢慢落下", "让时间慢一点", "沿着星光的方向", "听见风穿过远方",
+                    "每一颗星留在自己的轨道", "让旋律带着我们前行", "把这一刻轻轻收藏")
+                    .mapIndexed { index, text -> VinylLyricLine(index * 5000.0, text) }))
+            return
+        }
         if (action in setOf("snapshot", "toggle", "refresh", "buffer", "stop", "resume", "empty", "lyrics", "ambient-red", "ambient-blue", "ambient-white", "ambient-missing", "ambient-invalid", "ambient-off", "ambient-low", "ambient-high", "ambient-auto",
                 "fixture-single", "fixture-multiple", "fixture-next", "fixture-previous", "fixture-end", "fixture-start", "fixture-reduced",
                 "fixture-font-system", "fixture-font-wenkai", "fixture-font-xiaowei", "fixture-font-huangyou",

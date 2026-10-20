@@ -1,0 +1,111 @@
+{
+  "version": "1.1.8",
+  "version_code": 10,
+  "checks": {
+    "typecheck": "passed",
+    "eslint": "passed",
+    "js_tests": 247,
+    "release_android_tests": 59,
+    "signed_apks": 5,
+    "sha256_verified": true,
+    "signature_matches_public_v1_1_7": true,
+    "package_json_cache_regression": {
+      "package_json_only_change_rebuilt_bundle": true,
+      "first_version": "1.1.8",
+      "probe_version": "1.1.8-cache-probe",
+      "bundle_hash_changed": true
+    }
+  },
+  "local_apks": [
+    {
+      "name": "music-plus-v1.1.8-universal.apk",
+      "bytes": 46412417,
+      "sha256": "e086c8c26ace8bdda8296b3bffff464054ab1e505fc7af61b8f1b92eacee3ee3",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 10,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "bundle_metadata": {
+        "version": "1.1.8",
+        "versionCode": 10,
+        "bundleSha256": "875a4860b11e1fede6b32f54db0a1339b30b454d0c2da25539f9bafdb1bd68b9"
+      },
+      "licenses_and_fonts_present": true
+    },
+    {
+      "name": "music-plus-v1.1.8-arm64-v8a.apk",
+      "bytes": 31141265,
+      "sha256": "5928c1e00cc3d8a1fea8e80adcf1691f9f89d8fd9e509aaada959d14f572e46f",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 10003,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "bundle_metadata": {
+        "version": "1.1.8",
+        "versionCode": 10,
+        "bundleSha256": "875a4860b11e1fede6b32f54db0a1339b30b454d0c2da25539f9bafdb1bd68b9"
+      },
+      "licenses_and_fonts_present": true
+    },
+    {
+      "name": "music-plus-v1.1.8-armeabi-v7a.apk",
+      "bytes": 30108430,
+      "sha256": "b82669030ec2cee49ccab68e40edfb9694f60748126a129ca971ed17368e5c5c",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 10001,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "bundle_metadata": {
+        "version": "1.1.8",
+        "versionCode": 10,
+        "bundleSha256": "875a4860b11e1fede6b32f54db0a1339b30b454d0c2da25539f9bafdb1bd68b9"
+      },
+      "licenses_and_fonts_present": true
+    },
+    {
+      "name": "music-plus-v1.1.8-x86_64.apk",
+      "bytes": 31469444,
+      "sha256": "a020c3f1c6fa0ede732d17168a6cea8147a262b9b7eb90f3ced03267a37f365d",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 10004,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "bundle_metadata": {
+        "version": "1.1.8",
+        "versionCode": 10,
+        "bundleSha256": "875a4860b11e1fede6b32f54db0a1339b30b454d0c2da25539f9bafdb1bd68b9"
+      },
+      "licenses_and_fonts_present": true
+    },
+    {
+      "name": "music-plus-v1.1.8-x86.apk",
+      "bytes": 31589112,
+      "sha256": "e78a6489fdc53b0e5e5c710ff94e8c5426ae8a3386411b90d9d172baced8064c",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 10002,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "bundle_metadata": {
+        "version": "1.1.8",
+        "versionCode": 10,
+        "bundleSha256": "875a4860b11e1fede6b32f54db0a1339b30b454d0c2da25539f9bafdb1bd68b9"
+      },
+      "licenses_and_fonts_present": true
+    }
+  ],
+  "limits": [
+    "Physical-device playback, lock screen synchronization, OEM permissions, Bluetooth latency and long-duration power were not measured during this release."
+  ],
+  "emulator_upgrade_verification": {
+    "device": "API 37 x86_64 read-only emulator; universal signed release APKs",
+    "old_native_version": "1.1.7",
+    "old_reported_version": "1.1.6",
+    "new_native_version": "1.1.8",
+    "new_reported_version": "1.1.8",
+    "installed_with_replace": true,
+    "first_install_time_preserved": "2026-10-20 05:24:47",
+    "changed_setting_preserved": "Show Back to Desktop button",
+    "manual_check": "latest; current 1.1.8, remote 1.1.7 before publication",
+    "evidence_directory": "build/release-v1.1.8"
+  }
+}

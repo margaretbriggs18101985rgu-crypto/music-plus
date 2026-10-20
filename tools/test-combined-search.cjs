@@ -2,6 +2,7 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs')
 const ts = require('typescript')
 const { test } = require('node:test')
+const { ranking } = require('./search-test-utils.cjs')
 function environment() {
   const env = { calls: [], failed: new Set(), details: 0 }
   const module = { exports: {} }
@@ -23,6 +24,7 @@ function environment() {
     if (id === '@/core/music/artist') return { searchArtist: async(text, source) => ({ artist: { source, id: source, name: text } }) }
     if (id === '@/core/music/officialInfo') return { getOfficialSongInfo: async() => { env.details++; return { published: '2026-10-18' } } }
     if (id === '@/utils/musicSdk/wy/musicDetail') return { default: { getList: async() => ({ list: [] }) } }
+    if (id === './ranking') return ranking
     throw new Error(id)
   })
   return { ...env, env, api: module.exports }
@@ -77,4 +79,28 @@ test('missing release dates are fetched once from official metadata and cached',
   await api.enrichSearchDates(input)
   assert.equal(env.details, 1)
   assert.equal(input[0].publishedAt, undefined)
+})
+
+test('search source selection filters songs, artists, playlists, failures and pagination together without discarding loaded data', async() => {
+  const { api } = environment()
+  const result = await api.searchCombined('周杰伦')
+  result.more.wy_songs = false
+  result.more.wy_playlists = false
+  result.failures = ['tx_songs', 'wy_playlists']
+  for (const source of ['tx', 'wy']) {
+    const visible = api.filterCombinedSearch(result, source)
+    assert.equal(visible.songs.length, 20)
+    assert.equal(visible.playlists.length, 12)
+    assert.equal(visible.artists.length, 1)
+    assert.ok(visible.songs.every(item => item.music.source === source))
+    assert.ok(visible.playlists.every(item => item.source === source))
+    assert.equal(visible.artists[0].artist.source, source)
+    assert.ok(visible.failures.every(key => key.startsWith(source + '_')))
+    assert.equal(Object.values(visible.more).some(Boolean), source === 'tx')
+  }
+  assert.equal(api.filterCombinedSearch(result, 'all'), result)
+  assert.equal(result.songs.length, 40)
+  const next = await api.searchCombined('周杰伦', 2, result)
+  assert.equal(api.filterCombinedSearch(next, 'tx').songs.length, 40)
+  assert.equal(api.filterCombinedSearch(next, 'wy').songs.length, 20)
 })

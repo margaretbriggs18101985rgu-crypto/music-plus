@@ -1,4 +1,4 @@
-import { version } from '../../../package.json'
+import { appVersion as version } from '@/config/appInfo'
 
 export interface ProgressInfo {
   total: number

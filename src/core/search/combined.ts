@@ -4,9 +4,11 @@ import { searchArtist, type ArtistSearchResult } from '@/core/music/artist'
 import type { ListInfoItem } from '@/store/songlist/state'
 import { getOfficialSongInfo } from '@/core/music/officialInfo'
 import wyMusicDetail from '@/utils/musicSdk/wy/musicDetail'
+import { rankSearchSongs } from './ranking'
 
 export type SearchSort = 'relevance' | 'hot' | 'newest'
-export interface SearchSong { music: LX.Music.MusicInfoOnline, heat?: number, publishedAt?: number }
+export type SearchSource = 'all' | 'tx' | 'wy'
+export interface SearchSong { music: LX.Music.MusicInfoOnline, sourceRank?: number, heat?: number, publishedAt?: number }
 interface RawSearchSong { songmid: string | number, searchMetadata?: { heat?: unknown, publishedAt?: unknown } }
 export interface CombinedSearch {
   songs: SearchSong[]
@@ -18,6 +20,14 @@ export interface CombinedSearch {
   page: number
 }
 const sources = ['wy', 'tx'] as const
+export const filterCombinedSearch = (result: CombinedSearch, source: SearchSource): CombinedSearch => source == 'all' ? result : {
+  ...result,
+  songs: result.songs.filter(item => item.music.source == source),
+  playlists: result.playlists.filter(item => item.source == source),
+  artists: result.artists.filter(item => item.artist.source == source),
+  more: Object.fromEntries(Object.entries(result.more).filter(([key]) => key.startsWith(`${source}_`))),
+  failures: result.failures.filter(key => key.startsWith(`${source}_`)),
+}
 const number = (value: unknown): number | undefined => {
   const result = Number(value)
   return value != null && value !== '' && Number.isFinite(result) && result >= 0 ? result : undefined
@@ -68,8 +78,9 @@ export const searchCombined = async(text: string, page = 1, previous?: CombinedS
             details = new Map((detail.list as RawSearchSong[]).map(item => [String(item.songmid), item]))
           } catch { /* Keep search results when optional metadata is unavailable. */ }
         }
-        const songs = rawSongs.map(item => ({
+        const songs = rawSongs.map((item, index) => ({
           music: toNewMusicInfo(item) as LX.Music.MusicInfoOnline,
+          sourceRank: (sourcePage - 1) * limit + index,
           heat: number(item.searchMetadata?.heat ?? details.get(String(item.songmid))?.searchMetadata?.heat),
           publishedAt: searchTimestamp(item.searchMetadata?.publishedAt ?? details.get(String(item.songmid))?.searchMetadata?.publishedAt),
         }))
@@ -142,5 +153,8 @@ export const sortSearchItems = <T>(items: T[], sort: SearchSort, keyword: string
     return relevance(b.text, keyword) - relevance(a.text, keyword) || a.index - b.index
   }).map(entry => entry.item)
 }
-export const sortedSongs = (items: SearchSong[], sort: SearchSort, text: string) => sortSearchItems(items, sort, text, item => ({ source: item.music.source, text: `${item.music.name} ${item.music.singer}`, heat: item.heat, publishedAt: item.publishedAt }))
+export const sortedSongs = (items: SearchSong[], sort: SearchSort, text: string, artists: ArtistSearchResult[] = []) => {
+  const ranked = rankSearchSongs(items, text, artists)
+  return sort == 'relevance' ? ranked : sortSearchItems(ranked, sort, text, item => ({ source: item.music.source, text: `${item.music.name} ${item.music.singer}`, heat: item.heat, publishedAt: item.publishedAt }))
+}
 export const sortedPlaylists = (items: ListInfoItem[], sort: SearchSort, text: string) => sortSearchItems(items, sort, text, item => ({ source: item.source, text: item.name, heat: playCount(item.play_count), publishedAt: searchTimestamp(item.time) }))

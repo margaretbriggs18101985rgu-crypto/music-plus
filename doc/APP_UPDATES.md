@@ -18,6 +18,7 @@ MUSIC++ 在首次进入首页、从后台切回前台时检查更新；持续使
 2. GitHub API 暂时无法访问时，回退到 `main/publish/version.json`。必须按 [发布指南](RELEASING.md) 在云端资产验证完成后同步这份文件。
 3. 每次正式发布都要递增 `package.json` 的 `version` 和 `versionCode`，保持应用 ID、签名密钥及现有 APK 架构的 versionCode 编码规则。无需额外的消息推送服务器。
 4. 更新器根据当前安装包的实际 versionCode 选择相同架构；通用包仍更新为通用包。下载后核对同一 Release 的 SHA-256，再在原生层检查包名、签名和更高的 versionCode。
+5. 当前版本由 Android 实际安装包提供，更新弹窗、设置页、版本比较及备份信息共用这一来源；不以可能缓存的 JavaScript `package.json` 版本判断是否已更新。
 
 此功能需要包含这些代码的新 APK 才能生效；不能远程为已经安装的旧 APK 增加前台检查逻辑。此处的提醒是应用内检查，不是应用完全关闭时的系统通知。
 

@@ -1,4 +1,4 @@
-import { version } from '../../package.json'
+import { appVersion as version } from './appInfo'
 import { createAppEventHub } from '@/event/appEvent'
 import { createListEventHub } from '@/event/listEvent'
 import { createDislikeEventHub } from '@/event/dislikeEvent'

@@ -62,6 +62,11 @@ const identity = (music: MatchingMusic) => {
   return { title: compact(base), artists, types, detail, album: compact(album) }
 }
 
+// Search uses the same recording markers as playback matching, without changing
+// the strict rules used when automatically substituting a playable track.
+export const getMusicIdentity = identity
+export const musicVersionPatterns = flags
+
 const duration = (value: unknown): number | null => {
   if (typeof value != 'string' || !/^\d+(?::\d{1,2}){1,2}(?:\.\d+)?$/.test(value.trim())) return null
   const pieces = value.trim().split(':').map(Number)

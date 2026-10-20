@@ -85,6 +85,17 @@ test('a successful latest check does not hide a later new release', async() => {
   assert.equal(env.installs, 0)
 })
 
+test('a restarted installed update is latest when the native version equals the release', async() => {
+  const env = core()
+  env.state.versionInfo.version = '1.1.8'
+  env.remote.version = '1.1.8'
+  await env.api.checkUpdate({ manual: true })
+  assert.equal(env.state.versionInfo.isLatest, true)
+  assert.equal(env.state.versionInfo.version, '1.1.8')
+  assert.equal(env.downloads, 0)
+  assert.equal(env.installs, 0)
+})
+
 test('skip saves only this version, survives restart, and a newer release still prompts', async() => {
   const original = core()
   await original.api.checkUpdate()

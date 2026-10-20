@@ -34,7 +34,11 @@ import com.facebook.react.bridge.WritableNativeArray;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+
+import cn.toside.music.mobile.BuildConfig;
 
 public class UtilsModule extends ReactContextBaseJavaModule {
   private final ReactApplicationContext reactContext;
@@ -53,6 +57,20 @@ public class UtilsModule extends ReactContextBaseJavaModule {
   @Override
   public String getName() {
     return "UtilsModule";
+  }
+
+  @Override
+  public Map<String, Object> getConstants() {
+    Map<String, Object> constants = new HashMap<>();
+    String version = BuildConfig.VERSION_NAME;
+    try {
+      PackageInfo installed = reactContext.getPackageManager().getPackageInfo(reactContext.getPackageName(), 0);
+      if (installed.versionName != null && !installed.versionName.trim().isEmpty()) version = installed.versionName;
+    } catch (PackageManager.NameNotFoundException e) {
+      Log.w("Utils", "Unable to read installed version; using native build version", e);
+    }
+    constants.put("appVersion", version);
+    return constants;
   }
 
   @ReactMethod

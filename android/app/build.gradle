@@ -4,6 +4,8 @@ apply plugin: "com.facebook.react"
 
 import com.android.build.OutputFile
 import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import java.security.MessageDigest
 import org.apache.tools.ant.taskdefs.condition.Os
 
 // Keep normal Metro development available; build a self-contained APK on request.
@@ -108,6 +110,22 @@ def npmPackageJson = getNpmPackageJson()
 def verCode = npmPackageJson["versionCode"]
 def verName = npmPackageJson["version"]
 def applicationName = npmPackageJson["name"]
+
+// RN 0.73's bundle task tracks JS/TS but omits imported JSON. A version-only
+// release must rebuild JS too, instead of shipping the previous version literal.
+tasks.withType(com.facebook.react.tasks.BundleHermesCTask).configureEach {
+    inputs.files(rootProject.file("../package.json"), rootProject.file("../package-lock.json"))
+        .withPropertyName("appPackageMetadata")
+    inputs.files(fileTree(rootProject.file("../src")) { include "**/*.json" })
+        .withPropertyName("appJsonSources")
+    doLast {
+        def bundle = new File(jsBundleDir.get().asFile, bundleAssetName.get())
+        def digest = MessageDigest.getInstance("SHA-256").digest(bundle.bytes).encodeHex().toString()
+        new File(jsBundleDir.get().asFile, "musicplus-build.json").text = JsonOutput.toJson([
+            version: verName, versionCode: verCode, bundleSha256: digest
+        ])
+    }
+}
 
 android {
     ndkVersion rootProject.ext.ndkVersion

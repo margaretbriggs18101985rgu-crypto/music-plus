@@ -112,7 +112,7 @@ async function backupEnvironment() {
   const songs = { default: [song('a')], love: [song('b')], temp: [], remote: [song('c')] }
   env.songs = songs
   env.api = load('src/core/backup.ts', {
-    '../../package.json': { version: '1.1.2' },
+    '@/config/appInfo': { appVersion: '1.1.2' },
     '@/config/constant': constants,
     '@/plugins/storage': storage.api,
     '@/utils/nativeModules/crypto': { hashSHA256: hash },
@@ -145,6 +145,9 @@ test('full backups capture live settings, playlists, edited lyrics, history and 
     'theme.wallpaper.name': 'sample.mp4',
     'theme.wallpaper.kind': 'video',
     'theme.wallpaper.scope': 'player',
+    'player.lockScreenWallpaper.path': '/private/wallpapers/lock/sample.gif',
+    'player.lockScreenWallpaper.name': 'sample.gif',
+    'player.lockScreenWallpaper.kind': 'gif',
   })
   const doc = await env.api.createBackup('full')
   const payload = await env.api.parseBackup(doc)
@@ -154,6 +157,9 @@ test('full backups capture live settings, playlists, edited lyrics, history and 
   assert.equal(data.get('@setting_v1')['theme.wallpaper.name'], '')
   assert.equal(data.get('@setting_v1')['theme.wallpaper.kind'], 'none')
   assert.equal(data.get('@setting_v1')['theme.wallpaper.scope'], 'player')
+  assert.equal(data.get('@setting_v1')['player.lockScreenWallpaper.path'], '')
+  assert.equal(data.get('@setting_v1')['player.lockScreenWallpaper.name'], '')
+  assert.equal(data.get('@setting_v1')['player.lockScreenWallpaper.kind'], 'none')
   assert.deepEqual(data.get('@list__remote'), env.songs.remote)
   assert.deepEqual(data.get('@user_list'), env.lists.userList)
   assert.ok(data.has('@list__temp'))
