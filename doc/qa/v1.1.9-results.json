@@ -1,0 +1,149 @@
+{
+  "version": "1.1.9",
+  "version_code": 11,
+  "source_commit": "fb348ea4a1448ccaeb06bd7db8da954693bb08f3",
+  "checks": {
+    "typecheck": "passed",
+    "eslint": "passed",
+    "js_tests": 247,
+    "release_android_tests": 61,
+    "signed_apks": 5,
+    "sha256_verified": true,
+    "signature_matches_public_v1_1_8": true
+  },
+  "local_apks": [
+    {
+      "name": "music-plus-v1.1.9-universal.apk",
+      "bytes": 46411236,
+      "sha256": "ff68ddf68b9e87120152c09debbd5cb99ca4e092c45d109aa5dfd6549084a236",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 11,
+      "not_debuggable": true,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "bundle_metadata": {
+        "version": "1.1.9",
+        "versionCode": 11,
+        "bundleSha256": "7304aabf74d36ac9125279dce47282b3a73d096c0c644e28a23eb9145dafb956"
+      },
+      "abis": [
+        "arm64-v8a",
+        "armeabi-v7a",
+        "x86",
+        "x86_64"
+      ],
+      "licenses_and_fonts_present": true
+    },
+    {
+      "name": "music-plus-v1.1.9-arm64-v8a.apk",
+      "bytes": 31140082,
+      "sha256": "50dd921a0b2ba71f6608fd465b1ceed6cbda5eb662122b92059ff9e9552da03e",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 11003,
+      "not_debuggable": true,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "bundle_metadata": {
+        "version": "1.1.9",
+        "versionCode": 11,
+        "bundleSha256": "7304aabf74d36ac9125279dce47282b3a73d096c0c644e28a23eb9145dafb956"
+      },
+      "abis": [
+        "arm64-v8a"
+      ],
+      "licenses_and_fonts_present": true
+    },
+    {
+      "name": "music-plus-v1.1.9-armeabi-v7a.apk",
+      "bytes": 30107243,
+      "sha256": "790a20db14cb8139ab9d977ee1939bcdd099f6bd5996f80cf12df4583d6d427b",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 11001,
+      "not_debuggable": true,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "bundle_metadata": {
+        "version": "1.1.9",
+        "versionCode": 11,
+        "bundleSha256": "7304aabf74d36ac9125279dce47282b3a73d096c0c644e28a23eb9145dafb956"
+      },
+      "abis": [
+        "armeabi-v7a"
+      ],
+      "licenses_and_fonts_present": true
+    },
+    {
+      "name": "music-plus-v1.1.9-x86_64.apk",
+      "bytes": 31468259,
+      "sha256": "fed48ce9407d5b0cd34336497e84dcc92b3a4d78149dd6ba2938feef38ddbd07",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 11004,
+      "not_debuggable": true,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "bundle_metadata": {
+        "version": "1.1.9",
+        "versionCode": 11,
+        "bundleSha256": "7304aabf74d36ac9125279dce47282b3a73d096c0c644e28a23eb9145dafb956"
+      },
+      "abis": [
+        "x86_64"
+      ],
+      "licenses_and_fonts_present": true
+    },
+    {
+      "name": "music-plus-v1.1.9-x86.apk",
+      "bytes": 31587928,
+      "sha256": "ae88f8da739c246ae96ff070f95a0fc9d1da33e002cb4315e941f30f086a70b4",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 11002,
+      "not_debuggable": true,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "bundle_metadata": {
+        "version": "1.1.9",
+        "versionCode": 11,
+        "bundleSha256": "7304aabf74d36ac9125279dce47282b3a73d096c0c644e28a23eb9145dafb956"
+      },
+      "abis": [
+        "x86"
+      ],
+      "licenses_and_fonts_present": true
+    }
+  ],
+  "cloud": {
+    "workflow_id": 39385516810,
+    "conclusion": "success",
+    "workflow_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/actions/runs/39385516810",
+    "release_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/tag/v1.1.9",
+    "release_public": true,
+    "all_api_digests_match_public_manifest": true,
+    "downloaded_arm64": {
+      "name": "music-plus-v1.1.9-arm64-v8a.apk",
+      "bytes": 31139829,
+      "sha256": "50adb5dee37992ab7ed786e4f5268cf5dc49c034e23fe749a24c00dbb8e634c5",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 11003,
+      "not_debuggable": true,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "bundle_metadata": {
+        "version": "1.1.9",
+        "versionCode": 11,
+        "bundleSha256": "776d9969769e03dd1770e64550537d70274cf8db25588d027ff636c9bf07aee7"
+      },
+      "abis": [
+        "arm64-v8a"
+      ],
+      "licenses_and_fonts_present": true
+    }
+  },
+  "online_manifest": {
+    "version": "1.1.9",
+    "verified": true
+  },
+  "limits": [
+    "No connected Android device: lock screen lyric scrolling was not verified on a physical device or emulator during this release.",
+    "OEM lock screen permissions, prolonged background playback, Bluetooth latency and power usage were not measured."
+  ]
+}
