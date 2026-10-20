@@ -124,8 +124,13 @@ private fun SinglePlayerLyrics(state: VinylPlayerState, modifier: Modifier,
 @Composable
 private fun MultiplePlayerLyrics(state: VinylPlayerState, modifier: Modifier, motionEnabled: Boolean,
     pulseEnabled: Boolean, audio: State<AudioMotion>, phase: State<Double>) {
-    val active = state.activeLyric.coerceIn(-1, state.lyrics.lastIndex)
     val position = rememberLyricPlaybackPosition(state)
+    val active by remember(state.trackId, state.lyrics, state.positionDrivenLyrics, state.activeLyric, position) {
+        derivedStateOf {
+            if (state.positionDrivenLyrics) lyricIndexAtPosition(state.lyrics, position.value)
+            else state.activeLyric.coerceIn(-1, state.lyrics.lastIndex)
+        }
+    }
     val camera = remember { Animatable(active.toFloat()) }
     LaunchedEffect(active, motionEnabled, state.seekRevision) {
         // Seek directly to distant lines; adjacent lines keep their velocity on interruption.

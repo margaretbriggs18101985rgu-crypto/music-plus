@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 internal fun LockScreenPlayer(state: VinylPlayerState, clock: VinylRotationClock, onDismiss: () -> Unit) {
     val display = state.copy(lyricsVisible = false, lyricDisplayMode = "multiple", lyricAlign = "center",
-        lyricFontSize = state.lyricFontSize.coerceAtMost(28f))
+        lyricFontSize = state.lyricFontSize.coerceAtMost(28f), positionDrivenLyrics = true)
     val customWallpaper = hasPlayerWallpaper(display)
     val environment = rememberImmersiveEnvironment()
     val policy = resolveAmbientPolicy(visualConfigForState(display), environment, display.hasTrack)

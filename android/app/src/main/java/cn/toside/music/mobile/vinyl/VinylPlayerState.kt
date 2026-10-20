@@ -25,6 +25,7 @@ data class VinylPlayerState(
     val lyricsVisible: Boolean = false,
     val lyrics: List<VinylLyricLine> = emptyList(),
     val activeLyric: Int = -1,
+    val positionDrivenLyrics: Boolean = false,
     val seekRevision: Int = 0,
     val immersiveVisualsEnabled: Boolean = true,
     val reactiveVisuals: ReactiveVisuals = ReactiveVisuals(),

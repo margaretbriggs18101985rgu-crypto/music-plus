@@ -51,6 +51,25 @@ class LyricPlaybackTest {
         assertEquals(0f, lyricHighlightProgress(lines, 0, 20.0, 30.0, -1), 0f)
     }
 
+    @Test fun activeLineFollowsPlayerPositionAndParserOffset() {
+        val lines = listOf(VinylLyricLine(1000.0, "first"), VinylLyricLine(2000.0, "second"),
+            VinylLyricLine(2000.0, "duplicate"), VinylLyricLine(3500.0, "last"))
+        assertEquals(-1, lyricIndexAtPosition(lines, .899))
+        assertEquals(0, lyricIndexAtPosition(lines, .9))
+        assertEquals(2, lyricIndexAtPosition(lines, 1.9))
+        assertEquals(3, lyricIndexAtPosition(lines, 3.4))
+    }
+
+    @Test fun activeLineRejectsInvalidPositionAndSkipsInvalidTimestamp() {
+        val lines = listOf(VinylLyricLine(0.0, "first"), VinylLyricLine(Double.NaN, "invalid"),
+            VinylLyricLine(2000.0, "second"))
+        assertEquals(-1, lyricIndexAtPosition(emptyList(), 2.0))
+        assertEquals(-1, lyricIndexAtPosition(lines, Double.NaN))
+        assertEquals(-1, lyricIndexAtPosition(lines, -1.0))
+        assertEquals(0, lyricIndexAtPosition(lines, .5))
+        assertEquals(2, lyricIndexAtPosition(lines, 2.0))
+    }
+
     @Test fun wordTimingPreservesVocalPausesAndFillsOnlyTheSungCharacters() {
         val lines = listOf(VinylLyricLine(10_000.0, "铁盒的钥匙我找不到", words = listOf(
             VinylLyricWord(0, 2, 10_000.0, 11_000.0), VinylLyricWord(2, 5, 12_000.0, 13_500.0),

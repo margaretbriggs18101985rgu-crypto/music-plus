@@ -1,5 +1,10 @@
 # MUSIC++ change log
 
+## [1.1.9](https://github.com/margaretbriggs18101985rgu-crypto/music-plus/compare/v1.1.8...v1.1.9) - 2026-10-20
+
+- 修复锁屏黑胶歌词不随播放进度滚动的问题：锁屏歌词按播放器实际位置切换当前行并平滑滚动，普通播放页继续使用原有歌词状态。
+- 保留现有应用标识、发布签名、架构编码及用户数据；1.1.8 用户可直接覆盖升级，无需卸载。
+
 ## [1.1.8](https://github.com/margaretbriggs18101985rgu-crypto/music-plus/compare/v1.1.7...v1.1.8) - 2026-10-20
 
 - 修复升级成功后仍显示 1.1.6、反复认为当前版本过旧的问题：版本比较、更新弹窗、当前版本显示、请求和备份信息统一读取 Android 实际安装版本。

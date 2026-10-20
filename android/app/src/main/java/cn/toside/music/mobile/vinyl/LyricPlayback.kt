@@ -10,6 +10,18 @@ internal fun lyricSeekSeconds(timeMs: Double, durationSeconds: Double, hasTrack:
 internal fun lyricSeekAtIndex(lines: List<VinylLyricLine>, index: Int, duration: Double, hasTrack: Boolean): Double? =
     lines.getOrNull(index)?.let { lyricSeekSeconds(it.time, duration, hasTrack) }
 
+/** Resolves the displayed line from player time, matching the lyric parser's 100 ms offset. */
+internal fun lyricIndexAtPosition(lines: List<VinylLyricLine>, positionSeconds: Double): Int {
+    if (lines.isEmpty() || !positionSeconds.isFinite() || positionSeconds < 0) return -1
+    val positionMs = positionSeconds * 1000.0 + 100.0
+    var active = -1
+    for (index in lines.indices) {
+        val time = lines[index].time
+        if (time.isFinite() && time <= positionMs) active = index
+    }
+    return active
+}
+
 /**
  * Returns the fraction of a lyric line highlighted from left to right.
  * LRC timestamps are milliseconds; playback position and duration are seconds.
