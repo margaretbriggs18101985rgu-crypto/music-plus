@@ -107,5 +107,64 @@
     "changed_setting_preserved": "Show Back to Desktop button",
     "manual_check": "latest; current 1.1.8, remote 1.1.7 before publication",
     "evidence_directory": "build/release-v1.1.8"
+  },
+  "public_release_verification": {
+    "url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/tag/v1.1.8",
+    "source_commit": "e03f58b1fdeaf8e5b2aae613fb1c05322a4dd88e",
+    "workflow_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/actions/runs/39375011504",
+    "cloud_ci": "success",
+    "assets": [
+      {
+        "name": "music-plus-v1.1.8-arm64-v8a.apk",
+        "size": 31137965,
+        "digest": "sha256:6f169088cc3188c07bae2a7776378062d894cc59162a22faa9cff0d9874f1617",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.8/music-plus-v1.1.8-arm64-v8a.apk"
+      },
+      {
+        "name": "music-plus-v1.1.8-armeabi-v7a.apk",
+        "size": 30105148,
+        "digest": "sha256:4bc66ee0b40a6f16a99363777a7621c87a03affea2925e98a8588d1354c66c3a",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.8/music-plus-v1.1.8-armeabi-v7a.apk"
+      },
+      {
+        "name": "music-plus-v1.1.8-universal.apk",
+        "size": 46409123,
+        "digest": "sha256:be3b4055ea263fb9047dc8c9b0422a179767a0caca3451a945903a40f288be62",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.8/music-plus-v1.1.8-universal.apk"
+      },
+      {
+        "name": "music-plus-v1.1.8-x86.apk",
+        "size": 31585814,
+        "digest": "sha256:6088038962255340aad1dfe9338efd1dd68ac308824fcc1ce5ce96bcb71ac6d9",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.8/music-plus-v1.1.8-x86.apk"
+      },
+      {
+        "name": "music-plus-v1.1.8-x86_64.apk",
+        "size": 31466161,
+        "digest": "sha256:1946c33c7da9a5363c79ba70951c2eec1685c9c3464f7cde64107084aa33273f",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.8/music-plus-v1.1.8-x86_64.apk"
+      },
+      {
+        "name": "SHA256SUMS.txt",
+        "size": 483,
+        "digest": "sha256:3d74c076743e08467e29355eecf2ac79a83fb3328f471084c0e068e98bc6d9ac",
+        "browser_download_url": "https://github.com/margaretbriggs18101985rgu-crypto/music-plus/releases/download/v1.1.8/SHA256SUMS.txt"
+      }
+    ],
+    "downloaded_universal": {
+      "name": "music-plus-v1.1.8-universal.apk",
+      "bytes": 46409123,
+      "sha256": "be3b4055ea263fb9047dc8c9b0422a179767a0caca3451a945903a40f288be62",
+      "certificate_sha256": "f947322e521be51048052578a33143e3f52deec300644f46dec941b2f3965936",
+      "version_code": 10,
+      "zip_aligned": true,
+      "hermes_bundle": true,
+      "bundle_metadata": {
+        "version": "1.1.8",
+        "versionCode": 10,
+        "bundleSha256": "6859a3c3f772b3b4bba36ac035d85fe2a1843a82a4cfce1e1c5de0b0f6f837b9"
+      },
+      "licenses_and_fonts_present": true
+    }
   }
 }
