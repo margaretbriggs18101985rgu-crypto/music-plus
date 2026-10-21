@@ -602,6 +602,7 @@
   "ui_recommend_reason_style": "Similar style",
   "ui_recommend_loading": "Finding songs for you",
   "ui_recommend_error": "Song recommendations are unavailable",
+  "ui_recommend_play_error": "Unable to play recommended songs. Try again later.",
   "ui_recommend_empty": "No matching songs yet",
   "ui_recommend_start_listening": "Listen to a few songs to get personalized picks",
   "ui_recent_play_count": "Played {count} times",

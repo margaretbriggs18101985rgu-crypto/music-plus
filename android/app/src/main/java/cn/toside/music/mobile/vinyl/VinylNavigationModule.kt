@@ -1,6 +1,7 @@
 package cn.toside.music.mobile.vinyl
 
 import android.content.Context
+import android.app.Activity
 import android.content.Intent
 import cn.toside.music.mobile.MainActivity
 import cn.toside.music.mobile.MainApplication
@@ -17,14 +18,16 @@ object VinylNavigation {
     fun takeRoute(): String? = pendingRoute.getAndSet(null)
 
     fun open(context: Context, route: String) {
-        if (route !in setOf("home", "nav_search", "nav_love", "nav_setting")) return
+        if (route !in setOf("home", "nav_search", "nav_songlist", "nav_report", "nav_love", "nav_love_recent", "nav_setting")) return
         pendingRoute.set(route)
         val host = (context.applicationContext as MainApplication).reactNativeHost
         if (host.hasInstance()) host.reactInstanceManager.currentReactContext
             ?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
             ?.emit("LXVinylNavigate", null)
-        context.startActivity(Intent(context, MainActivity::class.java).addFlags(
-            Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
+        val intent = Intent(context, MainActivity::class.java).addFlags(
+            Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        if (context !is Activity) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
     }
 }
 

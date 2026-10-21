@@ -9,11 +9,12 @@ import { useI18n } from '@/lang'
 import { setNavActiveId } from '@/core/common'
 import { getListMusics } from '@/core/list'
 import { playLibraryMusic, getRecentTracks, LIBRARY_EVENT, type RecentTrack } from '@/core/music/library'
-import { buildListeningProfile, getRecommendedSongs, getRecommendedPlaylists, getRecommendationSource, getRecommendationProfileKey, getTopLanguage } from '@/core/music/recommendation'
+import { buildListeningProfile, getRecommendedSongs, getRecommendedPlaylists, getRecommendationSource, getRecommendationProfileKey, getTopLanguage, MAX_RECOMMENDED_SONGS } from '@/core/music/recommendation'
 import { playList, togglePlay } from '@/core/player/player'
+import { playRecommendedSongs as startRecommendedSongs } from '@/core/music/recommendationPlayback'
 import { usePlayerMusicInfo } from '@/store/player/hook'
 import { usePlaybackState } from '@/plugins/player/hook'
-import { createStyle } from '@/utils/tools'
+import { createStyle, toast } from '@/utils/tools'
 import { getDesignTokens } from '@/theme/design'
 import { LIST_IDS } from '@/config/constant'
 import { type ListInfoItem } from '@/store/songlist/state'
@@ -36,6 +37,9 @@ export default ({ refreshKey, onRefreshComplete }: ListeningHomeProps) => {
   const [songs, setSongs] = useState<LX.Music.MusicInfo[]>([])
   const [recent, setRecent] = useState<RecentTrack[]>([])
   const [recommendations, setRecommendations] = useState<LX.Music.MusicInfo[]>([])
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([])
+  const [favoritesLoaded, setFavoritesLoaded] = useState(false)
+  const [playingAll, setPlayingAll] = useState(false)
   const [recommendationStatus, setRecommendationStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const recommendationSource = getRecommendationSource(recent)
   const listId = LIST_IDS.LOVE
@@ -51,13 +55,12 @@ export default ({ refreshKey, onRefreshComplete }: ListeningHomeProps) => {
   const languageId = getTopLanguage(profile)
   const languageLabel = languageId == 'zh' ? t('ui_recommend_language_zh') : languageId == 'yue' ? t('ui_recommend_language_yue') : languageId == 'en' ? t('ui_recommend_language_en') : languageId == 'ja' ? t('ui_recommend_language_ja') : languageId == 'ko' ? t('ui_recommend_language_ko') : ''
   const recentRef = useRef(recent)
-  const songsRef = useRef(songs)
+  const playAllPendingRef = useRef(false)
   const recommendationHistoryRef = useRef(new Set<string>())
   const playlistHistoryRef = useRef(new Set<string>())
   recentRef.current = recent
-  songsRef.current = songs
   const recommendationKey = getRecommendationProfileKey(recent)
-  const favoriteKey = songs.map(song => song.id).join('|')
+  const favoriteKey = favoriteIds.join('|')
   const completeRefresh = useCallback((part: 'catalog' | 'songs') => {
     if (refreshKey > 0) onRefreshComplete(refreshKey, part)
   }, [refreshKey, onRefreshComplete])
@@ -96,8 +99,9 @@ export default ({ refreshKey, onRefreshComplete }: ListeningHomeProps) => {
   useEffect(() => {
     let active = true
     setRecommendationStatus('loading')
+    if (!favoritesLoaded) return () => { active = false }
     const previouslyShownIds = [...recommendationHistoryRef.current]
-    const savedIds = songsRef.current.map(song => song.id)
+    const savedIds = favoriteIds
     const page = refreshKey ? refreshKey % 5 + 1 : 1
     void (async() => {
       let items = await getRecommendedSongs(recentRef.current, recommendationSource, [...savedIds, ...previouslyShownIds], page)
@@ -108,19 +112,26 @@ export default ({ refreshKey, onRefreshComplete }: ListeningHomeProps) => {
       if (!active) return
       const nextRecommendations = items.map(item => item.music)
       for (const music of nextRecommendations) recommendationHistoryRef.current.add(music.id)
-      setRecommendations(nextRecommendations)
+      setRecommendations(nextRecommendations.slice(0, MAX_RECOMMENDED_SONGS))
       setRecommendationStatus('ready')
     })().catch(() => { if (active) setRecommendationStatus('error') }).finally(() => { if (active) completeRefresh('songs') })
     return () => { active = false }
-  }, [recommendationKey, favoriteKey, recommendationSource, refreshKey, completeRefresh])
+  }, [recommendationKey, favoriteKey, favoriteIds, favoritesLoaded, recommendationSource, refreshKey, completeRefresh])
 
   useEffect(() => {
     let active = true
     const load = () => {
       void getListMusics(LIST_IDS.LOVE).then(favorites => {
         if (!active) return
+        setFavoriteIds(favorites.map(song => song.id))
         setSongs([...favorites].slice(0, 6))
-      }).catch(() => { if (active) setSongs([]) })
+        setFavoritesLoaded(true)
+      }).catch(() => {
+        if (!active) return
+        setSongs([])
+        setFavoriteIds([])
+        setFavoritesLoaded(true)
+      })
     }
     const update = (ids: string[]) => { if (ids.includes(LIST_IDS.LOVE) || ids.includes(LIST_IDS.DEFAULT)) load() }
     load()
@@ -135,10 +146,29 @@ export default ({ refreshKey, onRefreshComplete }: ListeningHomeProps) => {
     if (current.id == song.id) togglePlay()
     else void playList(listId, index)
   }
+  const playRecommendedSongs = useCallback(async() => {
+    if (!recommendations.length || playAllPendingRef.current) return
+    playAllPendingRef.current = true
+    setPlayingAll(true)
+    try {
+      await startRecommendedSongs(recommendations)
+    } catch {
+      toast(t('ui_recommend_play_error'))
+    } finally {
+      playAllPendingRef.current = false
+      setPlayingAll(false)
+    }
+  }, [recommendations, t])
   return (
     <View style={styles.container}>
       <View style={styles.sectionHead}>
         <Text size={19} style={styles.heading}>{languageLabel ? t('ui_recommend_songs_language', { language: languageLabel }) : t('ui_recommend_songs')}</Text>
+        <TouchableOpacity style={[styles.playAll, !recommendations.length || playingAll ? styles.playAllDisabled : null]} accessibilityRole="button"
+          accessibilityLabel={t('play_all')} accessibilityState={{ disabled: !recommendations.length || playingAll, busy: playingAll }}
+          disabled={!recommendations.length || playingAll} onPress={() => { void playRecommendedSongs() }}>
+          <Icon name="play" size={13} color={colors.text} />
+          <Text size={12} color={colors.text}>{t('play_all')}</Text>
+        </TouchableOpacity>
       </View>
       {songPages.length ? (
         <ScrollView
@@ -228,6 +258,8 @@ const styles = createStyle({
   container: { paddingTop: 12, paddingBottom: 24 },
   sectionHead: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   heading: { fontWeight: '500', flexShrink: 1 },
+  playAll: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8 },
+  playAllDisabled: { opacity: 0.45 },
   more: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 6 },
   rail: { marginHorizontal: -18, marginTop: 8 },
   railContent: { paddingHorizontal: 18, gap: 12 },

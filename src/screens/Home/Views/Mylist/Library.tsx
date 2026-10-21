@@ -12,6 +12,7 @@ import { downloader, getDownloadJobs, getRecentTracks, LIBRARY_EVENT, OPEN_LIBRA
 import MyPlaylists from '../SongList/MyPlaylists'
 import MusicBrowser from './MusicBrowser'
 import SceneTransition from '@/components/common/SceneTransition'
+import { consumeLibraryRoute, LIBRARY_ROUTE_EVENT } from './libraryRoute'
 
 type Page = 'home' | 'playlist' | 'recent' | 'downloads'
 interface DownloadItem { job: DownloadJob, state?: DownloadStatus, error?: string }
@@ -26,6 +27,15 @@ export default () => {
   const [error, setError] = useState('')
   useEffect(() => {
     const listener = DeviceEventEmitter.addListener(OPEN_LIBRARY, (id: string) => { setActiveList(id); setPage('playlist') })
+    return () => { listener.remove() }
+  }, [])
+  useEffect(() => {
+    const openRequestedPage = () => {
+      const route = consumeLibraryRoute()
+      if (route == 'recent') setPage('recent')
+    }
+    const listener = DeviceEventEmitter.addListener(LIBRARY_ROUTE_EVENT, openRequestedPage)
+    openRequestedPage()
     return () => { listener.remove() }
   }, [])
   useEffect(() => {

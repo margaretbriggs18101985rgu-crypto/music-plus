@@ -602,6 +602,7 @@
   "ui_recommend_reason_style": "曲风相近",
   "ui_recommend_loading": "正在匹配歌曲",
   "ui_recommend_error": "歌曲推荐暂时无法加载",
+  "ui_recommend_play_error": "推荐歌曲播放失败，请稍后重试",
   "ui_recommend_empty": "暂时没有匹配的歌曲",
   "ui_recommend_start_listening": "听过几首歌后，这里会出现个性化推荐",
   "ui_recent_play_count": "播放 {count} 次",

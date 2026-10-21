@@ -24,6 +24,15 @@
       <receiver android:name=".vinyl.MusicDownloadReceiver" android:exported="true">
         <intent-filter><action android:name="android.intent.action.DOWNLOAD_COMPLETE" /></intent-filter>
       </receiver>
+      <receiver android:name=".vinyl.CompactMusicWidgetProvider" android:exported="true" android:label="@string/music_widget_compact_name">
+        <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+        <meta-data android:name="android.appwidget.provider" android:resource="@xml/music_widget_compact_info" />
+      </receiver>
+      <receiver android:name=".vinyl.FeatureMusicWidgetProvider" android:exported="true" android:label="@string/music_widget_feature_name">
+        <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+        <meta-data android:name="android.appwidget.provider" android:resource="@xml/music_widget_feature_info" />
+      </receiver>
+      <receiver android:name=".vinyl.WidgetNavigationReceiver" android:exported="false" />
       <activity
         android:name=".vinyl.LockScreenActivity"
         android:exported="false"

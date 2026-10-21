@@ -6,6 +6,7 @@ import { AppState, DeviceEventEmitter, NativeModules } from 'react-native'
 import { setNavActiveId } from '@/core/common'
 import commonState from '@/store/common/state'
 import { pop } from '@/navigation'
+import { requestLibraryRoute } from '../Views/Mylist/libraryRoute'
 
 interface VinylNavigationBridge { consumeRoute: () => Promise<string | null> }
 
@@ -16,7 +17,12 @@ export default () => {
     const consume = () => {
       void bridge?.consumeRoute().then(route => {
         if (!mounted || !route) return
-        if (route == 'nav_search' || route == 'nav_report' || route == 'nav_love' || route == 'nav_setting') setNavActiveId(route)
+        if (route == 'nav_love_recent') {
+          requestLibraryRoute('recent')
+          setNavActiveId('nav_love')
+        } else if (route == 'nav_search' || route == 'nav_songlist' || route == 'nav_report' || route == 'nav_love' || route == 'nav_setting') {
+          setNavActiveId(route)
+        }
         const detailId = commonState.componentIds.playDetail
         if (detailId) void pop(detailId)
       })

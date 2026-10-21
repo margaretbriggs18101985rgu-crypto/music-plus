@@ -602,6 +602,7 @@
   "ui_recommend_reason_style": "曲風相近",
   "ui_recommend_loading": "正在配對歌曲",
   "ui_recommend_error": "歌曲推薦暫時無法載入",
+  "ui_recommend_play_error": "推薦歌曲播放失敗，請稍後重試",
   "ui_recommend_empty": "暫時沒有符合的歌曲",
   "ui_recommend_start_listening": "聽過幾首歌後，這裡會出現個人化推薦",
   "ui_recent_play_count": "播放 {count} 次",

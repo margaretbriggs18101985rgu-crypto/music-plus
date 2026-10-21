@@ -1,0 +1,10 @@
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/music_widget_feature_description"
+    android:initialLayout="@layout/widget_music_feature"
+    android:label="@string/music_widget_feature_name"
+    android:minWidth="320dp"
+    android:minHeight="150dp"
+    android:previewLayout="@layout/widget_music_feature"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

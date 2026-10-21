@@ -148,6 +148,32 @@ test('ranking limits repeated artists and albums while keeping eligible alternat
   assert.ok(result.filter(item => item.music.meta.albumName === '同一专辑').length <= 2)
 })
 
+test('ranking returns up to twenty diverse songs when enough candidates are available', () => {
+  const profile = recommendation.buildListeningProfile([])
+  const candidates = Array.from({ length: 24 }, (_, index) => music(`candidate-${index}`, `Song ${index}`, `Artist ${index}`, `Album ${index}`, '04:00'))
+  const result = recommendation.rankRecommendedTracks(candidates, profile)
+  assert.equal(result.length, 20)
+  assert.equal(new Set(result.map(item => item.music.id)).size, 20)
+})
+
+test('ranking stops when every remaining candidate exceeds the artist diversity limit', () => {
+  const profile = recommendation.buildListeningProfile([])
+  const candidates = Array.from({ length: 24 }, (_, index) => music(`candidate-${index}`, `Song ${index}`, 'Same Artist', `Album ${index}`, '04:00'))
+  const result = recommendation.rankRecommendedTracks(candidates, profile)
+  assert.equal(result.length, 2)
+})
+
+test('ranking applies artist diversity limits to every credited artist', () => {
+  const profile = recommendation.buildListeningProfile([{ music: music('seed', '再見', '常听歌手', '华语摇滚', '04:20'), playedAt: Date.now(), playCount: 3, listenedSeconds: 500 }])
+  const candidates = [
+    music('ab-1', '合作 1', '甲、乙', '专辑 1', '04:00'),
+    music('ab-2', '合作 2', '甲、乙', '专辑 2', '04:00'),
+    music('bc-1', '合作 3', '乙、丙', '专辑 3', '04:00'),
+  ]
+  const result = recommendation.rankRecommendedTracks(candidates, profile)
+  assert.ok(result.filter(item => item.music.singer.includes('乙')).length <= 2)
+})
+
 test('ranking reserves an exploration slot after strong personalized matches', () => {
   const profile = recommendation.buildListeningProfile([{ music: music('seed', '再見', '常聽歌手', '华语摇滚', '04:20'), playedAt: Date.now(), playCount: 3, listenedSeconds: 500 }])
   const candidates = [
@@ -159,6 +185,20 @@ test('ranking reserves an exploration slot after strong personalized matches', (
   ]
   const result = recommendation.rankRecommendedTracks(candidates, profile, new Set(['explore']))
   assert.equal(result[4].music.id, 'explore')
+})
+
+test('hybrid ranking uses multi-channel recall evidence and content similarity', () => {
+  const profile = recommendation.buildListeningProfile([{ music: music('seed', '夜行摇滚', '常听歌手', '华语摇滚', '04:20'), playedAt: Date.now(), playCount: 3, listenedSeconds: 500 }])
+  const artistOnly = music('artist-only', '蓝色爵士', '常听歌手', '爵士现场', '04:20')
+  const contentMatch = music('content-match', '新的摇滚旅程', '陌生歌手', '华语摇滚精选', '04:20')
+  const contexts = new Map([
+    ['artist-only', { hits: 1, bestRank: 0, channels: new Set(['artist']) }],
+    ['content-match', { hits: 3, bestRank: 1, channels: new Set(['style', 'item-to-item', 'album']) }],
+  ])
+  const result = recommendation.rankRecommendedTracks([artistOnly, contentMatch], profile, new Set(), contexts)
+  assert.equal(result[0].music.id, 'content-match')
+  assert.ok(profile.seedTracks.length === 1)
+  assert.ok(profile.tokens.length > 0)
 })
 
 test('clicks and many short previews never become taste or seed queries', async() => {
@@ -208,4 +248,31 @@ test('playlist candidates use the same engaged profile and independent two-platf
   assert.ok(!result.some(item => item.source == 'wy' && item.id == 'match'))
   assert.equal(result[0].id, 'match')
   assert.ok(!fs.readFileSync('src/screens/Home/Views/Search/BlankView/ListeningHome.tsx', 'utf8').includes('getSongListSetting'))
+})
+
+test('playlist recall reserves style, album and recent-track queries alongside artist recall', async() => {
+  const queries = []
+  for (const source of ['wy', 'tx']) {
+    sdk[source] = {
+      songList: {
+        search: async function(query) {
+          queries.push({ source, query })
+          return { list: [] }
+        },
+      },
+    }
+  }
+  const recent = Array.from({ length: 4 }, (_, index) => ({
+    music: music(`seed-${index}`, `摇滚歌曲${index}`, `歌手${index}`, `摇滚专辑${index}`, '04:20'),
+    playedAt: Date.now() - index * 60_000,
+    playCount: 3,
+    listenedSeconds: 500,
+  }))
+  await recommendation.getRecommendedPlaylists(recent)
+  const selectedQueries = new Set(queries.map(item => item.query))
+  assert.ok(selectedQueries.has('摇滚 华语'))
+  assert.ok(selectedQueries.has('摇滚专辑0'))
+  assert.ok(selectedQueries.has('摇滚歌曲0 歌手0'))
+  assert.ok(selectedQueries.has('歌手0'))
+  assert.ok(!selectedQueries.has('歌手1'))
 })

@@ -1,3 +1,7 @@
 <resources>
+    <string name="music_widget_compact_name">迷你播放器</string>
+    <string name="music_widget_compact_description">显示当前歌曲并控制播放</string>
+    <string name="music_widget_feature_name">播放器与快捷入口</string>
+    <string name="music_widget_feature_description">播放控制、收藏、最近播放、推荐与听歌报告</string>
     <string name="app_name">MUSIC++</string>
 </resources>

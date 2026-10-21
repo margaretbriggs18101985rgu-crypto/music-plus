@@ -11,6 +11,7 @@ const native = NativeModules.LockScreenLyrics as {
   setEnabled: (enabled: boolean) => void
   updatePlayer: (state: object) => void
 }
+const homeWidget = NativeModules.MusicHomeWidget as { updatePlayer: (state: object) => void } | undefined
 
 /** Process-level subscription: works from Home and while the player screen is unmounted. */
 export default () => {
@@ -23,11 +24,10 @@ export default () => {
   let playbackRevision = 0
 
   const update = () => {
-    if (!enabled) return
     const s = settingState.setting
     const music = playerState.musicInfo
     const hasTrack = !!playerState.playMusicInfo.musicInfo
-    native.updatePlayer({
+    const widgetState = {
       trackId: music.id ?? '',
       title: music.name,
       artist: music.singer,
@@ -35,9 +35,15 @@ export default () => {
       artworkUserAgent: defaultHeaders['User-Agent'],
       hasTrack,
       isPlaying: hasTrack && playback == State.Playing,
-      isStopped: !hasTrack || playback == State.Stopped || playback == State.None,
       position: playerState.progress.nowPlayTime,
       duration: playerState.progress.maxPlayTime,
+      seekRevision,
+    }
+    homeWidget?.updatePlayer(widgetState)
+    if (!enabled) return
+    native.updatePlayer({
+      ...widgetState,
+      isStopped: !hasTrack || playback == State.Stopped || playback == State.None,
       playbackRate: s['player.playbackRate'],
       status: playerState.statusText,
       lyrics,
