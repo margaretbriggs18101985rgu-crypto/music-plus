@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -35,6 +36,10 @@ internal data class MusicWidgetState(
     val artist: String = "",
     val artwork: String = "",
     val artworkUserAgent: String = "",
+    val favoritesArtwork: String = "",
+    val recentArtwork: String = "",
+    val recommendationArtwork: String = "",
+    val reportArtwork: String = "",
     val hasTrack: Boolean = false,
     val isPlaying: Boolean = false,
     val position: Double = 0.0,
@@ -43,6 +48,18 @@ internal data class MusicWidgetState(
 ) {
     fun progress() = if (duration > 0.0) (position / duration).coerceIn(0.0, 1.0) else 0.0
 }
+
+private data class WidgetShortcutView(
+    val viewId: Int,
+    val artworkViewId: Int,
+    val scrimViewId: Int,
+    val iconViewId: Int,
+    val labelViewId: Int,
+    val artwork: String,
+    val route: String,
+    val label: String,
+    val fallbackColor: Int,
+)
 
 internal object HomeWidgetController {
     private const val PREFS = "music_home_widget_state"
@@ -56,6 +73,36 @@ internal object HomeWidgetController {
         val previous = renderedState ?: readState(appContext)
         latestState = state
         if (previous != null && !requiresRender(previous, state)) return
+        renderedState = state
+        writeState(appContext, state)
+        updateAll(appContext)
+    }
+
+    @Synchronized
+    fun updatePlayer(context: Context, state: MusicWidgetState) {
+        val appContext = context.applicationContext
+        val previous = latestState ?: readState(appContext) ?: MusicWidgetState()
+        update(appContext, state.copy(
+            favoritesArtwork = previous.favoritesArtwork,
+            recentArtwork = previous.recentArtwork,
+            recommendationArtwork = previous.recommendationArtwork,
+            reportArtwork = previous.reportArtwork,
+        ))
+    }
+
+    @Synchronized
+    fun updateShortcutArtworks(context: Context, artworks: Map<String, String>, userAgent: String?) {
+        val appContext = context.applicationContext
+        val previous = latestState ?: readState(appContext) ?: MusicWidgetState()
+        val state = previous.copy(
+            artworkUserAgent = userAgent ?: previous.artworkUserAgent,
+            favoritesArtwork = artworks["favorites"] ?: previous.favoritesArtwork,
+            recentArtwork = artworks["recent"] ?: previous.recentArtwork,
+            recommendationArtwork = artworks["recommendation"] ?: previous.recommendationArtwork,
+            reportArtwork = artworks["report"] ?: previous.reportArtwork,
+        )
+        if (state == previous) return
+        latestState = state
         renderedState = state
         writeState(appContext, state)
         updateAll(appContext)
@@ -83,6 +130,9 @@ internal object HomeWidgetController {
     private fun requiresRender(previous: MusicWidgetState, next: MusicWidgetState): Boolean =
         previous.trackId != next.trackId || previous.title != next.title || previous.artist != next.artist ||
             previous.artwork != next.artwork || previous.hasTrack != next.hasTrack || previous.isPlaying != next.isPlaying ||
+            previous.favoritesArtwork != next.favoritesArtwork || previous.recentArtwork != next.recentArtwork ||
+            previous.recommendationArtwork != next.recommendationArtwork || previous.reportArtwork != next.reportArtwork ||
+            previous.artworkUserAgent != next.artworkUserAgent ||
             previous.seekRevision != next.seekRevision || abs(previous.position - next.position) >= PROGRESS_REFRESH_SECONDS ||
             previous.duration != next.duration
 
@@ -93,6 +143,10 @@ internal object HomeWidgetController {
             .putString("artist", state.artist)
             .putString("artwork", state.artwork)
             .putString("artworkUserAgent", state.artworkUserAgent)
+            .putString("favoritesArtwork", state.favoritesArtwork)
+            .putString("recentArtwork", state.recentArtwork)
+            .putString("recommendationArtwork", state.recommendationArtwork)
+            .putString("reportArtwork", state.reportArtwork)
             .putBoolean("hasTrack", state.hasTrack)
             .putBoolean("isPlaying", state.isPlaying)
             .putFloat("position", state.position.toFloat())
@@ -110,6 +164,10 @@ internal object HomeWidgetController {
             artist = prefs.getString("artist", "").orEmpty(),
             artwork = prefs.getString("artwork", "").orEmpty(),
             artworkUserAgent = prefs.getString("artworkUserAgent", "").orEmpty(),
+            favoritesArtwork = prefs.getString("favoritesArtwork", "").orEmpty(),
+            recentArtwork = prefs.getString("recentArtwork", "").orEmpty(),
+            recommendationArtwork = prefs.getString("recommendationArtwork", "").orEmpty(),
+            reportArtwork = prefs.getString("reportArtwork", "").orEmpty(),
             hasTrack = prefs.getBoolean("hasTrack", false),
             isPlaying = prefs.getBoolean("isPlaying", false),
             position = prefs.getFloat("position", 0f).toDouble(),
@@ -143,13 +201,21 @@ private fun createRemoteViews(context: Context, widgetId: Int, layout: Int, stat
 
     if (layout == R.layout.widget_music_feature) {
         listOf(
-            Triple(R.id.shortcut_favorites, "nav_love", "喜欢"),
-            Triple(R.id.shortcut_recent, "nav_love_recent", "最近播放"),
-            Triple(R.id.shortcut_recommend, "nav_search", "今日推荐"),
-            Triple(R.id.shortcut_report, "nav_report", "听歌报告"),
-        ).forEach { (viewId, route, label) ->
-            views.setOnClickPendingIntent(viewId, shortcut(context, widgetId, route))
-            views.setContentDescription(viewId, label)
+            WidgetShortcutView(R.id.shortcut_favorites, R.id.shortcut_favorites_artwork, R.id.shortcut_favorites_scrim, R.id.shortcut_favorites_icon, R.id.shortcut_favorites_label, state.favoritesArtwork, "nav_love", "喜欢", Color.parseColor("#FF3D3348")),
+            WidgetShortcutView(R.id.shortcut_recent, R.id.shortcut_recent_artwork, R.id.shortcut_recent_scrim, R.id.shortcut_recent_icon, R.id.shortcut_recent_label, state.recentArtwork, "nav_love_recent", "最近播放", Color.parseColor("#FF30474F")),
+            WidgetShortcutView(R.id.shortcut_recommend, R.id.shortcut_recommend_artwork, R.id.shortcut_recommend_scrim, R.id.shortcut_recommend_icon, R.id.shortcut_recommend_label, state.recommendationArtwork, "nav_search", "今日推荐", Color.parseColor("#FF584727")),
+            WidgetShortcutView(R.id.shortcut_report, R.id.shortcut_report_artwork, R.id.shortcut_report_scrim, R.id.shortcut_report_icon, R.id.shortcut_report_label, state.reportArtwork, "nav_report", "听歌报告", Color.parseColor("#FF344B35")),
+        ).forEach { tile ->
+            views.setOnClickPendingIntent(tile.viewId, shortcut(context, widgetId, tile.route))
+            views.setContentDescription(tile.viewId, tile.label)
+            val tileCover = WidgetArtworkCache.get(context, tile.artwork, state.artworkUserAgent) { HomeWidgetController.updateAll(context) }
+            val hasArtwork = tileCover != null
+            views.setViewVisibility(tile.artworkViewId, if (hasArtwork) View.VISIBLE else View.GONE)
+            views.setViewVisibility(tile.scrimViewId, if (hasArtwork) View.VISIBLE else View.GONE)
+            if (tileCover != null) views.setImageViewBitmap(tile.artworkViewId, tileCover)
+            val foreground = if (hasArtwork) Color.WHITE else tile.fallbackColor
+            views.setTextColor(tile.labelViewId, foreground)
+            views.setInt(tile.iconViewId, "setColorFilter", foreground)
         }
     }
 

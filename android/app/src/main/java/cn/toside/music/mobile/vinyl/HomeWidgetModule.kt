@@ -15,7 +15,7 @@ class HomeWidgetModule(private val context: ReactApplicationContext) : ReactCont
         fun number(key: String) = if (map.hasKey(key) && map.getType(key) == ReadableType.Number) map.getDouble(key).takeIf(Double::isFinite) ?: 0.0 else 0.0
         fun bool(key: String) = map.hasKey(key) && map.getType(key) == ReadableType.Boolean && map.getBoolean(key)
 
-        HomeWidgetController.update(context, MusicWidgetState(
+        HomeWidgetController.updatePlayer(context, MusicWidgetState(
             trackId = string("trackId"),
             title = string("title"),
             artist = string("artist"),
@@ -27,5 +27,19 @@ class HomeWidgetModule(private val context: ReactApplicationContext) : ReactCont
             duration = number("duration").coerceAtLeast(0.0),
             seekRevision = number("seekRevision").toInt(),
         ))
+    }
+
+    @ReactMethod
+    fun updateShortcutArtworks(map: ReadableMap) {
+        val artworks = mutableMapOf<String, String>()
+        for (key in listOf("favorites", "recent", "recommendation", "report")) {
+            if (map.hasKey(key) && map.getType(key) == ReadableType.String) {
+                artworks[key] = map.getString(key).orEmpty()
+            }
+        }
+        val userAgent = if (map.hasKey("artworkUserAgent") && map.getType("artworkUserAgent") == ReadableType.String) {
+            map.getString("artworkUserAgent").orEmpty()
+        } else null
+        HomeWidgetController.updateShortcutArtworks(context, artworks, userAgent)
     }
 }

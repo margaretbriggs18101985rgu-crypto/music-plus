@@ -10,6 +10,7 @@ import { setNavActiveId } from '@/core/common'
 import { getListMusics } from '@/core/list'
 import { playLibraryMusic, getRecentTracks, LIBRARY_EVENT, type RecentTrack } from '@/core/music/library'
 import { buildListeningProfile, getRecommendedSongs, getRecommendedPlaylists, getRecommendationSource, getRecommendationProfileKey, getTopLanguage, MAX_RECOMMENDED_SONGS } from '@/core/music/recommendation'
+import { updateHomeWidgetRecommendationArtwork } from '@/core/music/homeWidget'
 import { playList, togglePlay } from '@/core/player/player'
 import { playRecommendedSongs as startRecommendedSongs } from '@/core/music/recommendationPlayback'
 import { usePlayerMusicInfo } from '@/store/player/hook'
@@ -37,6 +38,9 @@ export default ({ refreshKey, onRefreshComplete }: ListeningHomeProps) => {
   const [songs, setSongs] = useState<LX.Music.MusicInfo[]>([])
   const [recent, setRecent] = useState<RecentTrack[]>([])
   const [recommendations, setRecommendations] = useState<LX.Music.MusicInfo[]>([])
+  useEffect(() => {
+    updateHomeWidgetRecommendationArtwork(recommendations[0]?.meta?.picUrl)
+  }, [recommendations])
   const [favoriteIds, setFavoriteIds] = useState<string[]>([])
   const [favoritesLoaded, setFavoritesLoaded] = useState(false)
   const [playingAll, setPlayingAll] = useState(false)

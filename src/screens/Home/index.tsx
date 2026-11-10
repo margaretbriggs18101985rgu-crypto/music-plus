@@ -10,6 +10,7 @@ import settingState from '@/store/setting/state'
 import PlaybackQueue from '@/components/player/PlaybackQueue'
 import PlayerTools from '@/components/player/PlayerTools'
 import { startRecentTracking } from '@/core/music/library'
+import { startHomeWidgetArtworkSync } from '@/core/music/homeWidget'
 
 
 interface Props {
@@ -20,6 +21,7 @@ interface Props {
 export default ({ componentId }: Props) => {
   const isHorizontalMode = useHorizontalMode()
   useEffect(startRecentTracking, [])
+  useEffect(startHomeWidgetArtworkSync, [])
   useEffect(() => {
     setComponentId(COMPONENT_IDS.home, componentId)
     // eslint-disable-next-line react-hooks/exhaustive-deps

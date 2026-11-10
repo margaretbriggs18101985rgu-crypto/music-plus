@@ -5,7 +5,10 @@
     android:background="@drawable/widget_background"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="10dp">
+    android:paddingStart="8dp"
+    android:paddingTop="6dp"
+    android:paddingEnd="8dp"
+    android:paddingBottom="6dp">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -16,15 +19,14 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="72dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <ImageView
                 android:id="@+id/widget_artwork"
-                android:layout_width="76dp"
-                android:layout_height="76dp"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
                 android:background="#FFE8EAED"
                 android:contentDescription="专辑封面"
                 android:scaleType="centerCrop" />
@@ -32,8 +34,9 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="8dp"
                 android:layout_weight="1"
+                android:gravity="center_vertical"
                 android:orientation="vertical">
 
                 <TextView
@@ -44,19 +47,19 @@
                     android:maxLines="2"
                     android:text="MUSIC++"
                     android:textColor="#FF17191B"
-                    android:textSize="15sp"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/widget_artist"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="选择歌曲开始播放"
                     android:textColor="#FF686D72"
-                    android:textSize="12sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
         </LinearLayout>
 
@@ -65,7 +68,7 @@
             style="@android:style/Widget.ProgressBar.Horizontal"
             android:layout_width="match_parent"
             android:layout_height="4dp"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="6dp"
             android:max="1000"
             android:progress="0"
             android:progressBackgroundTint="#FFD9DDE0"
@@ -79,24 +82,27 @@
 
             <ImageView
                 android:id="@+id/widget_previous"
-                android:layout_width="48dp"
+                android:layout_width="0dp"
                 android:layout_height="48dp"
+                android:layout_weight="1"
                 android:contentDescription="上一首"
                 android:padding="12dp"
                 android:src="@drawable/ic_widget_previous" />
 
             <ImageView
                 android:id="@+id/widget_play"
-                android:layout_width="48dp"
+                android:layout_width="0dp"
                 android:layout_height="48dp"
+                android:layout_weight="1"
                 android:contentDescription="播放或暂停"
                 android:padding="3dp"
                 android:src="@drawable/ic_widget_play" />
 
             <ImageView
                 android:id="@+id/widget_next"
-                android:layout_width="48dp"
+                android:layout_width="0dp"
                 android:layout_height="48dp"
+                android:layout_weight="1"
                 android:contentDescription="下一首"
                 android:padding="12dp"
                 android:src="@drawable/ic_widget_next" />
@@ -104,7 +110,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="142dp"
+        android:layout_width="112dp"
         android:layout_height="match_parent"
         android:layout_marginStart="8dp"
         android:orientation="vertical">
@@ -115,65 +121,141 @@
             android:layout_weight="1"
             android:orientation="horizontal">
 
-            <LinearLayout
+            <FrameLayout
                 android:id="@+id/shortcut_favorites"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="3dp"
                 android:layout_weight="1"
-                android:background="@drawable/widget_shortcut_favorites"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="" android:src="@drawable/ic_widget_heart" />
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:maxLines="1" android:text="喜欢" android:textColor="#FF3D3348" android:textSize="11sp" />
-            </LinearLayout>
+                android:background="@drawable/widget_shortcut_favorites">
 
-            <LinearLayout
+                <ImageView
+                    android:id="@+id/shortcut_favorites_artwork"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/widget_shortcut_favorites"
+                    android:clipToOutline="true"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+                <ImageView
+                    android:id="@+id/shortcut_favorites_scrim"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/widget_shortcut_scrim"
+                    android:visibility="gone" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <ImageView android:id="@+id/shortcut_favorites_icon" android:layout_width="22dp" android:layout_height="22dp" android:contentDescription="" android:src="@drawable/ic_widget_heart" />
+                    <TextView android:id="@+id/shortcut_favorites_label" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:maxLines="1" android:text="喜欢" android:textColor="#FF3D3348" android:textSize="10sp" />
+                </LinearLayout>
+            </FrameLayout>
+
+            <FrameLayout
                 android:id="@+id/shortcut_recent"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginStart="4dp"
+                android:layout_marginStart="3dp"
                 android:layout_weight="1"
-                android:background="@drawable/widget_shortcut_recent"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="" android:src="@drawable/ic_widget_history" />
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:maxLines="1" android:text="最近" android:textColor="#FF30474F" android:textSize="11sp" />
-            </LinearLayout>
+                android:background="@drawable/widget_shortcut_recent">
+
+                <ImageView
+                    android:id="@+id/shortcut_recent_artwork"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/widget_shortcut_recent"
+                    android:clipToOutline="true"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+                <ImageView
+                    android:id="@+id/shortcut_recent_scrim"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/widget_shortcut_scrim"
+                    android:visibility="gone" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <ImageView android:id="@+id/shortcut_recent_icon" android:layout_width="22dp" android:layout_height="22dp" android:contentDescription="" android:src="@drawable/ic_widget_history" />
+                    <TextView android:id="@+id/shortcut_recent_label" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:maxLines="1" android:text="最近" android:textColor="#FF30474F" android:textSize="10sp" />
+                </LinearLayout>
+            </FrameLayout>
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:layout_weight="1"
             android:orientation="horizontal">
 
-            <LinearLayout
+            <FrameLayout
                 android:id="@+id/shortcut_recommend"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="3dp"
                 android:layout_weight="1"
-                android:background="@drawable/widget_shortcut_recommend"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="" android:src="@drawable/ic_widget_recommend" />
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:maxLines="1" android:text="今日推荐" android:textColor="#FF584727" android:textSize="10sp" />
-            </LinearLayout>
+                android:background="@drawable/widget_shortcut_recommend">
 
-            <LinearLayout
+                <ImageView
+                    android:id="@+id/shortcut_recommend_artwork"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/widget_shortcut_recommend"
+                    android:clipToOutline="true"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+                <ImageView
+                    android:id="@+id/shortcut_recommend_scrim"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/widget_shortcut_scrim"
+                    android:visibility="gone" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <ImageView android:id="@+id/shortcut_recommend_icon" android:layout_width="22dp" android:layout_height="22dp" android:contentDescription="" android:src="@drawable/ic_widget_recommend" />
+                    <TextView android:id="@+id/shortcut_recommend_label" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:maxLines="1" android:text="今日推荐" android:textColor="#FF584727" android:textSize="9sp" />
+                </LinearLayout>
+            </FrameLayout>
+
+            <FrameLayout
                 android:id="@+id/shortcut_report"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginStart="4dp"
+                android:layout_marginStart="3dp"
                 android:layout_weight="1"
-                android:background="@drawable/widget_shortcut_report"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="" android:src="@drawable/ic_widget_report" />
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:maxLines="1" android:text="听歌报告" android:textColor="#FF344B35" android:textSize="10sp" />
-            </LinearLayout>
+                android:background="@drawable/widget_shortcut_report">
+
+                <ImageView
+                    android:id="@+id/shortcut_report_artwork"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/widget_shortcut_report"
+                    android:clipToOutline="true"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+                <ImageView
+                    android:id="@+id/shortcut_report_scrim"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/widget_shortcut_scrim"
+                    android:visibility="gone" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <ImageView android:id="@+id/shortcut_report_icon" android:layout_width="22dp" android:layout_height="22dp" android:contentDescription="" android:src="@drawable/ic_widget_report" />
+                    <TextView android:id="@+id/shortcut_report_label" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:maxLines="1" android:text="听歌报告" android:textColor="#FF344B35" android:textSize="9sp" />
+                </LinearLayout>
+            </FrameLayout>
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
